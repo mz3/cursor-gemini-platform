@@ -66,24 +66,33 @@ jobs:
         run: npm install
         working-directory: ./platform-ui
 
-      - name: Build and start services (Docker Compose)
+      - name: Install PostgreSQL and Redis clients
         run: |
-          docker compose up -d --build
-          sleep 20 # Wait for services to be healthy
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client redis-tools
+
+      - name: Wait for services to be ready
+        run: |
+          echo "Waiting for PostgreSQL..."
+          until pg_isready -h localhost -p 5433 -U platform_user -d platform_db; do
+            sleep 1
+          done
+          echo "PostgreSQL is ready!"
+
+          echo "Waiting for Redis..."
+          until redis-cli -h localhost -p 6379 ping; do
+            sleep 1
+          done
+          echo "Redis is ready!"
 
       - name: Run API tests
-        run: docker exec platform-api npm test
+        run: npm test
+        working-directory: ./platform-api
+
+      - name: Run UI tests
+        run: npm test
+        working-directory: ./platform-ui
 
       - name: Run UI E2E tests
-        run: |
-          docker exec platform-ui npm run test:e2e || true
-
-      - name: Show container logs on failure
-        if: failure()
-        run: |
-          docker logs platform-api || true
-          docker logs platform-ui || true
-
-      - name: Stop services
-        if: always()
-        run: docker compose down
+        run: npm run test:e2e
+        working-directory: ./platform-ui
