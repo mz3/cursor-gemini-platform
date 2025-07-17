@@ -78,7 +78,7 @@ services:
       - platform-net
     volumes:
       - ./platform-ui:/app
-      - /app/node_modules
+      - platform-ui-node-modules:/app/node_modules
 
   worker:
     build:
@@ -109,6 +109,7 @@ services:
 
 volumes:
   postgres-data:
+  platform-ui-node-modules:
 
 networks:
   platform-net:

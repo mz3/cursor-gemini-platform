@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { Home, Database, AppWindow, Settings, Plus, LogOut, User } from 'lucide-react';
+import { Home, Database, AppWindow, Settings, Plus, LogOut, User, MessageSquare } from 'lucide-react';
 import Login from './components/Login';
 import Dashboard from './components/Dashboard';
 import Models from './components/Models';
 import CreateModel from './components/CreateModel';
 import Applications from './components/Applications';
+import Prompts from './components/Prompts';
+import CreatePrompt from './components/CreatePrompt';
+import EditPrompt from './components/EditPrompt';
+import PromptVersions from './components/PromptVersions';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { cn } from './utils/cn';
 
@@ -21,14 +25,16 @@ const AppContent: React.FC = () => {
     { name: 'Dashboard', href: '/', icon: Home },
     { name: 'Models', href: '/models', icon: Database },
     { name: 'Applications', href: '/applications', icon: AppWindow },
+    { name: 'Prompts', href: '/prompts', icon: MessageSquare },
     { name: 'Settings', href: '/settings', icon: Settings },
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="app-root">
       {/* Sidebar */}
-      <div className={cn(
-        "fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out",
+      <aside className={cn(
+        "app-sidebar",
+        "fixed inset-y-0 left-0 z-50 transform transition-transform duration-300 ease-in-out",
         sidebarOpen ? "translate-x-0" : "-translate-x-full",
         "lg:translate-x-0 lg:static lg:inset-0"
       )}>
@@ -76,10 +82,10 @@ const AppContent: React.FC = () => {
             </div>
           </div>
         </div>
-      </div>
+      </aside>
 
       {/* Main content */}
-      <div className="lg:pl-64">
+      <main className="app-main lg:pl-64">
         {/* Top bar */}
         <div className="sticky top-0 z-40 bg-white shadow-sm border-b border-gray-200">
           <div className="flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8">
@@ -96,17 +102,21 @@ const AppContent: React.FC = () => {
         </div>
 
         {/* Page content */}
-        <main className="p-4 sm:p-6 lg:p-8">
+        <div className="p-4 sm:p-6 lg:p-8">
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/models" element={<Models />} />
             <Route path="/models/create" element={<CreateModel />} />
             <Route path="/applications" element={<Applications />} />
+            <Route path="/prompts" element={<Prompts />} />
+            <Route path="/prompts/create" element={<CreatePrompt />} />
+            <Route path="/prompts/:id/edit" element={<EditPrompt />} />
+            <Route path="/prompts/:id/versions" element={<PromptVersions />} />
             <Route path="/settings" element={<div className="text-center py-12"><h2 className="text-2xl font-semibold text-gray-900">Settings</h2><p className="text-gray-600 mt-2">Settings page coming soon...</p></div>} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
-        </main>
-      </div>
+        </div>
+      </main>
 
       {/* Mobile overlay */}
       {sidebarOpen && (

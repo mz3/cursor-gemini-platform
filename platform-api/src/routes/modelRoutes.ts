@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { AppDataSource } from '../config/database';
 import { Model } from '../entities/Model';
+import { Relationship } from '../entities/Relationship';
 
 const router = Router();
 const modelRepository = AppDataSource.getRepository(Model);
@@ -35,10 +36,10 @@ router.get('/:id', async (req, res, next) => {
   }
 });
 
-// POST /api/models - Create new model
+// POST /api/models - Create new model (with optional relationships)
 router.post('/', async (req, res, next) => {
   try {
-    const { name, displayName, schema, userId } = req.body;
+    const { name, displayName, schema, userId, relationships } = req.body;
 
     if (!name || !displayName || !schema || !userId) {
       return res.status(400).json({ error: 'Missing required fields' });
@@ -53,7 +54,30 @@ router.post('/', async (req, res, next) => {
     });
 
     const savedModel = await modelRepository.save(model);
-    return res.status(201).json(savedModel);
+
+    // Create relationships if provided
+    let createdRelationships = [];
+    if (Array.isArray(relationships) && relationships.length > 0) {
+      const relationshipRepo = AppDataSource.getRepository(Relationship);
+      for (const rel of relationships) {
+        const relationship = relationshipRepo.create({ ...rel, sourceModelId: savedModel.id, userId });
+        await relationshipRepo.save(relationship);
+        createdRelationships.push(relationship);
+      }
+    }
+
+    return res.status(201).json({ ...savedModel, relationships: createdRelationships });
+  } catch (error) {
+    return next(error);
+  }
+});
+
+// GET /api/models/:id/relationships - Get relationships for a model
+router.get('/:id/relationships', async (req, res, next) => {
+  try {
+    const relationshipRepo = AppDataSource.getRepository(Relationship);
+    const relationships = await relationshipRepo.find({ where: { sourceModelId: req.params.id } });
+    return res.json(relationships);
   } catch (error) {
     return next(error);
   }

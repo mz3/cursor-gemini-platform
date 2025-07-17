@@ -1,3 +1,4 @@
+// HOT RELOAD TEST: This comment was added to test live reload.
 import React, { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, Database, Eye } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -57,7 +58,7 @@ const Models: React.FC = () => {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Models</h1>
-          <p className="text-gray-600">Manage your data models and schemas</p>
+          <p className="text-gray-600">Manage your data models and sdsffsdfsdchemas</p>
         </div>
         <button
           onClick={() => navigate('/models/create')}

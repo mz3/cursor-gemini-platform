@@ -10,6 +10,7 @@ import { modelRoutes } from './routes/modelRoutes';
 import { applicationRoutes } from './routes/applicationRoutes';
 import { userRoutes } from './routes/userRoutes';
 import { workflowRoutes } from './routes/workflowRoutes';
+import promptRoutes from './routes/promptRoutes';
 import { errorHandler } from './middleware/errorHandler';
 import { seedDatabase } from './utils/seedDatabase';
 
@@ -35,6 +36,7 @@ app.use('/api/models', modelRoutes);
 app.use('/api/applications', applicationRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/workflows', workflowRoutes);
+app.use('/api/prompts', promptRoutes);
 
 // Error handling
 app.use(errorHandler);

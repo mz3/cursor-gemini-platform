@@ -8,8 +8,11 @@ COPY package*.json ./
 # Install dependencies
 RUN npm install
 
-# Expose port
+# Copy the rest of the app
+COPY . .
+
+# Expose port for Vite dev server
 EXPOSE 3000
 
-# Start the application in development mode with proxy support
-CMD ["npm", "start"]
+# Start the Vite dev server
+CMD ["npm", "run", "dev"]

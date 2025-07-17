@@ -1,17 +1,10 @@
 import request from 'supertest';
-import { AppDataSource } from '../config/database';
-import { app } from '../index';
+
+const API_BASE_URL = 'http://localhost:4000';
 
 describe('POST /api/users/login', () => {
-  beforeAll(async () => {
-    await AppDataSource.initialize();
-  });
-  afterAll(async () => {
-    await AppDataSource.destroy();
-  });
-
   it('should login successfully with valid credentials', async () => {
-    const res = await request(app)
+    const res = await request(API_BASE_URL)
       .post('/api/users/login')
       .send({ email: 'admin@platform.com', password: 'admin123' });
     expect(res.status).toBe(200);
@@ -25,7 +18,7 @@ describe('POST /api/users/login', () => {
   });
 
   it('should fail with invalid credentials', async () => {
-    const res = await request(app)
+    const res = await request(API_BASE_URL)
       .post('/api/users/login')
       .send({ email: 'admin@platform.com', password: 'wrongpassword' });
     expect(res.status).toBe(401);

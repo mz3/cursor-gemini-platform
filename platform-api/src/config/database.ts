@@ -7,6 +7,8 @@ import { Template } from '../entities/Template';
 import { Workflow } from '../entities/Workflow';
 import { WorkflowAction } from '../entities/WorkflowAction';
 import { CodeTemplate } from '../entities/CodeTemplate';
+import { Relationship } from '../entities/Relationship';
+import { Prompt } from '../entities/Prompt';
 
 export const AppDataSource = new DataSource({
   type: 'postgres',
@@ -15,9 +17,20 @@ export const AppDataSource = new DataSource({
   username: process.env.DB_USER || 'platform_user',
   password: process.env.DB_PASSWORD || 'platform_password',
   database: process.env.DB_NAME || 'platform_db',
-  synchronize: process.env.NODE_ENV === 'development',
+  synchronize: process.env.NODE_ENV !== 'production',
   logging: process.env.NODE_ENV === 'development',
-  entities: [User, Model, Application, Component, Template, Workflow, WorkflowAction, CodeTemplate],
+  entities: [
+    User,
+    Model,
+    Application,
+    Workflow,
+    WorkflowAction,
+    Component,
+    Template,
+    CodeTemplate,
+    Relationship,
+    Prompt
+  ],
   migrations: ['src/migrations/*.ts'],
   subscribers: ['src/subscribers/*.ts'],
 });
