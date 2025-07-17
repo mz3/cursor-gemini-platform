@@ -1,0 +1,115 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:14-alpine
+    container_name: platform-postgres
+    environment:
+      POSTGRES_USER: platform_user
+      POSTGRES_PASSWORD: platform_password
+      POSTGRES_DB: platform_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - platform-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U platform_user -d platform_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: platform-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - platform-net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  platform-api:
+    build:
+      context: ./platform-api
+      dockerfile: Dockerfile
+    container_name: platform-api
+    environment:
+      NODE_ENV: development
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: platform_user
+      DB_PASSWORD: platform_password
+      DB_NAME: platform_db
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      API_PORT: 4000
+      JWT_SECRET: your-super-secret-jwt-key-change-in-production
+    ports:
+      - "4000:4000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - platform-net
+    volumes:
+      - ./platform-api:/app
+      - /app/node_modules
+
+  platform-ui:
+    build:
+      context: ./platform-ui
+      dockerfile: Dockerfile
+    container_name: platform-ui
+    environment:
+      REACT_APP_API_URL: http://localhost:4000
+      REACT_APP_WS_URL: ws://localhost:4000
+    ports:
+      - "3000:3000"
+    depends_on:
+      - platform-api
+    networks:
+      - platform-net
+    volumes:
+      - ./platform-ui:/app
+      - /app/node_modules
+
+  worker:
+    build:
+      context: ./worker
+      dockerfile: Dockerfile
+    container_name: platform-worker
+    environment:
+      NODE_ENV: development
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: platform_user
+      DB_PASSWORD: platform_password
+      DB_NAME: platform_db
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - platform-net
+    volumes:
+      - ./worker:/app
+      - /app/node_modules
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./generated-apps:/app/generated-apps
+
+volumes:
+  postgres-data:
+
+networks:
+  platform-net:
+    driver: bridge

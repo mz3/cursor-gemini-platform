@@ -1,0 +1,283 @@
+# Cursor Rules for Meta-Application Platform
+
+## Project Overview
+This is a meta-application platform with 5 microservices orchestrated by Docker Compose:
+- `platform-api`: Node.js/TypeScript API server (port 4000)
+- `platform-ui`: React frontend (port 3000)
+- `worker`: Node.js/TypeScript background worker
+- `postgres`: PostgreSQL database (port 5433)
+- `redis`: Redis message queue (port 6379)
+
+## Development Workflow
+
+### Starting the Platform
+```bash
+# Start all services
+docker compose up --build
+
+# Start specific service
+docker compose up --build platform-api
+
+# View logs
+docker logs platform-api --tail 50
+docker logs platform-ui --tail 50
+```
+
+### Development Mode
+- **platform-api**: Uses `ts-node-dev` for live reloading
+- **platform-ui**: Uses `react-scripts start` with proxy to API
+- **worker**: Uses `ts-node-dev` for live reloading
+- All services have volume mounts for hot reloading
+
+### API Development
+- API runs on `http://localhost:4000`
+- Uses TypeORM with PostgreSQL
+- JWT authentication
+- RESTful endpoints under `/api/*`
+- Redis for job queues
+
+### Frontend Development
+- React app runs on `http://localhost:3000`
+- Proxy configured to forward `/api/*` to `platform-api:4000`
+- Uses Tailwind CSS for styling
+- React Router for navigation
+- Axios for API calls
+
+### Database
+- PostgreSQL runs on port 5433 (to avoid conflicts)
+- Database: `platform_db`
+- User: `platform_user`
+- Password: `platform_password`
+- Auto-seeded with initial data
+
+## Testing Guidelines
+
+### Running Tests
+```bash
+# API tests
+cd platform-api && npm test
+
+# React tests
+cd platform-ui && npm test
+
+# E2E tests
+cd platform-ui && npm run test:e2e
+
+# All tests with coverage
+cd platform-api && npm run test:coverage
+```
+
+### Test Structure
+- **Unit Tests**: Jest for API, React Testing Library for UI
+- **Integration Tests**: Supertest for API endpoints
+- **E2E Tests**: Cypress for full user flows
+- **Coverage**: Aim for >80% coverage
+
+## Architecture Patterns
+
+### API Routes
+- Follow RESTful conventions
+- Use TypeORM repositories
+- Implement proper error handling
+- Add authentication middleware where needed
+- Use JWT for stateless auth
+
+### Frontend Components
+- Use functional components with hooks
+- Implement proper error boundaries
+- Use React Context for global state
+- Follow TypeScript best practices
+- Use Tailwind utility classes
+
+### Database Entities
+- Use TypeORM decorators
+- Implement proper relationships
+- Add validation decorators
+- Use UUIDs for primary keys
+- Include timestamps (createdAt, updatedAt)
+
+### Worker Jobs
+- Use Redis queues for async processing
+- Implement proper error handling
+- Add job retry logic
+- Log job progress and results
+- Use Docker for building applications
+
+## Code Quality
+
+### TypeScript
+- Use strict mode
+- Define proper interfaces
+- Avoid `any` types
+- Use proper return types
+- Implement proper error handling
+
+### ESLint & Prettier
+- Follow consistent code style
+- Use meaningful variable names
+- Add proper JSDoc comments
+- Keep functions small and focused
+- Use proper import/export patterns
+
+### Git Workflow
+- Use conventional commits
+- Create feature branches
+- Write meaningful commit messages
+- Keep commits atomic
+- Update documentation
+
+## Container Management
+
+### Docker Commands
+```bash
+# Rebuild specific service
+docker compose build platform-api
+
+# Restart service
+docker restart platform-api
+
+# View running containers
+docker ps
+
+# Access container shell
+docker exec -it platform-api sh
+
+# View container logs
+docker logs -f platform-api
+```
+
+### Volume Mounts
+- Source code mounted for hot reloading
+- Node modules excluded from mounts
+- Database data persisted in volumes
+- Generated apps stored in shared volume
+
+### Environment Variables
+- Use `.env` files for local development
+- Set proper defaults in docker-compose.yml
+- Use different configs for dev/test/prod
+- Never commit sensitive data
+
+## Debugging
+
+### API Debugging
+- Check container logs: `docker logs platform-api`
+- Use Postman/curl for API testing
+- Check database connections
+- Verify Redis connectivity
+- Monitor TypeORM queries
+
+### Frontend Debugging
+- Check browser console for errors
+- Verify proxy configuration
+- Test API endpoints directly
+- Check authentication flow
+- Monitor network requests
+
+### Database Debugging
+- Connect to PostgreSQL: `psql -h localhost -p 5433 -U platform_user -d platform_db`
+- Check migrations: `npm run migration:status`
+- Verify seed data
+- Monitor query performance
+
+## Performance
+
+### API Performance
+- Use connection pooling
+- Implement proper indexing
+- Add caching where appropriate
+- Monitor query performance
+- Use pagination for large datasets
+
+### Frontend Performance
+- Implement code splitting
+- Use React.memo for expensive components
+- Optimize bundle size
+- Implement proper loading states
+- Use proper image optimization
+
+## Security
+
+### Authentication
+- Use JWT with proper expiration
+- Implement refresh tokens
+- Hash passwords with bcrypt
+- Validate input data
+- Use HTTPS in production
+
+### API Security
+- Implement rate limiting
+- Use CORS properly
+- Validate all inputs
+- Sanitize user data
+- Use helmet for security headers
+
+## Deployment
+
+### Production Considerations
+- Use multi-stage Docker builds
+- Implement health checks
+- Set up proper logging
+- Configure monitoring
+- Use environment-specific configs
+
+### Environment Variables
+- Database credentials
+- JWT secrets
+- API keys
+- Redis configuration
+- External service URLs
+
+## Common Issues & Solutions
+
+### Port Conflicts
+- PostgreSQL uses port 5433 (not 5432)
+- Check for existing services on ports
+- Use `netstat -ano | findstr :PORT` to check
+
+### Container Networking
+- Services communicate via Docker network
+- Use service names, not localhost
+- Proxy configured for frontend->API communication
+
+### Hot Reloading Issues
+- Ensure volume mounts are correct
+- Check file permissions
+- Restart containers if needed
+- Clear node_modules if necessary
+
+### Database Issues
+- Check container health status
+- Verify connection strings
+- Run migrations manually if needed
+- Check seed data execution
+
+## Best Practices
+
+### Code Organization
+- Keep related files together
+- Use consistent naming conventions
+- Separate concerns properly
+- Follow single responsibility principle
+- Use proper folder structure
+
+### Error Handling
+- Implement proper try-catch blocks
+- Use custom error classes
+- Log errors appropriately
+- Provide meaningful error messages
+- Handle edge cases
+
+### Testing
+- Write tests for new features
+- Maintain test coverage
+- Use proper test data
+- Mock external dependencies
+- Test error scenarios
+
+### Documentation
+- Keep README updated
+- Document API endpoints
+- Add inline comments
+- Update architecture docs
+- Document deployment process
