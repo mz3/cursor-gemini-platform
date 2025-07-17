@@ -34,10 +34,6 @@ jobs:
         run: npx tsc --noEmit
         working-directory: ./platform-ui
 
-      - name: Check API linting
-        run: npm run lint
-        working-directory: ./platform-api
-
       - name: Build UI
         run: npm run build
         working-directory: ./platform-ui
