@@ -1,84 +1,113 @@
 AI-Assisted Development Prompt: Meta-Application Platform
-Objective: Generate the foundational docker-compose.yml file for a meta-application platform.
 
-Project Vision:
-We are building a highly dynamic Platform-as-a-Service (PaaS) where users can visually design and model their own applications. The platform's own UI is driven by the same modeling system, creating a "meta" experience. Users define their data schemas, and the platform not only provides a UI to manage that data but also generates, builds, and manages a complete, standalone Dockerized application based on their design.
+Objective: Generate a complete, ready-to-develop meta-application platform with Docker Compose, Node.js v24, TypeScript, React, and hot-reloading for all services. The generated platform should require minimal manual revision and support rapid iteration, robust testing, and a modern developer experience.
 
-1. The Core User Experience (The "Meta-Loop")
-This is the central concept the AI must understand.
+---
 
-Initial State: A new user signs up and gets a pre-populated database with a default set of Models, including Model, Application, User, Component, Template, etc. This data originates from seed YAML files.
+## Project Vision
+We are building a highly dynamic Platform-as-a-Service (PaaS) where users visually design and model their own applications. The platform's UI is driven by the same modeling system, creating a "meta" experience. Users define their data schemas, and the platform provides a UI to manage that data and generates, builds, and manages a complete, standalone Dockerized application based on their design.
 
-Dynamic UI Rendering: The React frontend (platform-ui) starts. It makes an API call to GET /api/models. The API returns the list of all Model entities the user owns. The React app dynamically generates a navigation bar with an item for each model (e.g., a tab for "Models", a tab for "Applications", etc.).
+## System Architecture
+- **platform-api**: Node.js v24, TypeScript, REST API, TypeORM, JWT auth, connects to Postgres and Redis, uses ts-node-dev for hot reload.
+- **platform-ui**: React (TypeScript), Tailwind CSS, React Router, Axios, runs on Node.js v24, uses react-scripts start for hot reload, proxy to API, E2E tests with Cypress.
+- **worker**: Node.js v24, TypeScript, background jobs, connects to Postgres and Redis, uses ts-node-dev for hot reload, listens to Redis queues, builds Docker images.
+- **postgres**: PostgreSQL 14, runs on port 5433, seeded with initial data.
+- **redis**: Redis 7, message queue for async jobs.
 
-Data Management: The user clicks the "Applications" tab. The UI navigates to /applications and makes a GET /api/applications call to fetch and display all entities of the Application model. The user can create, view, and edit their applications here.
+All custom services use Dockerfiles based on node:24-alpine. Source code is NOT copied into the image; instead, it is mounted as a volume for live reload. node_modules is excluded from mounts to avoid conflicts.
 
-The "Aha!" Moment (Creating a New Model): The user navigates to the /models page and creates a new Model named "Invoice". This has a side effect: the backend creates a new table in the database called ent_invoices.
+## Docker Compose Configuration
+- Compose file defines all 5 services with correct ports, healthchecks, and environment variables.
+- platform-api: port 4000, volume ./platform-api:/app, command: npm run dev
+- platform-ui: port 3000, volume ./platform-ui:/app, command: npm start
+- worker: volume ./worker:/app, command: npm run dev, mounts Docker socket and generated-apps
+- postgres: port 5433:5432, volume postgres-data:/var/lib/postgresql/data
+- redis: port 6379:6379
+- All services on a shared bridge network
 
-UI Reacts to Schema Change: The next time the user loads the dashboard, the call to GET /api/models now includes "Invoice". The React UI automatically adds a new "Invoices" tab to the navigation. Clicking it takes the user to /invoices, where they can now manage their invoice data. The UI itself has adapted to the user's schema changes without any new code being deployed.
+## Development Workflow
+- Start all services: `docker compose up --build`
+- Code changes are reflected live (hot reload) due to volume mounts; no need to rebuild containers for code changes
+- If hot reload fails, restart the affected container: `docker restart <service>`
+- Logs: `docker logs <service> --tail 50`
+- Access container shell: `docker exec -it <service> sh`
 
-2. System Architecture & Asynchronous Workflow
-The system is composed of five microservices orchestrated by Docker Compose. The interaction between them is event-driven to ensure the API remains responsive.
+## Testing
+- **API**: Jest for unit tests, Supertest for integration tests (`cd platform-api && npm test`)
+- **UI**: React Testing Library for unit tests (`cd platform-ui && npm test`)
+- **E2E**: Cypress for end-to-end tests (`cd platform-ui && npm run test:e2e`)
+- **Coverage**: Aim for >80% coverage; run `cd platform-api && npm run test:coverage`
+- Test structure: .spec.ts for unit, .integration.ts for integration, .e2e.ts for E2E
 
-platform-ui (React Frontend): The user's interface to the system. It is dynamically rendered based on the user's own data models.
+## UI/UX Layout
+- Sidebar navigation with Dashboard, Models, Applications, Settings
+- Top bar with hamburger for mobile, no global "New App" button
+- "New Application" button appears only on the Applications page
+- Models and Applications pages have their own "New Model"/"New Application" buttons
+- Uses React Context for auth, Tailwind for styling, React Router for navigation
 
-platform-api (Node.js/TypeScript Control Plane):
+## Initial Database Seeding
+- On first run, the API seeds the database with default models: User, Model, Application, Property, Relationship, Component, Template
+- Default admin user: admin@platform.com / admin123
 
-Manages all metadata via a TypeORM connection to a PostgreSQL database.
+## Best Practices & Troubleshooting
+- Use TypeScript strict mode, proper interfaces, and error handling
+- Use ESLint and Prettier for code style
+- Use conventional commits and atomic PRs
+- Never commit sensitive data; use .env files for secrets
+- If hot reload breaks, check volume mounts, file permissions, and restart containers
+- For database issues, check health status, connection strings, and seed data
+- For frontend issues, check browser console, proxy config, and network requests
 
-Exposes a REST API for the frontend (e.g., GET /api/models, POST /api/applications).
+## Example docker-compose.yml (abbreviated)
+```
+version: '3.8'
+services:
+  platform-api:
+    build: ./platform-api
+    image: platform-api
+    ports: ["4000:4000"]
+    volumes:
+      - ./platform-api:/app
+      - /app/node_modules
+    environment: {...}
+    depends_on: {...}
+  platform-ui:
+    build: ./platform-ui
+    image: platform-ui
+    ports: ["3000:3000"]
+    volumes:
+      - ./platform-ui:/app
+      - /app/node_modules
+    environment: {...}
+    depends_on: {...}
+  worker:
+    build: ./worker
+    image: platform-worker
+    volumes:
+      - ./worker:/app
+      - /app/node_modules
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./generated-apps:/app/generated-apps
+    environment: {...}
+    depends_on: {...}
+  postgres:
+    image: postgres:14-alpine
+    ports: ["5433:5432"]
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    environment: {...}
+  redis:
+    image: redis:7-alpine
+    ports: ["6379:6379"]
+    environment: {...}
+volumes:
+  postgres-data:
+networks:
+  platform-net:
+    driver: bridge
+```
 
-Crucially, it does not perform long-running tasks. When a user initiates a heavy operation (like "Build App"), the API's job is to:
+---
 
-Find the corresponding Workflow in the database (e.g., "Export/Build Application").
-
-Execute its Workflow_Actions.
-
-One action will be publish_event, which pushes a job payload (e.g., { "application_id": "xyz" }) to a specific Redis queue (e.g., app_builds).
-
-It then immediately returns a success response to the UI.
-
-worker (Node.js/TypeScript Data Plane):
-
-Has no public API. Its only job is to connect to Redis and listen to job queues (app_builds, db_provisioning, etc.).
-
-When a job is received, it executes the heavy lifting. For an app_builds job, it will run the logic from the export-app.ts handler:
-
-Read the application's full definition from the database.
-
-Use EJS templates (stored in the Code_Templates table) to generate a complete source tree for the user's application.
-
-Write these files to a directory on the disk.
-
-Execute a docker build command on the generated source tree to create the final, deployable Docker image.
-
-postgres (PostgreSQL Database): The single source of truth for all platform metadata.
-
-redis (Message Queue): A lightweight message broker used for asynchronous communication between the platform-api and the worker.
-
-3. The Specific Task: Generate docker-compose.yml
-Based on all the context above, generate a complete docker-compose.yml file that defines and configures the five services: platform-api, platform-ui, worker, postgres, and redis.
-
-Technical Requirements:
-
-Use official images: postgres:14-alpine and redis:7-alpine.
-
-For the three custom services (platform-api, platform-ui, worker), configure them to be built from local Dockerfiles located in ./platform-api, ./platform-ui, and ./worker respectively.
-
-The platform-api should be exposed on host port 4000.
-
-The platform-ui should be exposed on host port 3000.
-
-The postgres service should be exposed on host port 5432.
-
-Configure the necessary environment variables for the postgres service (POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB).
-
-Configure environment variables for the platform-api and worker to connect to Postgres and Redis using their service names (e.g., DB_HOST=postgres, REDIS_HOST=redis).
-
-Create a shared network (e.g., platform-net) for all services.
-
-Create a named volume (postgres-data) and mount it to the Postgres container to ensure data persistence.
-
-Use depends_on to ensure postgres and redis start before the platform-api and worker services.
-
-The worker service needs access to the Docker socket to build images. Mount /var/run/docker.sock.
+**By following this prompt, the generated platform will be ready for modern, iterative development with hot reload, robust testing, and a clean, maintainable architecture.**

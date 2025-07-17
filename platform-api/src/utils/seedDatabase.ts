@@ -39,10 +39,10 @@ export const seedDatabase = async (): Promise<void> => {
         displayName: 'Users',
         schema: {
           fields: [
-            { name: 'email', type: 'string', required: true },
-            { name: 'firstName', type: 'string', required: true },
-            { name: 'lastName', type: 'string', required: true },
-            { name: 'role', type: 'string', required: true }
+            { name: 'email', type: 'string', required: true, label: 'Email Address' },
+            { name: 'firstName', type: 'string', required: true, label: 'First Name' },
+            { name: 'lastName', type: 'string', required: true, label: 'Last Name' },
+            { name: 'role', type: 'string', required: true, label: 'Role', options: ['admin', 'user'] }
           ]
         },
         isSystem: true,
@@ -53,9 +53,11 @@ export const seedDatabase = async (): Promise<void> => {
         displayName: 'Models',
         schema: {
           fields: [
-            { name: 'name', type: 'string', required: true },
-            { name: 'displayName', type: 'string', required: true },
-            { name: 'schema', type: 'json', required: true }
+            { name: 'name', type: 'string', required: true, label: 'Model Name' },
+            { name: 'displayName', type: 'string', required: true, label: 'Display Name' },
+            { name: 'description', type: 'text', required: false, label: 'Description' },
+            { name: 'schema', type: 'json', required: true, label: 'Schema Definition' },
+            { name: 'isSystem', type: 'boolean', required: true, label: 'System Model', default: false }
           ]
         },
         isSystem: true,
@@ -66,10 +68,83 @@ export const seedDatabase = async (): Promise<void> => {
         displayName: 'Applications',
         schema: {
           fields: [
-            { name: 'name', type: 'string', required: true },
-            { name: 'displayName', type: 'string', required: true },
-            { name: 'description', type: 'text', required: false },
-            { name: 'status', type: 'string', required: true }
+            { name: 'name', type: 'string', required: true, label: 'Application Name' },
+            { name: 'displayName', type: 'string', required: true, label: 'Display Name' },
+            { name: 'description', type: 'text', required: false, label: 'Description' },
+            { name: 'status', type: 'string', required: true, label: 'Status', options: ['draft', 'building', 'built', 'failed'] },
+            { name: 'modelId', type: 'uuid', required: true, label: 'Model' }
+          ]
+        },
+        isSystem: true,
+        userId: defaultUser.id
+      },
+      {
+        name: 'Property',
+        displayName: 'Properties',
+        schema: {
+          fields: [
+            { name: 'name', type: 'string', required: true, label: 'Property Name' },
+            { name: 'displayName', type: 'string', required: true, label: 'Display Name' },
+            { name: 'type', type: 'string', required: true, label: 'Data Type', options: ['string', 'number', 'boolean', 'date', 'email', 'url', 'text', 'json', 'uuid'] },
+            { name: 'required', type: 'boolean', required: true, label: 'Required', default: false },
+            { name: 'unique', type: 'boolean', required: true, label: 'Unique', default: false },
+            { name: 'defaultValue', type: 'string', required: false, label: 'Default Value' },
+            { name: 'validation', type: 'json', required: false, label: 'Validation Rules' },
+            { name: 'options', type: 'json', required: false, label: 'Options (for select/enum)' },
+            { name: 'description', type: 'text', required: false, label: 'Description' },
+            { name: 'order', type: 'number', required: true, label: 'Display Order', default: 0 }
+          ]
+        },
+        isSystem: true,
+        userId: defaultUser.id
+      },
+      {
+        name: 'Relationship',
+        displayName: 'Relationships',
+        schema: {
+          fields: [
+            { name: 'name', type: 'string', required: true, label: 'Relationship Name' },
+            { name: 'displayName', type: 'string', required: true, label: 'Display Name' },
+            { name: 'type', type: 'string', required: true, label: 'Relationship Type', options: ['one-to-one', 'one-to-many', 'many-to-one', 'many-to-many'] },
+            { name: 'sourceModelId', type: 'uuid', required: true, label: 'Source Model' },
+            { name: 'targetModelId', type: 'uuid', required: true, label: 'Target Model' },
+            { name: 'sourceField', type: 'string', required: true, label: 'Source Field' },
+            { name: 'targetField', type: 'string', required: true, label: 'Target Field' },
+            { name: 'cascade', type: 'boolean', required: true, label: 'Cascade Delete', default: false },
+            { name: 'nullable', type: 'boolean', required: true, label: 'Nullable', default: true },
+            { name: 'description', type: 'text', required: false, label: 'Description' }
+          ]
+        },
+        isSystem: true,
+        userId: defaultUser.id
+      },
+      {
+        name: 'Component',
+        displayName: 'Components',
+        schema: {
+          fields: [
+            { name: 'name', type: 'string', required: true, label: 'Component Name' },
+            { name: 'displayName', type: 'string', required: true, label: 'Display Name' },
+            { name: 'type', type: 'string', required: true, label: 'Component Type', options: ['form', 'table', 'card', 'chart', 'custom'] },
+            { name: 'config', type: 'json', required: true, label: 'Configuration' },
+            { name: 'modelId', type: 'uuid', required: true, label: 'Associated Model' },
+            { name: 'isActive', type: 'boolean', required: true, label: 'Active', default: true }
+          ]
+        },
+        isSystem: true,
+        userId: defaultUser.id
+      },
+      {
+        name: 'Template',
+        displayName: 'Templates',
+        schema: {
+          fields: [
+            { name: 'name', type: 'string', required: true, label: 'Template Name' },
+            { name: 'displayName', type: 'string', required: true, label: 'Display Name' },
+            { name: 'type', type: 'string', required: true, label: 'Template Type', options: ['page', 'component', 'layout', 'email'] },
+            { name: 'content', type: 'text', required: true, label: 'Template Content' },
+            { name: 'variables', type: 'json', required: false, label: 'Template Variables' },
+            { name: 'isSystem', type: 'boolean', required: true, label: 'System Template', default: false }
           ]
         },
         isSystem: true,

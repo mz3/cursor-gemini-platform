@@ -1,4 +1,4 @@
-FROM node:18-alpine
+FROM node:24-alpine
 
 WORKDIR /app
 
@@ -7,9 +7,6 @@ COPY package*.json ./
 
 # Install all dependencies (including dev)
 RUN npm install
-
-# Copy source code
-COPY . .
 
 # Expose port
 EXPOSE 4000

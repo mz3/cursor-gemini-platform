@@ -4,6 +4,7 @@ import { Home, Database, AppWindow, Settings, Plus, LogOut, User } from 'lucide-
 import Login from './components/Login';
 import Dashboard from './components/Dashboard';
 import Models from './components/Models';
+import CreateModel from './components/CreateModel';
 import Applications from './components/Applications';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { cn } from './utils/cn';
@@ -91,12 +92,6 @@ const AppContent: React.FC = () => {
               </svg>
             </button>
             <div className="flex-1" />
-            <div className="flex items-center space-x-4">
-              <button className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors">
-                <Plus className="w-4 h-4 mr-2" />
-                New App
-              </button>
-            </div>
           </div>
         </div>
 
@@ -105,6 +100,7 @@ const AppContent: React.FC = () => {
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/models" element={<Models />} />
+            <Route path="/models/create" element={<CreateModel />} />
             <Route path="/applications" element={<Applications />} />
             <Route path="/settings" element={<div className="text-center py-12"><h2 className="text-2xl font-semibold text-gray-900">Settings</h2><p className="text-gray-600 mt-2">Settings page coming soon...</p></div>} />
             <Route path="*" element={<Navigate to="/" replace />} />
