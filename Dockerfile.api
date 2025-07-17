@@ -1,0 +1,38 @@
+# Dockerfile for API service only (using ts-node)
+FROM node:24-alpine
+
+# Install dependencies for native modules
+RUN apk add --no-cache python3 make g++
+
+# Create app user
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nodejs -u 1001
+
+WORKDIR /app
+
+# Copy package files
+COPY platform-api/package*.json ./platform-api/
+
+# Install all dependencies (including devDependencies for ts-node)
+RUN cd platform-api && npm install
+
+# Copy API source
+COPY --chown=nodejs:nodejs platform-api/ ./platform-api/
+
+# Create necessary directories
+RUN mkdir -p /app/generated-apps && \
+    chown -R nodejs:nodejs /app/generated-apps
+
+# Switch to non-root user
+USER nodejs
+
+# Expose port
+EXPOSE 4000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:4000/health || exit 1
+
+# Start API service with ts-node
+WORKDIR /app/platform-api
+CMD ["npx", "ts-node", "src/index.ts"]

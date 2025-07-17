@@ -1,3 +1,4 @@
+/// <reference types="vite/client" />
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Home, Database, AppWindow, Settings, Plus, LogOut, User, MessageSquare } from 'lucide-react';
@@ -12,6 +13,9 @@ import EditPrompt from './components/EditPrompt';
 import PromptVersions from './components/PromptVersions';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { cn } from './utils/cn';
+
+// Debug: Log all environment variables at startup
+console.log('VITE ENV:', import.meta.env);
 
 const AppContent: React.FC = () => {
   const { user, logout } = useAuth();

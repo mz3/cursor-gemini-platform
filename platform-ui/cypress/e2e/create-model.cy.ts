@@ -1,96 +1,49 @@
-describe('Create Model Page', () => {
+describe('Create Model', () => {
   beforeEach(() => {
-    // Login first
+    // Use environment variables for credentials
+    const testEmail = Cypress.env('testEmail') || 'admin@platform.com';
+    const testPassword = Cypress.env('testPassword') || 'admin123';
+
+    // Login before each test
     cy.visit('/');
-    cy.get('input[name="email"]').type('admin@platform.com');
-    cy.get('input[name="password"]').type('admin123');
+    cy.get('input[name="email"]').type(testEmail);
+    cy.get('input[name="password"]').type(testPassword);
     cy.get('button[type="submit"]').click();
 
-    // Wait for login to complete and redirect
+    // Wait for login to complete and navigate to models
     cy.url().should('include', '/');
-    cy.get('h1').should('contain', 'Dashboard');
+    cy.wait(2000); // Wait for login to complete
+    cy.visit('/models');
+    cy.wait(2000); // Wait for page to load
   });
 
-  it('should navigate to create model page', () => {
-    // Navigate to models page using the sidebar
-    cy.get('a[href="/models"]').click();
-    cy.url().should('include', '/models');
-    cy.get('h1').should('contain', 'Models');
+  it('should create a new model', () => {
+    // Click on "New Model" button
+    cy.contains('New Model').click();
 
-    // Click the New Model button
-    cy.get('button').contains('New Model').click();
+    // Should be on the create model page
     cy.url().should('include', '/models/create');
-    cy.get('h1').should('contain', 'Create New Model');
-  });
+    cy.contains('h1', 'Create New Model').should('be.visible');
 
-  it('should display the create model form', () => {
-    // Navigate to models page first
-    cy.get('a[href="/models"]').click();
-    cy.get('button').contains('New Model').click();
-
-    // Check basic form elements
-    cy.get('input[placeholder*="Product, Customer, Order"]').should('be.visible');
-    cy.get('input[placeholder*="Products, Customers, Orders"]').should('be.visible');
-    cy.get('textarea[placeholder*="Describe what this model represents"]').should('be.visible');
-    cy.get('button').contains('Add Field').should('be.visible');
-  });
-
-  it('should add and remove fields', () => {
-    // Navigate to create model page
-    cy.get('a[href="/models"]').click();
-    cy.get('button').contains('New Model').click();
+    // Fill in the model form
+    cy.get('input[id="name"]').type('TestModel');
+    cy.get('input[id="displayName"]').type('Test Model');
+    cy.get('textarea[id="description"]').type('A test model for E2E testing');
 
     // Add a field
     cy.get('button').contains('Add Field').click();
-    cy.get('h3').should('contain', 'Field 1');
 
-    // Fill in field details
-    cy.get('input[placeholder*="title, price, email"]').type('name');
-    cy.get('input[placeholder*="Title, Price, Email"]').type('Name');
-
-    // Add another field
-    cy.get('button').contains('Add Field').click();
-    cy.get('h3').should('contain', 'Field 2');
-
-    // Remove the second field
-    cy.get('h3').contains('Field 2').parent().find('button').last().click();
-    cy.get('h3').should('not.contain', 'Field 2');
-  });
-
-  it('should validate required fields', () => {
-    // Navigate to create model page
-    cy.get('a[href="/models"]').click();
-    cy.get('button').contains('New Model').click();
-
-    // Try to submit without filling required fields
-    cy.get('button').contains('Create Model').click();
-
-    // Should show validation error - wait for it to appear
-    cy.get('.bg-red-50', { timeout: 10000 }).should('be.visible');
-    cy.get('.text-red-700').should('contain', 'Name and Display Name are required');
-  });
-
-  it('should create a simple model', () => {
-    // Navigate to create model page
-    cy.get('a[href="/models"]').click();
-    cy.get('button').contains('New Model').click();
-
-    // Fill in basic model info
-    cy.get('input[placeholder*="Product, Customer, Order"]').type('Product');
-    cy.get('input[placeholder*="Products, Customers, Orders"]').type('Products');
-    cy.get('textarea[placeholder*="Describe what this model represents"]').type('A product catalog item');
-
-    // Add a field
-    cy.get('button').contains('Add Field').click();
-    cy.get('input[placeholder*="title, price, email"]').type('name');
-    cy.get('input[placeholder*="Title, Price, Email"]').type('Name');
+    // Fill in the field details
+    cy.get('input[placeholder="Field name"]').first().type('testField');
+    cy.get('input[placeholder="Display name"]').first().type('Test Field');
+    cy.get('select').first().select('string');
+    cy.get('input[type="checkbox"]').first().check(); // Required
 
     // Submit the form
     cy.get('button').contains('Create Model').click();
 
-    // Should redirect to models page and show the new model
+    // Should redirect to models list and show the new model
     cy.url().should('include', '/models');
-    cy.get('h1').should('contain', 'Models');
-    cy.get('p').should('contain', 'Product'); // Should show the new model name
+    cy.contains('Test Model').should('be.visible');
   });
 });

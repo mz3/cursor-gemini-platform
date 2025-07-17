@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, History, MessageSquare } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../utils/api';
 
 interface Prompt {
   id: string;
@@ -25,7 +25,7 @@ const Prompts: React.FC = () => {
 
   const fetchPrompts = async () => {
     try {
-      const response = await axios.get('/api/prompts');
+      const response = await api.get('/prompts');
       setPrompts(response.data);
     } catch (error) {
       console.error('Error fetching prompts:', error);
@@ -37,8 +37,8 @@ const Prompts: React.FC = () => {
   const handleDelete = async (promptId: string) => {
     if (window.confirm('Are you sure you want to delete this prompt? This action cannot be undone.')) {
       try {
-        await axios.delete(`/api/prompts/${promptId}`);
-        fetchPrompts(); // Refresh the list
+        await api.delete(`/prompts/${promptId}`);
+        await fetchPrompts(); // Refresh the list
       } catch (error) {
         console.error('Error deleting prompt:', error);
       }

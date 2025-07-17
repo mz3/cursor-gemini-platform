@@ -3,6 +3,7 @@ import { Plus, Trash2, Save, ArrowLeft } from 'lucide-react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import api from '../utils/api';
 
 interface Field {
   name: string;
@@ -121,7 +122,7 @@ const CreateModel: React.FC = () => {
         userId: user?.id
       };
 
-      await axios.post('/api/models', modelData);
+      await api.post('/models', modelData);
       navigate('/models');
     } catch (err: any) {
       setError(err.response?.data?.error || err.message || 'Failed to create model');
@@ -154,6 +155,7 @@ const CreateModel: React.FC = () => {
                 Model Name *
               </label>
               <input
+                id="name"
                 type="text"
                 value={form.name}
                 onChange={(e) => setForm(prev => ({ ...prev, name: e.target.value }))}
@@ -167,6 +169,7 @@ const CreateModel: React.FC = () => {
                 Display Name *
               </label>
               <input
+                id="displayName"
                 type="text"
                 value={form.displayName}
                 onChange={(e) => setForm(prev => ({ ...prev, displayName: e.target.value }))}
@@ -181,6 +184,7 @@ const CreateModel: React.FC = () => {
               Description
             </label>
             <textarea
+              id="description"
               value={form.description}
               onChange={(e) => setForm(prev => ({ ...prev, description: e.target.value }))}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
@@ -233,7 +237,7 @@ const CreateModel: React.FC = () => {
                         value={field.name}
                         onChange={(e) => updateField(index, { name: e.target.value })}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
-                        placeholder="e.g., title, price, email"
+                        placeholder="Field name"
                       />
                     </div>
                     <div>
@@ -245,7 +249,7 @@ const CreateModel: React.FC = () => {
                         value={field.displayName}
                         onChange={(e) => updateField(index, { displayName: e.target.value })}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
-                        placeholder="e.g., Title, Price, Email"
+                        placeholder="Display name"
                       />
                     </div>
                     <div>

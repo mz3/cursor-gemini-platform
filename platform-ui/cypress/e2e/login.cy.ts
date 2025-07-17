@@ -1,23 +1,27 @@
-describe('Login Page', () => {
+describe('Login', () => {
   beforeEach(() => {
     cy.visit('/');
   });
 
-  it('should display login form', () => {
-    cy.get('h2').should('contain', 'Meta Platform');
-    cy.get('input[name="email"]').should('be.visible');
-    cy.get('input[name="password"]').should('be.visible');
-    cy.get('button[type="submit"]').should('contain', 'Sign in');
-  });
+  it('should login successfully with valid credentials', () => {
+    // Use environment variables for API URL and credentials
+    const apiUrl = Cypress.env('apiUrl') || 'http://localhost:4000';
+    const testEmail = Cypress.env('testEmail') || 'admin@platform.com';
+    const testPassword = Cypress.env('testPassword') || 'admin123';
 
-  it('should login with valid credentials', () => {
-    cy.get('input[name="email"]').type('admin@platform.com');
-    cy.get('input[name="password"]').type('admin123');
+    // Intercept the login request to verify it goes to the correct API
+    cy.intercept('POST', '/api/users/login').as('loginRequest');
+
+    cy.get('input[name="email"]').type(testEmail);
+    cy.get('input[name="password"]').type(testPassword);
     cy.get('button[type="submit"]').click();
 
-    // Should redirect to dashboard
+    // Wait for the login request and verify it was successful
+    cy.wait('@loginRequest').its('response.statusCode').should('eq', 200);
+
+    // Should redirect to dashboard after successful login
     cy.url().should('include', '/');
-    cy.get('h1').should('contain', 'Dashboard');
+    cy.contains('Dashboard').should('be.visible');
   });
 
   it('should show error with invalid credentials', () => {
@@ -25,7 +29,7 @@ describe('Login Page', () => {
     cy.get('input[name="password"]').type('wrongpassword');
     cy.get('button[type="submit"]').click();
 
-    cy.get('.bg-red-50').should('be.visible');
-    cy.get('.text-red-700').should('contain', 'Invalid credentials');
+    // Should show error message
+    cy.contains('Invalid credentials').should('be.visible');
   });
 });

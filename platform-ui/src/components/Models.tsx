@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, Database, Eye } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../utils/api';
 
 interface Model {
   id: string;
@@ -25,7 +25,7 @@ const Models: React.FC = () => {
 
   const fetchModels = async () => {
     try {
-      const response = await axios.get('/api/models');
+      const response = await api.get('/models');
       setModels(response.data);
     } catch (error) {
       console.error('Error fetching models:', error);
@@ -37,7 +37,7 @@ const Models: React.FC = () => {
   const handleDelete = async (modelId: string) => {
     if (window.confirm('Are you sure you want to delete this model? This action cannot be undone.')) {
       try {
-        await axios.delete(`/api/models/${modelId}`);
+        await api.delete(`/models/${modelId}`);
         fetchModels(); // Refresh the list
       } catch (error) {
         console.error('Error deleting model:', error);

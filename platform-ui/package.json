@@ -23,7 +23,10 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
+    "start": "serve dist -l 3000",
     "test:e2e": "cypress run",
+    "test:e2e:prod": "cypress run --env baseUrl=https://cursor-gemini-platform-ui.fly.dev,apiUrl=https://cursor-gemini-platform-api.fly.dev,testEmail=michael@tunnel.ninja,testPassword=8ticketexplosion4",
+    "test:e2e:local": "cypress run --env baseUrl=http://localhost:3000,apiUrl=http://localhost:4000,testEmail=admin@platform.com,testPassword=admin123",
     "cypress:open": "cypress open"
   },
   "eslintConfig": {

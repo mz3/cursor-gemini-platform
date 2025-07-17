@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Save, ArrowLeft } from 'lucide-react';
-import axios from 'axios';
 import { useNavigate, useParams } from 'react-router-dom';
+import api from '../utils/api';
 
 interface EditPromptForm {
   name: string;
@@ -31,7 +31,7 @@ const EditPrompt: React.FC = () => {
 
   const fetchPrompt = async () => {
     try {
-      const response = await axios.get(`/api/prompts/${id}`);
+      const response = await api.get(`/prompts/${id}`);
       const prompt = response.data;
       setForm({
         name: prompt.name,
@@ -53,7 +53,7 @@ const EditPrompt: React.FC = () => {
     setError('');
 
     try {
-      await axios.put(`/api/prompts/${id}`, form);
+      await api.put(`/prompts/${id}`, form);
       navigate('/prompts');
     } catch (err: any) {
       setError(err.response?.data?.error || 'Failed to update prompt');

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Eye, CheckCircle } from 'lucide-react';
 import axios from 'axios';
 import { useNavigate, useParams } from 'react-router-dom';
+import api from '../utils/api';
 
 interface PromptVersion {
   id: string;
@@ -12,7 +13,7 @@ interface PromptVersion {
   version: number;
   isActive: boolean;
   createdAt: string;
-  parentPromptId?: string;
+  promptId: string;
 }
 
 const PromptVersions: React.FC = () => {
@@ -31,7 +32,7 @@ const PromptVersions: React.FC = () => {
 
   const fetchVersions = async () => {
     try {
-      const response = await axios.get(`/api/prompts/${id}/versions`);
+      const response = await api.get(`/prompts/${id}/versions`);
       setVersions(response.data);
       if (response.data.length > 0) {
         setSelectedVersion(response.data[0]);

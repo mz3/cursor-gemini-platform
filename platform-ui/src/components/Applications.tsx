@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Play, Settings, Trash2, AppWindow } from 'lucide-react';
-import axios from 'axios';
+import { Plus, Edit, Trash2, AppWindow, Eye, Play, Settings } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import api from '../utils/api';
 
 interface Application {
   id: string;
@@ -21,7 +22,7 @@ const Applications: React.FC = () => {
 
   const fetchApplications = async () => {
     try {
-      const response = await axios.get('/api/applications');
+      const response = await api.get('/applications');
       setApplications(response.data);
     } catch (error) {
       console.error('Error fetching applications:', error);

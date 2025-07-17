@@ -1,9 +1,13 @@
 describe('Prompts Management', () => {
   beforeEach(() => {
+    // Use environment variables for credentials
+    const testEmail = Cypress.env('testEmail') || 'admin@platform.com';
+    const testPassword = Cypress.env('testPassword') || 'admin123';
+
     // Login before each test
     cy.visit('/');
-    cy.get('input[name="email"]').type('admin@platform.com');
-    cy.get('input[name="password"]').type('admin123');
+    cy.get('input[name="email"]').type(testEmail);
+    cy.get('input[name="password"]').type(testPassword);
     cy.get('button[type="submit"]').click();
 
     // Wait for login to complete and navigate to prompts
@@ -152,7 +156,7 @@ describe('Prompts Management', () => {
 
     // Should show active indicator for the latest version
     cy.contains('v2').parent().parent().within(() => {
-      cy.get('[data-testid="check-circle"]').should('be.visible');
+      cy.get('.text-green-500').should('be.visible'); // CheckCircle icon
     });
   });
 
@@ -160,29 +164,41 @@ describe('Prompts Management', () => {
     // Check if we're on the prompts page
     cy.contains('h1', 'Prompts').should('be.visible');
 
-    // First create a prompt
+    // First create a prompt with a unique name
+    const uniqueName = `Delete Test Prompt ${Date.now()}`;
     cy.contains('New Prompt').click();
-    cy.get('input[id="name"]').type('Delete Test Prompt');
+    cy.get('input[id="name"]').type(uniqueName);
     cy.get('select[id="type"]').select('llm');
     cy.get('textarea[id="content"]').type('This prompt will be deleted', { parseSpecialCharSequences: false });
     cy.contains('Create Prompt').click();
 
     // Wait for redirect
     cy.url().should('include', '/prompts');
-    cy.contains('Delete Test Prompt').should('be.visible');
+    cy.contains(uniqueName).should('be.visible');
 
-    // Set up confirmation dialog handler before clicking delete
-    cy.on('window:confirm', () => true);
+    // Debug: Check if the delete button exists
+    cy.contains(uniqueName).should('be.visible');
+    cy.get('button').contains('Delete').should('be.visible');
 
-    // Click delete button - use a more specific selector
-    cy.contains('Delete Test Prompt').closest('li').within(() => {
-      cy.contains('Delete').click();
+    // Stub the window.confirm function to return true
+    cy.window().then((win) => {
+      cy.stub(win, 'confirm').returns(true);
     });
 
-    // Wait for the delete to complete
-    cy.wait(2000);
+    // Intercept the delete request and wait for it to complete
+    cy.intercept('DELETE', '/api/prompts/*').as('deletePrompt');
+    cy.intercept('GET', '/api/prompts').as('getPrompts');
 
-    // Prompt should be removed from the list
-    cy.contains('Delete Test Prompt').should('not.exist');
+    // Click delete button using a more specific selector
+    cy.contains(uniqueName).closest('li').find('button').contains('Delete').click();
+
+    // Wait for the delete request to complete
+    cy.wait('@deletePrompt');
+
+    // Wait for the list refresh to complete
+    cy.wait('@getPrompts');
+
+    // Wait for the prompt to be removed from the list
+    cy.contains(uniqueName).should('not.exist');
   });
 });

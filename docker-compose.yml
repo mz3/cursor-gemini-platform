@@ -76,9 +76,6 @@ services:
       - platform-api
     networks:
       - platform-net
-    volumes:
-      - ./platform-ui:/app
-      - platform-ui-node-modules:/app/node_modules
 
   worker:
     build:

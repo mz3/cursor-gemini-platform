@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Save, ArrowLeft } from 'lucide-react';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import api from '../utils/api';
 
 interface CreatePromptForm {
   name: string;
@@ -27,7 +27,7 @@ const CreatePrompt: React.FC = () => {
     setError('');
 
     try {
-      await axios.post('/api/prompts', form);
+      await api.post('/prompts', form);
       navigate('/prompts');
     } catch (err: any) {
       setError(err.response?.data?.error || 'Failed to create prompt');

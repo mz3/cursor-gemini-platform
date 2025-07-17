@@ -14,4 +14,13 @@ export default defineConfig({
       },
     },
   },
+  preview: {
+    port: 3000,
+    host: '0.0.0.0',
+    allowedHosts: [
+      'cursor-gemini-platform-ui.fly.dev',
+      'localhost',
+      '127.0.0.1'
+    ],
+  },
 });

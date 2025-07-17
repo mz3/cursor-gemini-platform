@@ -1,10 +1,6 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
 import { User } from './User';
-
-export enum PromptType {
-  LLM = 'llm',
-  CODE_GENERATION = 'code_generation'
-}
+import { PromptVersion } from './PromptVersion';
 
 @Entity('prompts')
 export class Prompt {
@@ -14,27 +10,8 @@ export class Prompt {
   @Column()
   name!: string;
 
-  @Column('text')
-  content!: string;
-
-  @Column({
-    type: 'enum',
-    enum: PromptType,
-    default: PromptType.LLM
-  })
-  type!: PromptType;
-
-  @Column()
-  version!: number;
-
   @Column({ nullable: true })
   description?: string;
-
-  @Column({ default: false })
-  isActive!: boolean;
-
-  @Column({ nullable: true })
-  parentPromptId?: string;
 
   @ManyToOne(() => User, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'userId' })
@@ -42,6 +19,9 @@ export class Prompt {
 
   @Column()
   userId!: string;
+
+  @OneToMany(() => PromptVersion, version => version.prompt, { cascade: true })
+  versions!: PromptVersion[];
 
   @CreateDateColumn()
   createdAt!: Date;

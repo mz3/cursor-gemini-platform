@@ -130,3 +130,24 @@ All custom services use Dockerfiles based on node:24-alpine. Source code is NOT 
 - **UI**: React Testing Library for unit tests (`cd platform-ui && npm test`)
 - **E2E**: Cypress for end-to-end tests (`cd platform-ui && npm run test:e2e`). Playwright is the preferred tool for new E2E tests.
 - **Coverage**: Aim for >80% coverage; run `cd platform-api && npm run test:coverage`
+
+# Cursor Rules for Meta-Application Platform
+
+## Security & Privacy
+- **Never remember or store user credentials** (passwords, API keys, tokens, etc.) in conversation context
+- **Do not reference specific user account details** like email addresses or usernames
+- **Use placeholder values** when discussing authentication flows or examples
+
+## Workflow & Problem Solving
+- **Favor continuing work without prompting** until the issue is fixed or acceptance criteria are met
+- **Proactively debug and fix issues** rather than asking for permission at each step
+- **Complete the full solution** before asking for next steps
+- **Focus on getting tests passing** and functionality working end-to-end
+
+## Fly.io Cache Busting
+- If frontend changes are not being deployed, Fly.io may be using a cached Docker build layer.
+- To force a fresh build, use:
+  - `fly deploy --build-arg CACHEBUST=$(date +%s)`
+  - or `fly deploy --no-cache`
+- Making a trivial change to the Dockerfile (like adding a comment) can also bust the cache.
+- If issues persist, destroy and recreate the app.

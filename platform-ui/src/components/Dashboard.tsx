@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Database, AppWindow, Users, TrendingUp } from 'lucide-react';
-import axios from 'axios';
+import api from '../utils/api';
 
 interface Stats {
   models: number;
@@ -20,8 +20,8 @@ const Dashboard: React.FC = () => {
   const fetchStats = async () => {
     try {
       const [modelsRes, appsRes] = await Promise.all([
-        axios.get('/api/models'),
-        axios.get('/api/applications')
+        api.get('/models'),
+        api.get('/applications')
       ]);
 
       setStats({

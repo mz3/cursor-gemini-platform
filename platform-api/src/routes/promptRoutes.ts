@@ -1,11 +1,13 @@
 import { Router, Request, Response } from 'express';
 import { AppDataSource } from '../config/database';
-import { Prompt, PromptType } from '../entities/Prompt';
+import { Prompt } from '../entities/Prompt';
+import { PromptVersion } from '../entities/PromptVersion';
 import { User } from '../entities/User';
 import jwt from 'jsonwebtoken';
 
 const router = Router();
 const promptRepository = AppDataSource.getRepository(Prompt);
+const promptVersionRepository = AppDataSource.getRepository(PromptVersion);
 const userRepository = AppDataSource.getRepository(User);
 
 // Middleware to authenticate user
@@ -41,17 +43,34 @@ router.post('/', authenticateUser, async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Name and content are required' });
     }
 
+    // Create the prompt container
     const prompt = new Prompt();
     prompt.name = name;
-    prompt.content = content;
-    prompt.type = type || PromptType.LLM;
     prompt.description = description;
-    prompt.version = 1;
-    prompt.isActive = true;
     prompt.userId = user.id;
 
     const savedPrompt = await promptRepository.save(prompt);
-    return res.status(201).json(savedPrompt);
+
+    // Create the first version
+    const promptVersion = new PromptVersion();
+    promptVersion.name = name;
+    promptVersion.content = content;
+    promptVersion.type = type || 'llm';
+    promptVersion.description = description;
+    promptVersion.version = 1;
+    promptVersion.isActive = true;
+    promptVersion.promptId = savedPrompt.id;
+
+    const savedVersion = await promptVersionRepository.save(promptVersion);
+
+    // Return the prompt with the version data
+    return res.status(201).json({
+      ...savedPrompt,
+      content: savedVersion.content,
+      type: savedVersion.type,
+      version: savedVersion.version,
+      isActive: savedVersion.isActive
+    });
   } catch (error) {
     console.error('Error creating prompt:', error);
     return res.status(500).json({ error: 'Failed to create prompt' });
@@ -64,18 +83,30 @@ router.get('/', authenticateUser, async (req: Request, res: Response) => {
     const user = (req as any).user;
     const prompts = await promptRepository.find({
       where: { userId: user.id },
+      relations: ['versions'],
       order: { createdAt: 'DESC' }
     });
 
-    // Group by prompt name and get the latest version
-    const promptMap = new Map();
-    prompts.forEach(prompt => {
-      if (!promptMap.has(prompt.name) || promptMap.get(prompt.name).version < prompt.version) {
-        promptMap.set(prompt.name, prompt);
-      }
-    });
+    // Return prompts with their latest active version
+    const promptsWithLatestVersion = prompts.map(prompt => {
+      const activeVersion = prompt.versions.find(v => v.isActive);
+      if (!activeVersion) return null;
 
-    return res.json(Array.from(promptMap.values()));
+      return {
+        id: prompt.id,
+        name: activeVersion.name,
+        content: activeVersion.content,
+        type: activeVersion.type,
+        version: activeVersion.version,
+        description: activeVersion.description,
+        isActive: activeVersion.isActive,
+        userId: prompt.userId,
+        createdAt: prompt.createdAt,
+        updatedAt: prompt.updatedAt
+      };
+    }).filter(Boolean);
+
+    return res.json(promptsWithLatestVersion);
   } catch (error) {
     console.error('Error fetching prompts:', error);
     return res.status(500).json({ error: 'Failed to fetch prompts' });
@@ -89,14 +120,31 @@ router.get('/:id', authenticateUser, async (req: Request, res: Response) => {
     const user = (req as any).user;
 
     const prompt = await promptRepository.findOne({
-      where: { id, userId: user.id }
+      where: { id, userId: user.id },
+      relations: ['versions']
     });
 
     if (!prompt) {
       return res.status(404).json({ error: 'Prompt not found' });
     }
 
-    return res.json(prompt);
+    const activeVersion = prompt.versions.find(v => v.isActive);
+    if (!activeVersion) {
+      return res.status(404).json({ error: 'No active version found' });
+    }
+
+    return res.json({
+      id: prompt.id,
+      name: activeVersion.name,
+      content: activeVersion.content,
+      type: activeVersion.type,
+      version: activeVersion.version,
+      description: activeVersion.description,
+      isActive: activeVersion.isActive,
+      userId: prompt.userId,
+      createdAt: prompt.createdAt,
+      updatedAt: prompt.updatedAt
+    });
   } catch (error) {
     console.error('Error fetching prompt:', error);
     return res.status(500).json({ error: 'Failed to fetch prompt' });
@@ -110,31 +158,53 @@ router.put('/:id', authenticateUser, async (req: Request, res: Response) => {
     const { name, content, type, description } = req.body;
     const user = (req as any).user;
 
-    const existingPrompt = await promptRepository.findOne({
-      where: { id, userId: user.id }
+    const prompt = await promptRepository.findOne({
+      where: { id, userId: user.id },
+      relations: ['versions']
     });
 
-    if (!existingPrompt) {
+    if (!prompt) {
       return res.status(404).json({ error: 'Prompt not found' });
     }
 
+    // Find the current active version
+    const currentVersion = prompt.versions.find(v => v.isActive);
+    if (!currentVersion) {
+      return res.status(404).json({ error: 'No active version found' });
+    }
+
+    console.log('DEBUG currentVersion:', { id: currentVersion.id, version: currentVersion.version, isActive: currentVersion.isActive, name: currentVersion.name });
+
+    // Deactivate the current version
+    currentVersion.isActive = false;
+    await promptVersionRepository.save(currentVersion);
+
     // Create a new version
-    const newPrompt = new Prompt();
-    newPrompt.name = name || existingPrompt.name;
-    newPrompt.content = content || existingPrompt.content;
-    newPrompt.type = type || existingPrompt.type;
-    newPrompt.description = description || existingPrompt.description;
-    newPrompt.version = existingPrompt.version + 1;
-    newPrompt.isActive = true;
-    newPrompt.userId = user.id;
-    newPrompt.parentPromptId = existingPrompt.id;
+    const newVersion = new PromptVersion();
+    newVersion.name = name || currentVersion.name;
+    newVersion.content = content || currentVersion.content;
+    newVersion.type = type || currentVersion.type;
+    newVersion.description = description || currentVersion.description;
+    newVersion.version = currentVersion.version + 1;
+    newVersion.isActive = true;
+    newVersion.promptId = prompt.id;
 
-    // Deactivate the old version
-    existingPrompt.isActive = false;
-    await promptRepository.save(existingPrompt);
+    console.log('DEBUG newVersion:', { version: newVersion.version, name: newVersion.name, content: newVersion.content });
 
-    const savedPrompt = await promptRepository.save(newPrompt);
-    return res.json(savedPrompt);
+    const savedVersion = await promptVersionRepository.save(newVersion);
+
+    return res.json({
+      id: prompt.id,
+      name: savedVersion.name,
+      content: savedVersion.content,
+      type: savedVersion.type,
+      version: savedVersion.version,
+      description: savedVersion.description,
+      isActive: savedVersion.isActive,
+      userId: prompt.userId,
+      createdAt: prompt.createdAt,
+      updatedAt: prompt.updatedAt
+    });
   } catch (error) {
     console.error('Error updating prompt:', error);
     return res.status(500).json({ error: 'Failed to update prompt' });
@@ -147,45 +217,45 @@ router.get('/:id/versions', authenticateUser, async (req: Request, res: Response
     const { id } = req.params;
     const user = (req as any).user;
 
-    // Find the original prompt
-    const originalPrompt = await promptRepository.findOne({
-      where: { id, userId: user.id }
-    });
-
-    if (!originalPrompt) {
-      return res.status(404).json({ error: 'Prompt not found' });
-    }
-
-    // Get all versions (original + all children)
-    const allVersions = await promptRepository.find({
-      where: [
-        { id: originalPrompt.id, userId: user.id },
-        { parentPromptId: originalPrompt.id, userId: user.id }
-      ],
-      order: { version: 'ASC' }
-    });
-
-    return res.json(allVersions);
-  } catch (error) {
-    console.error('Error fetching prompt versions:', error);
-    return res.status(500).json({ error: 'Failed to fetch prompt versions' });
-  }
-});
-
-// Delete a prompt
-router.delete('/:id', authenticateUser, async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
-    const user = (req as any).user;
-
     const prompt = await promptRepository.findOne({
-      where: { id, userId: user.id }
+      where: { id, userId: user.id },
+      relations: ['versions']
     });
 
     if (!prompt) {
       return res.status(404).json({ error: 'Prompt not found' });
     }
 
+    // Return versions ordered by version number
+    const versions = prompt.versions.sort((a, b) => a.version - b.version);
+    return res.json(versions);
+  } catch (error) {
+    console.error('Error fetching prompt versions:', error);
+    return res.status(500).json({ error: 'Failed to fetch prompt versions' });
+  }
+});
+
+// Delete a prompt (and all its versions)
+router.delete('/:id', authenticateUser, async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const user = (req as any).user;
+
+    const prompt = await promptRepository.findOne({
+      where: { id, userId: user.id },
+      relations: ['versions']
+    });
+
+    if (!prompt) {
+      return res.status(404).json({ error: 'Prompt not found' });
+    }
+
+    // Delete all versions first
+    if (prompt.versions && prompt.versions.length > 0) {
+      await promptVersionRepository.remove(prompt.versions);
+    }
+
+    // Then delete the prompt
     await promptRepository.remove(prompt);
     return res.status(204).send();
   } catch (error) {
