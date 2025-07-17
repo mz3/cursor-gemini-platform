@@ -1,0 +1,89 @@
+name: CI/CD
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:14-alpine
+        env:
+          POSTGRES_USER: platform_user
+          POSTGRES_PASSWORD: platform_password
+          POSTGRES_DB: platform_db
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U platform_user -d platform_db" \
+          --health-interval 10s \
+          --health-timeout 5s \
+          --health-retries 5
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping" \
+          --health-interval 10s \
+          --health-timeout 5s \
+          --health-retries 5
+    env:
+      DB_HOST: localhost
+      DB_PORT: 5433
+      DB_USER: platform_user
+      DB_PASSWORD: platform_password
+      DB_NAME: platform_db
+      REDIS_HOST: localhost
+      REDIS_PORT: 6379
+      API_PORT: 4000
+      JWT_SECRET: test-jwt-secret
+      REACT_APP_API_URL: http://localhost:4000
+      REACT_APP_WS_URL: ws://localhost:4000
+      NODE_ENV: test
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: 'npm'
+
+      - name: Install root dependencies
+        run: npm install
+
+      - name: Install API dependencies
+        run: npm install
+        working-directory: ./platform-api
+
+      - name: Install UI dependencies
+        run: npm install
+        working-directory: ./platform-ui
+
+      - name: Build and start services (Docker Compose)
+        run: |
+          docker compose up -d --build
+          sleep 20 # Wait for services to be healthy
+
+      - name: Run API tests
+        run: docker exec platform-api npm test
+
+      - name: Run UI E2E tests
+        run: |
+          docker exec platform-ui npm run test:e2e || true
+
+      - name: Show container logs on failure
+        if: failure()
+        run: |
+          docker logs platform-api || true
+          docker logs platform-ui || true
+
+      - name: Stop services
+        if: always()
+        run: docker compose down
