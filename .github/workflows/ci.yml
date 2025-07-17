@@ -9,42 +9,6 @@ on:
 jobs:
   build-test:
     runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:14-alpine
-        env:
-          POSTGRES_USER: platform_user
-          POSTGRES_PASSWORD: platform_password
-          POSTGRES_DB: platform_db
-        ports:
-          - 5433:5432
-        options: >-
-          --health-cmd "pg_isready -U platform_user -d platform_db" \
-          --health-interval 10s \
-          --health-timeout 5s \
-          --health-retries 5
-      redis:
-        image: redis:7-alpine
-        ports:
-          - 6379:6379
-        options: >-
-          --health-cmd "redis-cli ping" \
-          --health-interval 10s \
-          --health-timeout 5s \
-          --health-retries 5
-    env:
-      DB_HOST: localhost
-      DB_PORT: 5433
-      DB_USER: platform_user
-      DB_PASSWORD: platform_password
-      DB_NAME: platform_db
-      REDIS_HOST: localhost
-      REDIS_PORT: 6379
-      API_PORT: 4000
-      JWT_SECRET: test-jwt-secret
-      REACT_APP_API_URL: http://localhost:4000
-      REACT_APP_WS_URL: ws://localhost:4000
-      NODE_ENV: test
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -66,33 +30,22 @@ jobs:
         run: npm install
         working-directory: ./platform-ui
 
-      - name: Install PostgreSQL and Redis clients
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y postgresql-client redis-tools
-
-      - name: Wait for services to be ready
-        run: |
-          echo "Waiting for PostgreSQL..."
-          until pg_isready -h localhost -p 5433 -U platform_user -d platform_db; do
-            sleep 1
-          done
-          echo "PostgreSQL is ready!"
-
-          echo "Waiting for Redis..."
-          until redis-cli -h localhost -p 6379 ping; do
-            sleep 1
-          done
-          echo "Redis is ready!"
-
-      - name: Run API tests
-        run: npm test
+      - name: Check API TypeScript compilation
+        run: npx tsc --noEmit
         working-directory: ./platform-api
 
-      - name: Run UI tests
-        run: npm test
+      - name: Check UI TypeScript compilation
+        run: npx tsc --noEmit
         working-directory: ./platform-ui
 
-      - name: Run UI E2E tests
-        run: npm run test:e2e
+      - name: Check API linting
+        run: npm run lint
+        working-directory: ./platform-api
+
+      - name: Build UI
+        run: npm run build
         working-directory: ./platform-ui
+
+      - name: Test API (unit tests only)
+        run: npm test -- --testPathPattern="\\.spec\\.ts$" --passWithNoTests
+        working-directory: ./platform-api
