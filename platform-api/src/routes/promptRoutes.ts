@@ -25,6 +25,7 @@ const authenticateUser = async (req: Request, res: Response, next: Function) => 
 
     (req as any).user = user;
     next();
+    return;
   } catch (error) {
     return res.status(401).json({ error: 'Invalid token' });
   }
@@ -50,10 +51,10 @@ router.post('/', authenticateUser, async (req: Request, res: Response) => {
     prompt.userId = user.id;
 
     const savedPrompt = await promptRepository.save(prompt);
-    res.status(201).json(savedPrompt);
+    return res.status(201).json(savedPrompt);
   } catch (error) {
     console.error('Error creating prompt:', error);
-    res.status(500).json({ error: 'Failed to create prompt' });
+    return res.status(500).json({ error: 'Failed to create prompt' });
   }
 });
 
@@ -74,10 +75,10 @@ router.get('/', authenticateUser, async (req: Request, res: Response) => {
       }
     });
 
-    res.json(Array.from(promptMap.values()));
+    return res.json(Array.from(promptMap.values()));
   } catch (error) {
     console.error('Error fetching prompts:', error);
-    res.status(500).json({ error: 'Failed to fetch prompts' });
+    return res.status(500).json({ error: 'Failed to fetch prompts' });
   }
 });
 
@@ -95,10 +96,10 @@ router.get('/:id', authenticateUser, async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Prompt not found' });
     }
 
-    res.json(prompt);
+    return res.json(prompt);
   } catch (error) {
     console.error('Error fetching prompt:', error);
-    res.status(500).json({ error: 'Failed to fetch prompt' });
+    return res.status(500).json({ error: 'Failed to fetch prompt' });
   }
 });
 
@@ -133,10 +134,10 @@ router.put('/:id', authenticateUser, async (req: Request, res: Response) => {
     await promptRepository.save(existingPrompt);
 
     const savedPrompt = await promptRepository.save(newPrompt);
-    res.json(savedPrompt);
+    return res.json(savedPrompt);
   } catch (error) {
     console.error('Error updating prompt:', error);
-    res.status(500).json({ error: 'Failed to update prompt' });
+    return res.status(500).json({ error: 'Failed to update prompt' });
   }
 });
 
@@ -164,10 +165,10 @@ router.get('/:id/versions', authenticateUser, async (req: Request, res: Response
       order: { version: 'ASC' }
     });
 
-    res.json(allVersions);
+    return res.json(allVersions);
   } catch (error) {
     console.error('Error fetching prompt versions:', error);
-    res.status(500).json({ error: 'Failed to fetch prompt versions' });
+    return res.status(500).json({ error: 'Failed to fetch prompt versions' });
   }
 });
 
@@ -186,10 +187,10 @@ router.delete('/:id', authenticateUser, async (req: Request, res: Response) => {
     }
 
     await promptRepository.remove(prompt);
-    res.status(204).send();
+    return res.status(204).send();
   } catch (error) {
     console.error('Error deleting prompt:', error);
-    res.status(500).json({ error: 'Failed to delete prompt' });
+    return res.status(500).json({ error: 'Failed to delete prompt' });
   }
 });
 
