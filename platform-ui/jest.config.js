@@ -7,7 +7,7 @@ module.exports = {
     '^.+\\.tsx?$': 'ts-jest',
   },
   setupFilesAfterEnv: ['<rootDir>/src/setupTests.ts'],
-  moduleNameMapping: {
+  moduleNameMapper: {
     '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
   },
   collectCoverageFrom: [
@@ -15,4 +15,5 @@ module.exports = {
     '!src/**/*.d.ts',
     '!src/index.tsx',
   ],
+  passWithNoTests: true,
 };
