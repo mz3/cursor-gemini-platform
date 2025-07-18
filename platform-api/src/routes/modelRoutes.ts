@@ -39,7 +39,7 @@ router.get('/:id', async (req, res, next) => {
 // POST /api/models - Create new model (with optional relationships)
 router.post('/', async (req, res, next) => {
   try {
-    const { name, displayName, schema, userId, relationships } = req.body;
+    const { name, displayName, description, schema, userId, relationships } = req.body;
 
     if (!name || !displayName || !schema || !userId) {
       return res.status(400).json({ error: 'Missing required fields' });
@@ -48,6 +48,7 @@ router.post('/', async (req, res, next) => {
     const model = modelRepository.create({
       name,
       displayName,
+      description,
       schema,
       userId,
       isSystem: false

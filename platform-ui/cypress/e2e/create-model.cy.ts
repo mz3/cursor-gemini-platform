@@ -23,6 +23,10 @@ describe('Create Model', () => {
   });
 
   it('should create a new model', () => {
+    const timestamp = Date.now();
+    const modelName = `TestModel${timestamp}`;
+    const displayName = `Test Model ${timestamp}`;
+
     // Click on "New Model" button
     cy.contains('New Model').click();
 
@@ -31,8 +35,8 @@ describe('Create Model', () => {
     cy.contains('h1', 'Create New Model').should('be.visible');
 
     // Fill in the model form
-    cy.get('input[id="name"]').type('TestModel');
-    cy.get('input[id="displayName"]').type('Test Model');
+    cy.get('input[id="name"]').type(modelName);
+    cy.get('input[id="displayName"]').type(displayName);
     cy.get('textarea[id="description"]').type('A test model for E2E testing');
 
     // Add a field
@@ -49,15 +53,21 @@ describe('Create Model', () => {
 
     // Should redirect to models list and show the new model
     cy.url().should('include', '/models');
-    cy.contains('Test Model').should('be.visible');
+    cy.contains(displayName).should('be.visible');
   });
 
   it('should create a new model with a relationship', () => {
+    const timestamp = Date.now();
+    const projectName = `ProjectForRelationship${timestamp}`;
+    const projectDisplayName = `Project For Relationship ${timestamp}`;
+    const taskName = `TaskForRelationship${timestamp}`;
+    const taskDisplayName = `Task For Relationship ${timestamp}`;
+
     // Create a base model (Project)
     cy.contains('New Model').click();
     cy.url().should('include', '/models/create');
-    cy.get('input[id="name"]').type('ProjectForRelationship');
-    cy.get('input[id="displayName"]').type('Project For Relationship');
+    cy.get('input[id="name"]').type(projectName);
+    cy.get('input[id="displayName"]').type(projectDisplayName);
     cy.get('textarea[id="description"]').type('A project entity');
     cy.get('button').contains('Add Field').click();
     cy.get('input[placeholder="Field name"]').first().type('title');
@@ -66,13 +76,13 @@ describe('Create Model', () => {
     cy.get('input[type="checkbox"]').first().check(); // Required
     cy.get('button').contains('Create Model').click();
     cy.url().should('include', '/models');
-    cy.contains('Project For Relationship').should('be.visible');
+    cy.contains(projectDisplayName).should('be.visible');
 
     // Create a related model (Task) with a relationship to Project
     cy.contains('New Model').click();
     cy.url().should('include', '/models/create');
-    cy.get('input[id="name"]').type('TaskForRelationship');
-    cy.get('input[id="displayName"]').type('Task For Relationship');
+    cy.get('input[id="name"]').type(taskName);
+    cy.get('input[id="displayName"]').type(taskDisplayName);
     cy.get('textarea[id="description"]').type('A task entity');
     cy.get('button').contains('Add Field').click();
     cy.get('input[placeholder="Field name"]').first().type('description');
@@ -85,13 +95,13 @@ describe('Create Model', () => {
     cy.get('input[placeholder="e.g., project_tasks"]').type('projectTasks');
     cy.get('input[placeholder="e.g., Project Tasks"]').type('Project Tasks');
     cy.get('select').eq(1).select('many-to-one'); // Relationship type
-    cy.get('select').eq(2).select('Project For Relationship'); // Target model
+    cy.get('select').eq(2).select(projectDisplayName); // Target model
     cy.get('input[placeholder="e.g., projectId"]').type('projectId'); // Source field
     cy.get('input[placeholder="e.g., id"]').type('id'); // Target field
     cy.get('textarea[placeholder="Describe this relationship..."]').type('Each task belongs to a project.');
 
     cy.get('button').contains('Create Model').click();
     cy.url().should('include', '/models');
-    cy.contains('Task For Relationship').should('be.visible');
+    cy.contains(taskDisplayName).should('be.visible');
   });
 });
