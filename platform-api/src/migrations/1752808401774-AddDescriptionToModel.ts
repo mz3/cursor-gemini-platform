@@ -10,5 +10,4 @@ export class AddDescriptionToModel1752808401774 implements MigrationInterface {
     public async down(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`ALTER TABLE "models" DROP COLUMN "description"`);
     }
-
 }

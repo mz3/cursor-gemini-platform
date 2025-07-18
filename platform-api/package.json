@@ -2,6 +2,7 @@
   "name": "platform-api",
   "version": "1.0.0",
   "description": "Meta-application platform API",
+  "type": "module",
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
