@@ -45,7 +45,7 @@ export const initializeDatabase = async (): Promise<void> => {
       port: process.env.DB_PORT || '5432',
       database: process.env.DB_NAME || 'platform_db',
       username: process.env.DB_USER || 'platform_user',
-      synchronize: process.env.NODE_ENV !== 'production',
+      synchronize: false,
       logging: process.env.NODE_ENV === 'development'
     });
 
