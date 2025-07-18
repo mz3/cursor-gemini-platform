@@ -276,6 +276,19 @@ jobs:
             sleep 2
           done
 
+      - name: Run database migrations
+        run: |
+          echo "Running database migrations..."
+          cd platform-api
+          npm run migration:run
+        env:
+          NODE_ENV: test
+          DB_HOST: localhost
+          DB_PORT: 5433
+          DB_USER: platform_user
+          DB_PASSWORD: platform_password
+          DB_NAME: platform_db
+
       - name: Build API
         run: npm run build
         working-directory: ./platform-api
