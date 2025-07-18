@@ -2,9 +2,11 @@ import axios from 'axios';
 
 // Configure axios with the correct base URL for the environment
 const api = axios.create({
-  baseURL: import.meta.env.PROD
-    ? 'https://cursor-gemini-platform-api.fly.dev/api'
-    : '/api'
+  baseURL: process.env.NODE_ENV === 'test'
+    ? 'http://localhost:4000/api'
+    : import.meta.env.PROD
+      ? 'https://cursor-gemini-platform-api.fly.dev/api'
+      : '/api'
 });
 
 // Add request interceptor to include auth token

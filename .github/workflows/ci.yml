@@ -155,6 +155,8 @@ jobs:
       - name: Build UI
         run: npm run build
         working-directory: ./platform-ui
+        env:
+          NODE_ENV: test
 
       - name: Start UI server with nginx
         env:
