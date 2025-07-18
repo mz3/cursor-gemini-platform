@@ -1,4 +1,6 @@
 import request from 'supertest';
+import { AppDataSource } from '../config/database.js';
+import { User } from '../entities/User.js';
 
 const API_BASE_URL = 'http://localhost:4000';
 

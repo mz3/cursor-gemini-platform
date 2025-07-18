@@ -1,5 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
-import { Prompt } from './Prompt';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn, Relation } from 'typeorm';
+import { Prompt } from './Prompt.js';
 
 @Entity('prompt_versions')
 export class PromptVersion {
@@ -30,7 +30,7 @@ export class PromptVersion {
 
   @ManyToOne(() => Prompt, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'promptId' })
-  prompt!: Prompt;
+  prompt!: Relation<Prompt>;
 
   @Column()
   promptId!: string;

@@ -1,5 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
-import { Application } from './Application';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany, Relation } from 'typeorm';
+import { Application } from './Application.js';
 
 @Entity('users')
 export class User {
@@ -31,5 +31,5 @@ export class User {
   updatedAt!: Date;
 
   @OneToMany(() => Application, application => application.user)
-  applications!: Application[];
+  applications!: Relation<Application>[];
 }

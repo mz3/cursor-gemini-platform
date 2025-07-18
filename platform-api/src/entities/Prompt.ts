@@ -1,6 +1,6 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
-import { User } from './User';
-import { PromptVersion } from './PromptVersion';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn, OneToMany, Relation } from 'typeorm';
+import { User } from './User.js';
+import { PromptVersion } from './PromptVersion.js';
 
 @Entity('prompts')
 export class Prompt {
@@ -15,13 +15,13 @@ export class Prompt {
 
   @ManyToOne(() => User, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'userId' })
-  user!: User;
+  user!: Relation<User>;
 
   @Column()
   userId!: string;
 
   @OneToMany(() => PromptVersion, version => version.prompt, { cascade: true })
-  versions!: PromptVersion[];
+  versions!: Relation<PromptVersion>[];
 
   @CreateDateColumn()
   createdAt!: Date;

@@ -1,15 +1,15 @@
 import { DataSource } from 'typeorm';
-import { User } from '../entities/User';
-import { Model } from '../entities/Model';
-import { Application } from '../entities/Application';
-import { Component } from '../entities/Component';
-import { Template } from '../entities/Template';
-import { Workflow } from '../entities/Workflow';
-import { WorkflowAction } from '../entities/WorkflowAction';
-import { CodeTemplate } from '../entities/CodeTemplate';
-import { Relationship } from '../entities/Relationship';
-import { Prompt } from '../entities/Prompt';
-import { PromptVersion } from '../entities/PromptVersion';
+import { User } from '../entities/User.js';
+import { Model } from '../entities/Model.js';
+import { Application } from '../entities/Application.js';
+import { Component } from '../entities/Component.js';
+import { Template } from '../entities/Template.js';
+import { Workflow } from '../entities/Workflow.js';
+import { WorkflowAction } from '../entities/WorkflowAction.js';
+import { CodeTemplate } from '../entities/CodeTemplate.js';
+import { Relationship } from '../entities/Relationship.js';
+import { Prompt } from '../entities/Prompt.js';
+import { PromptVersion } from '../entities/PromptVersion.js';
 
 export const AppDataSource = new DataSource({
   type: 'postgres',
@@ -18,7 +18,7 @@ export const AppDataSource = new DataSource({
   username: process.env.DB_USER || 'platform_user',
   password: process.env.DB_PASSWORD || 'platform_password',
   database: process.env.DB_NAME || 'platform_db',
-  synchronize: true, // Enable for initial deployment to create tables - will be disabled after first run
+  synchronize: false, // Disabled for production - use migrations instead
   logging: process.env.NODE_ENV === 'development',
   entities: [
     User,

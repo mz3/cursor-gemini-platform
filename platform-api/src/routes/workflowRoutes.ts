@@ -1,7 +1,7 @@
 import { Router, Request, Response, NextFunction } from 'express';
-import { AppDataSource } from '../config/database';
-import { Workflow } from '../entities/Workflow';
-import { WorkflowAction } from '../entities/WorkflowAction';
+import { AppDataSource } from '../config/database.js';
+import { Workflow } from '../entities/Workflow.js';
+import { WorkflowAction } from '../entities/WorkflowAction.js';
 
 const router = Router();
 const workflowRepository = AppDataSource.getRepository(Workflow);

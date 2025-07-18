@@ -1,7 +1,7 @@
 import { Router, Request, Response, NextFunction } from 'express';
-import { AppDataSource } from '../config/database';
-import { Application } from '../entities/Application';
-import { publishEvent } from '../config/redis';
+import { AppDataSource } from '../config/database.js';
+import { Application } from '../entities/Application.js';
+import { publishEvent } from '../config/redis.js';
 
 const router = Router();
 const applicationRepository = AppDataSource.getRepository(Application);

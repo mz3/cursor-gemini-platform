@@ -1,5 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne } from 'typeorm';
-import { Application } from './Application';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, Relation } from 'typeorm';
+import { Application } from './Application.js';
 
 @Entity('components')
 export class Component {
@@ -22,7 +22,7 @@ export class Component {
   isActive!: boolean;
 
   @ManyToOne(() => Application, (application: Application) => application.id)
-  application!: Application;
+  application!: Relation<Application>;
 
   @Column()
   applicationId!: string;

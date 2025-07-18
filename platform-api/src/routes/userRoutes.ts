@@ -1,6 +1,6 @@
 import { Router, Request, Response, NextFunction } from 'express';
-import { AppDataSource } from '../config/database';
-import { User } from '../entities/User';
+import { AppDataSource } from '../config/database.js';
+import { User } from '../entities/User.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 

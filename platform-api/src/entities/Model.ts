@@ -1,6 +1,6 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, OneToMany } from 'typeorm';
-import { User } from './User';
-import { Application } from './Application';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, OneToMany, Relation } from 'typeorm';
+import { User } from './User.js';
+import { Application } from './Application.js';
 
 @Entity('models')
 export class Model {
@@ -26,13 +26,13 @@ export class Model {
   isActive!: boolean;
 
   @ManyToOne(() => User, user => user.id)
-  user!: User;
+  user!: Relation<User>;
 
   @Column()
   userId!: string;
 
   @OneToMany(() => Application, application => application.model)
-  applications!: Application[];
+  applications!: Relation<Application>[];
 
   @CreateDateColumn()
   createdAt!: Date;

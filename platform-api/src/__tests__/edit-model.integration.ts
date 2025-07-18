@@ -1,8 +1,8 @@
 import request from 'supertest';
-import { AppDataSource } from '../config/database';
-import { Model } from '../entities/Model';
-import { Relationship } from '../entities/Relationship';
-import { User } from '../entities/User';
+import { AppDataSource } from '../config/database.js';
+import { Model } from '../entities/Model.js';
+import { Relationship } from '../entities/Relationship.js';
+import { User } from '../entities/User.js';
 
 const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:4000';
 

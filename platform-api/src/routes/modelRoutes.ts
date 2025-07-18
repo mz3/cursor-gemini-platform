@@ -1,7 +1,7 @@
 import { Router } from 'express';
-import { AppDataSource } from '../config/database';
-import { Model } from '../entities/Model';
-import { Relationship } from '../entities/Relationship';
+import { AppDataSource } from '../config/database.js';
+import { Model } from '../entities/Model.js';
+import { Relationship } from '../entities/Relationship.js';
 
 const router = Router();
 const modelRepository = AppDataSource.getRepository(Model);

@@ -1,9 +1,9 @@
-import { AppDataSource } from '../config/database';
-import { User } from '../entities/User';
-import { Model } from '../entities/Model';
-import { Workflow } from '../entities/Workflow';
-import { WorkflowAction } from '../entities/WorkflowAction';
-import { CodeTemplate } from '../entities/CodeTemplate';
+import { AppDataSource } from '../config/database.js';
+import { User } from '../entities/User.js';
+import { Model } from '../entities/Model.js';
+import { Workflow } from '../entities/Workflow.js';
+import { WorkflowAction } from '../entities/WorkflowAction.js';
+import { CodeTemplate } from '../entities/CodeTemplate.js';
 import bcrypt from 'bcryptjs';
 
 export const seedDatabase = async (): Promise<void> => {

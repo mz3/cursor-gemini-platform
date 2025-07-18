@@ -1,4 +1,8 @@
 import request from 'supertest';
+import { AppDataSource } from '../config/database.js';
+import { Model } from '../entities/Model.js';
+import { Prompt } from '../entities/Prompt.js';
+import { PromptVersion } from '../entities/PromptVersion.js';
 
 const API_BASE_URL = 'http://localhost:4000';
 

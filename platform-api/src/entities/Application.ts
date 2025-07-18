@@ -1,7 +1,7 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, OneToMany } from 'typeorm';
-import { User } from './User';
-import { Model } from './Model';
-import { Component } from './Component';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, OneToMany, Relation } from 'typeorm';
+import { User } from './User.js';
+import { Model } from './Model.js';
+import { Component } from './Component.js';
 
 @Entity('applications')
 export class Application {
@@ -24,19 +24,19 @@ export class Application {
   status!: string;
 
   @ManyToOne(() => User, (user: User) => user.id)
-  user!: User;
+  user!: Relation<User>;
 
   @Column()
   userId!: string;
 
   @ManyToOne(() => Model, (model: Model) => model.id)
-  model!: Model;
+  model!: Relation<Model>;
 
   @Column()
   modelId!: string;
 
   @OneToMany(() => Component, (component: Component) => component.application)
-  components!: Component[];
+  components!: Relation<Component>[];
 
   @CreateDateColumn()
   createdAt!: Date;

@@ -1,8 +1,8 @@
 import { Router, Request, Response } from 'express';
-import { AppDataSource } from '../config/database';
-import { Prompt } from '../entities/Prompt';
-import { PromptVersion } from '../entities/PromptVersion';
-import { User } from '../entities/User';
+import { AppDataSource } from '../config/database.js';
+import { Prompt } from '../entities/Prompt.js';
+import { PromptVersion } from '../entities/PromptVersion.js';
+import { User } from '../entities/User.js';
 import jwt from 'jsonwebtoken';
 
 const router = Router();

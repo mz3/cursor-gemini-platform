@@ -4,16 +4,16 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
-import { initializeDatabase } from './config/database';
-import { initializeRedis } from './config/redis';
-import { modelRoutes } from './routes/modelRoutes';
-import { relationshipRoutes } from './routes/relationshipRoutes';
-import { applicationRoutes } from './routes/applicationRoutes';
-import { userRoutes } from './routes/userRoutes';
-import { workflowRoutes } from './routes/workflowRoutes';
-import promptRoutes from './routes/promptRoutes';
-import { errorHandler } from './middleware/errorHandler';
-import { seedDatabase } from './utils/seedDatabase';
+import { initializeDatabase } from './config/database.js';
+import { initializeRedis } from './config/redis.js';
+import { modelRoutes } from './routes/modelRoutes.js';
+import { relationshipRoutes } from './routes/relationshipRoutes.js';
+import { applicationRoutes } from './routes/applicationRoutes.js';
+import { userRoutes } from './routes/userRoutes.js';
+import { workflowRoutes } from './routes/workflowRoutes.js';
+import promptRoutes from './routes/promptRoutes.js';
+import { errorHandler } from './middleware/errorHandler.js';
+import { seedDatabase } from './utils/seedDatabase.js';
 
 console.log('🚀 Starting Platform API...');
 console.log('📅 Current time:', new Date().toISOString());
@@ -106,9 +106,8 @@ async function startServer() {
   }
 }
 
-if (require.main === module) {
-  console.log('🎯 Starting server in main module...');
-  startServer();
-}
+// Remove require.main === module check for ESM compatibility
+// Just run the bootstrap logic unconditionally
+startServer();
 
 export { app };

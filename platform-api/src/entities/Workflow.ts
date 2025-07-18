@@ -1,5 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
-import { WorkflowAction } from './WorkflowAction';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany, Relation } from 'typeorm';
+import { WorkflowAction } from './WorkflowAction.js';
 
 @Entity('workflows')
 export class Workflow {
@@ -22,7 +22,7 @@ export class Workflow {
   isActive!: boolean;
 
   @OneToMany(() => WorkflowAction, (action: WorkflowAction) => action.workflow)
-  actions!: WorkflowAction[];
+  actions!: Relation<WorkflowAction>[];
 
   @CreateDateColumn()
   createdAt!: Date;

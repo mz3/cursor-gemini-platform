@@ -1,5 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne } from 'typeorm';
-import { Workflow } from './Workflow';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, Relation } from 'typeorm';
+import { Workflow } from './Workflow.js';
 
 @Entity('workflow_actions')
 export class WorkflowAction {
@@ -22,7 +22,7 @@ export class WorkflowAction {
   isActive!: boolean;
 
   @ManyToOne(() => Workflow, (workflow: Workflow) => workflow.id)
-  workflow!: Workflow;
+  workflow!: Relation<Workflow>;
 
   @Column()
   workflowId!: string;
