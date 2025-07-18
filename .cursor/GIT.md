@@ -52,3 +52,44 @@ All commit messages should follow the **Conventional Commits** specification wit
 - `refactor: simplify database connection logic`
 - `test: add integration tests for user routes`
 - `chore: update TypeScript to v5.0` 
+
+## GitHub Issue Formatting
+
+When creating or editing GitHub Issues, follow these best practices for clarity and consistency:
+
+- **Use Markdown**: Format issue bodies using markdown for headings, lists, and emphasis.
+- **Use Proper Newlines**: Write the issue body in a markdown file or editor to ensure newlines and sections render correctly. Avoid using literal `\n` in the text; use real line breaks.
+- **When Using GitHub CLI**: Always use the `--body-file` option (e.g., `gh issue create --body-file issue.md`) when creating or editing issues to ensure markdown and newlines are preserved. Do not pass multi-line bodies directly on the command line, as this can result in `\n` characters appearing in the issue.
+- **Structure Your Issue**: Use clear sections such as:
+  - `**Describe the bug**`
+  - `**Steps to Reproduce**`
+  - `**Expected Behavior**`
+  - `**Environment**`
+  - `**Additional Context**`
+- **Example Template**:
+
+```
+**Describe the bug**
+A clear and concise description of what the bug is.
+
+**Steps to Reproduce**
+1. Step one
+2. Step two
+3. ...
+
+**Expected Behavior**
+A clear and concise description of what you expected to happen.
+
+**Environment**
+- Platform: [e.g. UI, API]
+- Browser: [e.g. Chrome, Firefox]
+- OS: [e.g. Ubuntu, macOS]
+
+**Additional Context**
+Add any other context about the problem here.
+```
+
+- **Use Labels**: Add appropriate labels (e.g., `bug`, `enhancement`) to help triage and organize issues.
+- **Preview Before Submitting**: Always preview the issue to ensure formatting is correct and readable.
+
+This ensures issues are actionable, easy to read, and consistent across the project. 

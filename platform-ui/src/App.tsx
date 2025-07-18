@@ -7,6 +7,7 @@ import Dashboard from './components/Dashboard';
 import Models from './components/Models';
 import CreateModel from './components/CreateModel';
 import EditModel from './components/EditModel';
+import ViewModel from './components/ViewModel';
 import Applications from './components/Applications';
 import Prompts from './components/Prompts';
 import CreatePrompt from './components/CreatePrompt';
@@ -112,6 +113,7 @@ const AppContent: React.FC = () => {
             <Route path="/" element={<Dashboard />} />
             <Route path="/models" element={<Models />} />
             <Route path="/models/create" element={<CreateModel />} />
+            <Route path="/models/:id" element={<ViewModel />} />
             <Route path="/models/:id/edit" element={<EditModel />} />
             <Route path="/applications" element={<Applications />} />
             <Route path="/prompts" element={<Prompts />} />

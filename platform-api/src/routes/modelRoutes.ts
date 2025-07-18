@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { AppDataSource } from '../config/database.js';
 import { Model } from '../entities/Model.js';
 import { Relationship } from '../entities/Relationship.js';
+import { User } from '../entities/User.js';
 
 const router = Router();
 const modelRepository = AppDataSource.getRepository(Model);
@@ -19,11 +20,12 @@ router.get('/', async (req, res, next) => {
   }
 });
 
-// GET /api/models/:id - Get model by ID
+// GET /api/models/:id - Get model by ID with user information
 router.get('/:id', async (req, res, next) => {
   try {
     const model = await modelRepository.findOne({
-      where: { id: req.params.id, isActive: true }
+      where: { id: req.params.id, isActive: true },
+      relations: ['user']
     });
 
     if (!model) {
