@@ -120,6 +120,25 @@ jobs:
             sleep 2
           done
 
+      - name: Start API server
+        run: |
+          cd platform-api
+          npm run dev &
+          API_PID=$!
+          sleep 15
+          echo "API server started with PID: $API_PID"
+        env:
+          NODE_ENV: test
+          DB_HOST: localhost
+          DB_PORT: 5433
+          DB_USER: platform_user
+          DB_PASSWORD: platform_password
+          DB_NAME: platform_db
+          REDIS_HOST: localhost
+          REDIS_PORT: 6379
+          JWT_SECRET: test-jwt-secret-key
+          API_PORT: 4000
+
       - name: Run API integration tests
         run: npm run test:integration
         working-directory: ./platform-api
