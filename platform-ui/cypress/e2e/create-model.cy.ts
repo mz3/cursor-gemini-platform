@@ -10,9 +10,14 @@ describe('Create Model', () => {
     cy.get('input[name="password"]').type(testPassword);
     cy.get('button[type="submit"]').click();
 
-    // Wait for login to complete and navigate to models
+    // Wait for login to complete and verify we're logged in
     cy.url().should('include', '/');
     cy.wait(2000); // Wait for login to complete
+
+    // Verify we're actually logged in by checking for Dashboard content
+    cy.contains('Dashboard').should('be.visible');
+
+    // Navigate to models page
     cy.visit('/models');
     cy.wait(2000); // Wait for page to load
   });

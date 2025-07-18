@@ -10,9 +10,12 @@ describe('Prompts Simple', () => {
     cy.get('input[name="password"]').type(testPassword);
     cy.get('button[type="submit"]').click();
 
-    // Wait for login to complete
+    // Wait for login to complete and verify we're logged in
     cy.url().should('include', '/');
     cy.wait(2000);
+
+    // Verify we're actually logged in by checking for Dashboard content
+    cy.contains('Dashboard').should('be.visible');
   });
 
   it('should navigate to prompts page', () => {
