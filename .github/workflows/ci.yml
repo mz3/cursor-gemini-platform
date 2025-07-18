@@ -156,13 +156,17 @@ jobs:
         run: npm run build
         working-directory: ./platform-ui
 
-      - name: Start UI server
+      - name: Start UI server with nginx
         run: |
-          cd platform-ui
-          npm start &
-          UI_PID=$!
-          sleep 10
-          echo "UI server started with PID: $UI_PID"
+          echo "Starting nginx for UI server..."
+          # Copy built files to nginx directory
+          sudo mkdir -p /usr/share/nginx/html
+          sudo cp -r platform-ui/dist/* /usr/share/nginx/html/
+
+          # Start nginx
+          sudo nginx -c $(pwd)/nginx.conf
+          sleep 5
+          echo "Nginx started for UI server"
 
       - name: Verify UI server is running
         run: |
