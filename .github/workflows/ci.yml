@@ -157,6 +157,8 @@ jobs:
         working-directory: ./platform-ui
 
       - name: Start UI server with nginx
+        env:
+          NODE_ENV: test
         run: |
           echo "Starting nginx for UI server..."
           # Copy built files to nginx directory

@@ -8,7 +8,7 @@ export default defineConfig({
     host: '0.0.0.0',
     proxy: {
       '/api': {
-        target: 'http://platform-api:4000',
+        target: process.env.NODE_ENV === 'test' ? 'http://localhost:4000' : 'http://platform-api:4000',
         changeOrigin: true,
         secure: false,
       },
