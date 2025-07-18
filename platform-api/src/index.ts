@@ -7,6 +7,7 @@ import dotenv from 'dotenv';
 import { initializeDatabase } from './config/database';
 import { initializeRedis } from './config/redis';
 import { modelRoutes } from './routes/modelRoutes';
+import { relationshipRoutes } from './routes/relationshipRoutes';
 import { applicationRoutes } from './routes/applicationRoutes';
 import { userRoutes } from './routes/userRoutes';
 import { workflowRoutes } from './routes/workflowRoutes';
@@ -58,6 +59,7 @@ console.log('🏥 Health check endpoint configured');
 // API Routes
 console.log('🛣️ Setting up API routes...');
 app.use('/api/models', modelRoutes);
+app.use('/api/relationships', relationshipRoutes);
 app.use('/api/applications', applicationRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/workflows', workflowRoutes);

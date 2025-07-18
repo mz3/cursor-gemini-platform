@@ -44,8 +44,9 @@ describe('Edit Model', () => {
     cy.url().should('include', '/models');
     cy.contains('Test Model For Edit').should('be.visible');
 
-    // Now edit the model
-    cy.get('button[title="Edit Model"]').first().click();
+    // Get the model ID by intercepting the API call or finding it in the list
+    // For now, let's use a more reliable approach - find the model and click its edit button
+    cy.contains('Test Model For Edit').closest('li').find('button[title="Edit Model"]').click();
     cy.url().should('include', '/edit');
 
     // Verify the form is populated with existing data
@@ -78,8 +79,8 @@ describe('Edit Model', () => {
     // First, create two models to establish a relationship
     // Create Project model
     cy.contains('New Model').click();
-    cy.get('input[id="name"]').type('Project');
-    cy.get('input[id="displayName"]').type('Project');
+    cy.get('input[id="name"]').type('ProjectForEdit');
+    cy.get('input[id="displayName"]').type('Project For Edit');
     cy.get('textarea[id="description"]').type('A project entity');
     cy.get('button').contains('Add Field').click();
     cy.get('input[placeholder="Field name"]').first().type('title');
@@ -91,8 +92,8 @@ describe('Edit Model', () => {
 
     // Create Task model with relationship
     cy.contains('New Model').click();
-    cy.get('input[id="name"]').type('Task');
-    cy.get('input[id="displayName"]').type('Task');
+    cy.get('input[id="name"]').type('TaskForEdit');
+    cy.get('input[id="displayName"]').type('Task For Edit');
     cy.get('textarea[id="description"]').type('A task entity');
     cy.get('button').contains('Add Field').click();
     cy.get('input[placeholder="Field name"]').first().type('description');
@@ -105,7 +106,7 @@ describe('Edit Model', () => {
     cy.get('input[placeholder="e.g., project_tasks"]').type('projectTasks');
     cy.get('input[placeholder="e.g., Project Tasks"]').type('Project Tasks');
     cy.get('select').eq(1).select('many-to-one'); // Relationship type
-    cy.get('select').eq(2).select('Project'); // Target model
+    cy.get('select').eq(2).select('Project For Edit'); // Target model
     cy.get('input[placeholder="e.g., projectId"]').type('projectId'); // Source field
     cy.get('input[placeholder="e.g., id"]').type('id');
     cy.get('textarea[placeholder="Describe this relationship..."]').type('Each task belongs to a project.');
@@ -113,8 +114,8 @@ describe('Edit Model', () => {
     cy.get('button').contains('Create Model').click();
     cy.url().should('include', '/models');
 
-    // Now edit the Task model
-    cy.get('button[title="Edit Model"]').last().click(); // Click edit on the Task model
+    // Now edit the Task model - look for the specific model we just created
+    cy.contains('Task For Edit').closest('li').find('button[title="Edit Model"]').click();
     cy.url().should('include', '/edit');
 
     // Verify the relationship is loaded
@@ -138,7 +139,7 @@ describe('Edit Model', () => {
 
     // Should redirect to models list
     cy.url().should('include', '/models');
-    cy.contains('Task').should('be.visible');
+    cy.contains('Task For Edit').should('be.visible');
   });
 
   it('should handle validation errors when editing a model', () => {
@@ -154,8 +155,8 @@ describe('Edit Model', () => {
     cy.get('button').contains('Create Model').click();
     cy.url().should('include', '/models');
 
-    // Edit the model
-    cy.get('button[title="Edit Model"]').first().click();
+    // Edit the model - look for the specific model we just created
+    cy.contains('Validation Test Model').closest('li').find('button[title="Edit Model"]').click();
     cy.url().should('include', '/edit');
 
     // Try to submit with invalid data (empty display name)

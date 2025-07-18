@@ -129,6 +129,7 @@ All custom services use Dockerfiles based on node:24-alpine. Source code is NOT 
 - **API**: Jest for unit tests, Supertest for integration tests (`cd platform-api && npm test`)
 - **UI**: React Testing Library for unit tests (`cd platform-ui && npm test`)
 - **E2E**: Cypress for end-to-end tests (`cd platform-ui && npm run test:e2e`). Playwright is the preferred tool for new E2E tests.
+- **E2E Headed Mode**: Run E2E tests in headed mode to see browser actions: `cd platform-ui && npm run test:e2e:headed`
 - **Coverage**: Aim for >80% coverage; run `cd platform-api && npm run test:coverage`
 
 # Cursor Rules for Meta-Application Platform

@@ -13,6 +13,9 @@ export class Model {
   @Column()
   displayName!: string;
 
+  @Column({ nullable: true })
+  description?: string;
+
   @Column('jsonb')
   schema!: Record<string, any>;
 
