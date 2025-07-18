@@ -119,10 +119,16 @@ jobs:
       - name: Start API server
         run: |
           cd platform-api
+          echo "Starting API server..."
           npm start &
           API_PID=$!
-          sleep 10
           echo "API server started with PID: $API_PID"
+          sleep 5
+          echo "Checking if API process is still running..."
+          ps aux | grep node || echo "No node processes found"
+          echo "Checking port 4000..."
+          netstat -tlnp | grep :4000 || echo "Port 4000 not in use"
+          sleep 5
         env:
           NODE_ENV: test
           DB_HOST: localhost
@@ -137,7 +143,10 @@ jobs:
 
       - name: Verify API server is running
         run: |
-          until curl -f http://localhost:4000/api/health; do
+          echo "Checking if API server is responding..."
+          curl -v http://localhost:4000/health || echo "Health endpoint not responding"
+          curl -v http://localhost:4000/api/health || echo "API health endpoint not responding"
+          until curl -f http://localhost:4000/health; do
             echo "Waiting for API server..."
             sleep 2
           done
