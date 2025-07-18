@@ -152,6 +152,64 @@ jobs:
           done
           echo "API server is ready!"
 
+      - name: Run API integration tests
+        run: |
+          echo "Running API integration tests..."
+          cd platform-api
+          npm run test:integration
+        env:
+          NODE_ENV: test
+          DB_HOST: localhost
+          DB_PORT: 5433
+          DB_USER: platform_user
+          DB_PASSWORD: platform_password
+          DB_NAME: platform_db
+          REDIS_HOST: localhost
+          REDIS_PORT: 6379
+          JWT_SECRET: test-jwt-secret-key
+          API_PORT: 4000
+
+      - name: Test API login with test credentials
+        run: |
+          echo "Testing API login with test credentials..."
+          # Test login endpoint
+          response=$(curl -s -w "\n%{http_code}" -X POST http://localhost:4000/api/users/login \
+            -H "Content-Type: application/json" \
+            -d '{"email":"admin@platform.com","password":"admin123"}')
+
+          http_code=$(echo "$response" | tail -n1)
+          body=$(echo "$response" | head -n -1)
+
+          echo "Login response status: $http_code"
+          echo "Login response body: $body"
+
+          if [ "$http_code" -eq 200 ]; then
+            echo "✅ Login test passed!"
+            # Extract token for further testing
+            token=$(echo "$body" | grep -o '"token":"[^"]*"' | cut -d'"' -f4)
+            echo "Token extracted: ${token:0:20}..."
+
+            # Test user profile endpoint
+            profile_response=$(curl -s -w "\n%{http_code}" -X GET http://localhost:4000/api/users/profile \
+              -H "Authorization: Bearer $token")
+
+            profile_http_code=$(echo "$profile_response" | tail -n1)
+            profile_body=$(echo "$profile_response" | head -n -1)
+
+            echo "Profile response status: $profile_http_code"
+            echo "Profile response body: $profile_body"
+
+            if [ "$profile_http_code" -eq 200 ]; then
+              echo "✅ Profile test passed!"
+            else
+              echo "❌ Profile test failed!"
+              exit 1
+            fi
+          else
+            echo "❌ Login test failed!"
+            exit 1
+          fi
+
       - name: Build UI
         run: npm run build
         working-directory: ./platform-ui
