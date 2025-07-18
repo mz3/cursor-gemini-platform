@@ -83,6 +83,56 @@ router.get('/:id/relationships', async (req, res, next) => {
   }
 });
 
+// POST /api/relationships - Create new relationship
+router.post('/relationships', async (req, res, next) => {
+  try {
+    const { name, displayName, type, sourceModelId, targetModelId, sourceField, targetField, cascade, nullable, description, userId } = req.body;
+
+    if (!name || !displayName || !type || !sourceModelId || !targetModelId || !sourceField || !targetField || !userId) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    const relationshipRepo = AppDataSource.getRepository(Relationship);
+    const relationship = relationshipRepo.create({
+      name,
+      displayName,
+      type,
+      sourceModelId,
+      targetModelId,
+      sourceField,
+      targetField,
+      cascade: cascade || false,
+      nullable: nullable !== undefined ? nullable : true,
+      description,
+      userId
+    });
+
+    const savedRelationship = await relationshipRepo.save(relationship);
+    return res.status(201).json(savedRelationship);
+  } catch (error) {
+    return next(error);
+  }
+});
+
+// DELETE /api/relationships/:id - Delete relationship
+router.delete('/relationships/:id', async (req, res, next) => {
+  try {
+    const relationshipRepo = AppDataSource.getRepository(Relationship);
+    const relationship = await relationshipRepo.findOne({
+      where: { id: req.params.id }
+    });
+
+    if (!relationship) {
+      return res.status(404).json({ error: 'Relationship not found' });
+    }
+
+    await relationshipRepo.remove(relationship);
+    return res.json({ message: 'Relationship deleted successfully' });
+  } catch (error) {
+    return next(error);
+  }
+});
+
 // PUT /api/models/:id - Update model
 router.put('/:id', async (req, res, next) => {
   try {
