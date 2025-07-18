@@ -24,6 +24,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "start": "serve dist -l 3000",
+    "test": "jest",
+    "test:watch": "jest --watch",
     "test:e2e": "cypress run",
     "test:e2e:prod": "cypress run --env baseUrl=https://cursor-gemini-platform-ui.fly.dev,apiUrl=https://cursor-gemini-platform-api.fly.dev,testEmail=michael@tunnel.ninja,testPassword=8ticketexplosion4",
     "test:e2e:local": "cypress run --env baseUrl=http://localhost:3000,apiUrl=http://localhost:4000,testEmail=admin@platform.com,testPassword=admin123",
@@ -54,7 +56,14 @@
     "cypress": "^13.6.1",
     "postcss": "^8.4.32",
     "tailwindcss": "^3.3.6",
-    "vite": "^7.0.5"
+    "vite": "^7.0.5",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.1",
+    "jest-environment-jsdom": "^29.7.0",
+    "@testing-library/react": "^13.4.0",
+    "@testing-library/jest-dom": "^5.17.0",
+    "@testing-library/user-event": "^13.5.0",
+    "identity-obj-proxy": "^3.0.0"
   },
   "proxy": "http://platform-api:4000"
 }

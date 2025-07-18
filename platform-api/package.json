@@ -11,6 +11,8 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
+    "test:unit": "jest --testPathPattern=\"\\.spec\\.ts$|health\\.test\\.ts$\" --passWithNoTests",
+    "test:integration": "jest --testPathPattern=\"\\.integration\\.ts$\" --passWithNoTests",
     "lint": "eslint src/**/*.ts",
     "lint:fix": "eslint src/**/*.ts --fix",
     "typeorm": "typeorm-ts-node-commonjs",
