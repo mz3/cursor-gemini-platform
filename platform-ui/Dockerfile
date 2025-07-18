@@ -1,4 +1,5 @@
-FROM node:24-alpine
+# Build stage
+FROM node:24-alpine AS builder
 
 WORKDIR /app
 
@@ -6,13 +7,29 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install dependencies
-RUN npm install
+RUN npm ci
 
-# Copy the rest of the app
+# Copy source code
 COPY . .
 
-# Expose port for Vite dev server
+# Build the application
+RUN npm run build
+
+# Production stage
+FROM nginx:alpine
+
+# Copy built files from builder stage
+COPY --from=builder /app/dist /usr/share/nginx/html
+
+# Copy nginx configuration
+COPY nginx.conf /etc/nginx/nginx.conf
+
+# Expose port
 EXPOSE 3000
 
-# Start the Vite dev server
-CMD ["npm", "run", "dev"]
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:3000 || exit 1
+
+# Start nginx
+CMD ["nginx", "-g", "daemon off;"]

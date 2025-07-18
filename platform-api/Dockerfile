@@ -5,11 +5,21 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install all dependencies (including dev)
-RUN npm install
+# Install dependencies
+RUN npm ci --only=production && npm cache clean --force
+
+# Copy source code
+COPY . .
+
+# Build the application
+RUN npm run build
 
 # Expose port
 EXPOSE 4000
 
-# Start the application in dev mode with ts-node-dev
-CMD ["npm", "run", "dev"]
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:4000/health || exit 1
+
+# Start the application
+CMD ["npm", "start"]
