@@ -1,8 +1,9 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
-// Determine proxy target based on environment
-const isLocal = process.env.NODE_ENV === 'development' || !process.env.CI;
+// Use VITE_DOCKER env var for Docker Compose detection
+const isDocker = process.env.VITE_DOCKER === 'true';
+const isLocal = process.env.NODE_ENV === 'development' && !isDocker;
 const apiTarget = isLocal ? 'http://localhost:4000' : 'http://platform-api:4000';
 
 export default defineConfig({
