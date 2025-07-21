@@ -281,3 +281,79 @@ docker logs -f platform-api
 - Add inline comments
 - Update architecture docs
 - Document deployment process
+
+## CI/CD Monitoring & Debugging
+
+### Using GitHub CLI (gh) for Actions
+- Use the GitHub CLI (`gh`) to monitor workflow runs and job logs directly from the terminal.
+- Example commands:
+  ```bash
+  # List recent workflow runs
+  gh run list
+
+  # View details of the latest workflow run
+  gh run view --web
+
+  # View logs for a specific run (replace RUN_ID with actual ID)
+  gh run view RUN_ID --log
+
+  # Stream logs for the latest run
+  gh run list | head -n 1 | awk '{print $1}' | xargs gh run view --log
+  ```
+- This is useful for quickly checking CI/CD status, API startup logs, and integration test results after a push or PR.
+- Prefer using `gh` for rapid feedback instead of manually navigating the GitHub web UI.
+
+## Running All Test Suites (Docker)
+
+### Prerequisites
+- Ensure all containers are running before executing tests:
+  ```bash
+  docker compose up -d --build
+  ```
+- Use `docker compose exec <service> <command>` to run tests inside already running containers. This ensures the correct working directory and environment.
+- Use `docker logs <container>` to debug startup issues if containers are not healthy.
+
+### API (platform-api)
+Run all test suites in the API container:
+```bash
+# All tests
+docker compose exec platform-api npm test
+# Unit tests
+docker compose exec platform-api npm run test:unit
+# Integration tests
+docker compose exec platform-api npm run test:integration
+# Coverage
+docker compose exec platform-api npm run test:coverage
+```
+
+> Note: All API tests (unit, integration, coverage) should pass if the API and database containers are healthy.
+
+### UI (platform-ui)
+Run UI test suites in the UI container or locally:
+```bash
+# Unit tests (from platform-ui directory)
+npm test
+# Local E2E tests (Cypress, local API/UI; from platform-ui directory)
+# Ensure the UI server is running at http://localhost:3000 before running this!
+npm run test:e2e:local
+```
+
+> Note: Always run UI test commands from the platform-ui directory. Cypress E2E tests require the UI server to be running at http://localhost:3000. If you see connection errors, start the UI server first with `npm run dev` in a separate terminal.
+> Cypress E2E tests require Xvfb on Linux, but run headless on Windows/macOS without extra setup.
+> If you see 'No tests found' for unit tests, ensure you have test files matching Jest's default patterns in the UI source directory.
+
+### Worker (worker)
+Run worker test suites in the worker container:
+```bash
+# All tests
+docker compose exec worker npm test
+# Coverage
+docker compose exec worker npm run test:coverage
+```
+
+> Note: If you see 'No tests found', ensure you have test files matching Jest's default patterns in the worker/src directory.
+
+### Troubleshooting
+- If a test fails due to `ECONNREFUSED`, ensure the API and database containers are running and healthy.
+- Use `docker logs <container>` to view logs and debug startup issues.
+- For Cypress E2E tests, ensure Xvfb is installed in the container or use a compatible Docker image.
