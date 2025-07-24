@@ -43,6 +43,15 @@ npm run dev
   ```
   Only one InitialSchema migration should exist. If you see errors about missing tables, delete all migrations, empty the database, and regenerate.
 
+### Migration Path Pattern (TypeORM + ESM/TypeScript)
+- The TypeORM config uses a runtime check based on `import.meta.url` and `fileURLToPath` to determine whether to load migrations from `src/migrations/*.ts` (dev/CI) or `dist/migrations/*.js` (production).
+- This is necessary because `NODE_ENV` alone is not sufficient: CI/CD often runs in production mode but before code is compiled.
+- This pattern is robust for all environments (dev, CI, production) and prevents runtime import errors.
+
+### Troubleshooting
+- If you see errors about missing exports or TypeScript files in production/CI, ensure the migration path logic uses the ESM-compatible pattern described above.
+- See `src/config/database.ts` for the implementation.
+
 ## Seeding the Database
 
 - **Seed initial data:**

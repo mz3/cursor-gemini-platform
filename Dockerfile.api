@@ -4,10 +4,6 @@ FROM node:24-alpine
 # Install dependencies for native modules
 RUN apk add --no-cache python3 make g++
 
-# Create app user
-RUN addgroup -g 1001 -S nodejs && \
-    adduser -S nodejs -u 1001
-
 WORKDIR /app
 
 # Copy package files
@@ -17,17 +13,7 @@ COPY platform-api/package*.json ./platform-api/
 RUN cd platform-api && npm install
 
 # Copy API source
-COPY --chown=nodejs:nodejs platform-api/ ./platform-api/
-
-# Create necessary directories
-RUN mkdir -p /app/generated-apps && \
-    chown -R nodejs:nodejs /app/generated-apps
-
-# Ensure dist directory exists and is writable by nodejs
-RUN mkdir -p /app/platform-api/dist && chown -R nodejs:nodejs /app/platform-api/dist
-
-# Switch to non-root user
-USER nodejs
+COPY platform-api/ ./platform-api/
 
 # Expose port
 EXPOSE 4000
