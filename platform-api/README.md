@@ -35,6 +35,11 @@ npm run dev
   ```bash
   npm run migration:revert
   ```
+- **Generate a new migration (in Docker Compose):**
+  ```bash
+  docker-compose run --rm platform-api npm run migration:generate -- src/migrations/YourMigrationName
+  ```
+  Replace `YourMigrationName` with a descriptive name for your migration (e.g., `AddUserTable`).
 
 ## Seeding the Database
 
