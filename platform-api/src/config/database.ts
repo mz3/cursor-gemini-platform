@@ -1,4 +1,6 @@
 import { DataSource } from 'typeorm';
+import { fileURLToPath } from 'url';
+import path from 'path';
 import { User } from '../entities/User.js';
 import { Model } from '../entities/Model.js';
 import { Application } from '../entities/Application.js';
@@ -11,8 +13,9 @@ import { Relationship } from '../entities/Relationship.js';
 import { Prompt } from '../entities/Prompt.js';
 import { PromptVersion } from '../entities/PromptVersion.js';
 
-// Helper to determine if running from dist (production build)
-const isDist = __dirname.includes('/dist') || __dirname.includes('\\dist');
+// Helper to determine if running from dist (production build), ESM compatible
+const filename = fileURLToPath(import.meta.url);
+const isDist = filename.includes('/dist/') || filename.includes('\\dist\\');
 
 export const AppDataSource = new DataSource({
   type: 'postgres',
