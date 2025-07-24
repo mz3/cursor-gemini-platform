@@ -1,6 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, OneToMany, Relation } from 'typeorm';
 import { User } from './User.js';
-import { Model } from './Model.js';
 import { Component } from './Component.js';
 
 @Entity('applications')
@@ -28,12 +27,6 @@ export class Application {
 
   @Column()
   userId!: string;
-
-  @ManyToOne(() => Model, (model: Model) => model.id)
-  model!: Relation<Model>;
-
-  @Column()
-  modelId!: string;
 
   @OneToMany(() => Component, (component: Component) => component.application)
   components!: Relation<Component>[];
