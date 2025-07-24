@@ -11,7 +11,6 @@ const modelRepository = AppDataSource.getRepository(Model);
 router.get('/', async (req, res, next) => {
   try {
     const models = await modelRepository.find({
-      where: { isActive: true },
       order: { createdAt: 'ASC' }
     });
     return res.json(models);
@@ -24,7 +23,7 @@ router.get('/', async (req, res, next) => {
 router.get('/:id', async (req, res, next) => {
   try {
     const model = await modelRepository.findOne({
-      where: { id: req.params.id, isActive: true },
+      where: { id: req.params.id },
       relations: ['user']
     });
 
@@ -92,7 +91,7 @@ router.get('/:id/relationships', async (req, res, next) => {
 router.put('/:id', async (req, res, next) => {
   try {
     const model = await modelRepository.findOne({
-      where: { id: req.params.id, isActive: true }
+      where: { id: req.params.id }
     });
 
     if (!model) {
@@ -117,15 +116,14 @@ router.put('/:id', async (req, res, next) => {
 router.delete('/:id', async (req, res, next) => {
   try {
     const model = await modelRepository.findOne({
-      where: { id: req.params.id, isActive: true }
+      where: { id: req.params.id }
     });
 
     if (!model) {
       return res.status(404).json({ error: 'Model not found' });
     }
 
-    model.isActive = false;
-    await modelRepository.save(model);
+    await modelRepository.remove(model);
 
     return res.json({ message: 'Model deleted successfully' });
   } catch (error) {

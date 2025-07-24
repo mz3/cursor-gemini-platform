@@ -20,20 +20,11 @@ export class Application {
   @Column('jsonb')
   config!: Record<string, any>;
 
-  @Column({ default: 'draft' })
-  status!: string;
-
   @ManyToOne(() => User, (user: User) => user.id)
   user!: User;
 
   @Column()
   userId!: string;
-
-  @ManyToOne(() => Model, (model: Model) => model.id)
-  model!: Model;
-
-  @Column()
-  modelId!: string;
 
   @OneToMany(() => Component, (component: Component) => component.application)
   components!: Component[];

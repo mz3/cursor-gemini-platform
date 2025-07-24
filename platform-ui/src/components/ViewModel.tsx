@@ -10,7 +10,6 @@ interface Model {
   description?: string;
   schema: any;
   isSystem: boolean;
-  isActive: boolean;
   createdAt: string;
   updatedAt: string;
   user: {
@@ -57,12 +56,12 @@ const ViewModel: React.FC = () => {
       ]);
 
       setModel(modelResponse.data);
-      
+
       // Get applications that use this model
       const modelApplications = applicationsResponse.data.filter((app: any) => app.modelId === id);
-      
+
       // Get relationships where this model is involved
-      const modelRelationships = relationshipsResponse.data.filter((rel: any) => 
+      const modelRelationships = relationshipsResponse.data.filter((rel: any) =>
         rel.sourceModelId === id || rel.targetModelId === id
       );
 
@@ -252,20 +251,6 @@ const ViewModel: React.FC = () => {
                 )}
               </dd>
             </div>
-            <div>
-              <dt className="text-sm font-medium text-gray-500">Status</dt>
-              <dd className="text-sm text-gray-900">
-                {model.isActive ? (
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                    Active
-                  </span>
-                ) : (
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                    Inactive
-                  </span>
-                )}
-              </dd>
-            </div>
           </dl>
         </div>
 
@@ -397,4 +382,4 @@ const ViewModel: React.FC = () => {
   );
 };
 
-export default ViewModel; 
+export default ViewModel;

@@ -13,6 +13,9 @@ import Prompts from './components/Prompts';
 import CreatePrompt from './components/CreatePrompt';
 import EditPrompt from './components/EditPrompt';
 import PromptVersions from './components/PromptVersions';
+import CreateApplication from './components/CreateApplication';
+import ViewApplication from './components/ViewApplication';
+import EditApplication from './components/EditApplication';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { cn } from './utils/cn';
 
@@ -116,6 +119,9 @@ const AppContent: React.FC = () => {
             <Route path="/models/:id" element={<ViewModel />} />
             <Route path="/models/:id/edit" element={<EditModel />} />
             <Route path="/applications" element={<Applications />} />
+            <Route path="/applications/create" element={<CreateApplication />} />
+            <Route path="/applications/:id" element={<ViewApplication />} />
+            <Route path="/applications/:id/edit" element={<EditApplication />} />
             <Route path="/prompts" element={<Prompts />} />
             <Route path="/prompts/create" element={<CreatePrompt />} />
             <Route path="/prompts/:id/edit" element={<EditPrompt />} />

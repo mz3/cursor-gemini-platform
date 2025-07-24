@@ -8,13 +8,13 @@ interface Application {
   name: string;
   displayName: string;
   description: string;
-  status: string;
   createdAt: string;
 }
 
 const Applications: React.FC = () => {
   const [applications, setApplications] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchApplications();
@@ -28,19 +28,6 @@ const Applications: React.FC = () => {
       console.error('Error fetching applications:', error);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'built':
-        return 'bg-green-100 text-green-800';
-      case 'building':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'failed':
-        return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
     }
   };
 
@@ -59,7 +46,10 @@ const Applications: React.FC = () => {
           <h1 className="text-2xl font-bold text-gray-900">Applications</h1>
           <p className="text-gray-600">Manage your applications</p>
         </div>
-        <button className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700">
+        <button
+          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700"
+          onClick={() => navigate('/applications/create')}
+        >
           <Plus className="w-4 h-4 mr-2" />
           New Application
         </button>
@@ -79,21 +69,24 @@ const Applications: React.FC = () => {
                   <div className="ml-4">
                     <div className="flex items-center">
                       <p className="text-sm font-medium text-gray-900">{app.displayName}</p>
-                      <span className={`ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(app.status)}`}>
-                        {app.status}
-                      </span>
                     </div>
                     <p className="text-sm text-gray-500">{app.description}</p>
                   </div>
                 </div>
                 <div className="flex space-x-2">
-                  {app.status === 'built' && (
-                    <button className="text-gray-400 hover:text-green-600">
-                      <Play className="h-4 w-4" />
-                    </button>
-                  )}
-                  <button className="text-gray-400 hover:text-gray-600">
-                    <Settings className="h-4 w-4" />
+                  <button
+                    onClick={() => navigate(`/applications/${app.id}`)}
+                    className="text-gray-400 hover:text-blue-600 p-1 rounded"
+                    title="View Application"
+                  >
+                    <Eye className="h-4 w-4" />
+                  </button>
+                  <button
+                    onClick={() => navigate(`/applications/${app.id}/edit`)}
+                    className="text-gray-400 hover:text-gray-600 p-1 rounded"
+                    title="Edit Application"
+                  >
+                    <Edit className="h-4 w-4" />
                   </button>
                   <button className="text-gray-400 hover:text-red-600">
                     <Trash2 className="h-4 w-4" />

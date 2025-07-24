@@ -68,15 +68,18 @@ services:
       dockerfile: Dockerfile
     container_name: platform-ui
     environment:
-      VITE_DOCKER: true
-      REACT_APP_API_URL: http://localhost:4000
-      REACT_APP_WS_URL: ws://localhost:4000
+      - REACT_APP_API_URL=http://platform-api:4000
+      - REACT_APP_WS_URL=ws://platform-api:4000
+      - CHOKIDAR_USEPOLLING=true
     ports:
       - "3000:3000"
     depends_on:
       - platform-api
     networks:
       - platform-net
+    volumes:
+      - ./platform-ui:/app
+      - /app/node_modules
 
   worker:
     build:

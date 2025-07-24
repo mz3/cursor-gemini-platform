@@ -4,6 +4,7 @@ import { Model } from '../entities/Model.js';
 import { Workflow } from '../entities/Workflow.js';
 import { WorkflowAction } from '../entities/WorkflowAction.js';
 import { CodeTemplate } from '../entities/CodeTemplate.js';
+import { Application } from '../entities/Application.js';
 import bcrypt from 'bcryptjs';
 
 export const seedDatabase = async (): Promise<void> => {
@@ -13,6 +14,7 @@ export const seedDatabase = async (): Promise<void> => {
     const workflowRepository = AppDataSource.getRepository(Workflow);
     const workflowActionRepository = AppDataSource.getRepository(WorkflowAction);
     const codeTemplateRepository = AppDataSource.getRepository(CodeTemplate);
+    const applicationRepository = AppDataSource.getRepository(Application);
 
     // Check if data already exists
     const existingUser = await userRepository.findOne({ where: { email: 'admin@platform.com' } });
@@ -71,8 +73,7 @@ export const seedDatabase = async (): Promise<void> => {
             { name: 'name', type: 'string', required: true, label: 'Application Name' },
             { name: 'displayName', type: 'string', required: true, label: 'Display Name' },
             { name: 'description', type: 'text', required: false, label: 'Description' },
-            { name: 'status', type: 'string', required: true, label: 'Status', options: ['draft', 'building', 'built', 'failed'] },
-            { name: 'modelId', type: 'uuid', required: true, label: 'Model' }
+            { name: 'config', type: 'json', required: true, label: 'Config' }
           ]
         },
         isSystem: true,
@@ -156,6 +157,47 @@ export const seedDatabase = async (): Promise<void> => {
       const model = modelRepository.create(modelData);
       await modelRepository.save(model);
     }
+
+    // Create Meta Platform application fixture
+    const metaApp = applicationRepository.create({
+      name: 'meta-platform',
+      displayName: 'Meta Platform',
+      description: 'Meta Platform is a meta-application platform that enables users to design, build, and manage applications through a unified UI and API. It features a microservices architecture with Node.js/TypeScript API, React frontend, background worker, PostgreSQL, and Redis. Users can create models, prompts, workflows, relationships, and components, and deploy applications with Docker orchestration. The UI provides a dashboard for managing all entities, while the API exposes RESTful endpoints for automation and integration.',
+      config: {
+        features: ['models', 'prompts', 'workflows', 'relationships', 'components', 'deployment'],
+        microservices: ['platform-api', 'platform-ui', 'worker', 'postgres', 'redis'],
+        orchestration: 'docker-compose',
+      },
+      userId: defaultUser.id
+    });
+    const savedMetaApp = await applicationRepository.save(metaApp);
+
+    // Add a sample component for the meta application
+    const componentRepository = AppDataSource.getRepository(require('../entities/Component.js').Component);
+    await componentRepository.save({
+      name: 'meta-dashboard',
+      displayName: 'Meta Dashboard',
+      type: 'dashboard',
+      config: { widgets: ['models', 'applications', 'users', 'builds'] },
+      isActive: true,
+      applicationId: savedMetaApp.id
+    });
+
+    // Add a sample relationship for the meta application
+    const relationshipRepository = AppDataSource.getRepository(require('../entities/Relationship.js').Relationship);
+    await relationshipRepository.save({
+      name: 'model-applications',
+      displayName: 'Model Applications',
+      type: 'one-to-many',
+      sourceModelId: savedMetaApp.id, // Use application id for demonstration
+      targetModelId: savedMetaApp.id,
+      sourceField: 'id',
+      targetField: 'id',
+      cascade: false,
+      nullable: true,
+      description: 'A model can have many applications',
+      userId: defaultUser.id
+    });
 
     // Create default workflow
     const buildWorkflow = workflowRepository.create({

@@ -5,7 +5,7 @@
 - write unit, integration, and e2e tests (aim for >80% coverage)
 - use docker compose for local dev; all services have volume mounts for hot reload
 - api uses ts-node-dev, ui uses react-scripts start, worker uses ts-node-dev
-- to run migrations: npm run migrate (in platform-api)
+- to run migrations: npm run migration:run (in platform-api)
 - to seed database: npm run seed (in platform-api)
 - check container logs to verify hot reload worked correctly after modifications
 - rebuild container(s) if hot reload did not trigger correctly

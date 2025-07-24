@@ -7,11 +7,7 @@
   "scripts": {
     "build": "tsc",
     "start": "node --loader ts-node/esm src/index.ts",
-    "start:debug": "NODE_ENV=production DEBUG=* ts-node --transpile-only src/index.ts",
     "dev": "node --loader ts-node/esm src/index.ts",
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage",
     "test:unit": "jest --testPathPattern=\"\\.spec\\.ts$|health\\.test\\.ts$\" --passWithNoTests",
     "test:integration": "jest --testPathPattern=\"\\.integration\\.ts$\" --passWithNoTests",
     "lint": "eslint src/**/*.ts",
@@ -20,7 +16,8 @@
     "migration:generate": "npx typeorm-ts-node-esm migration:generate -- -d src/config/database.ts",
     "migration:run": "npx typeorm-ts-node-esm migration:run -d src/config/database.ts",
     "migration:revert": "npx typeorm-ts-node-esm migration:revert -d src/config/database.ts",
-    "migration:show": "npx typeorm-ts-node-esm migration:show -d src/config/database.ts"
+    "migration:show": "npx typeorm-ts-node-esm migration:show -d src/config/database.ts",
+    "seed": "tsc && node dist/utils/seedDatabase.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

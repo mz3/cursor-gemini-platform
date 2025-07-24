@@ -10,8 +10,6 @@ const applicationRepository = AppDataSource.getRepository(Application);
 router.get('/', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const applications = await applicationRepository.find({
-      where: { status: 'active' },
-      relations: ['model'],
       order: { createdAt: 'DESC' }
     });
     return res.json(applications);
@@ -25,7 +23,7 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const application = await applicationRepository.findOne({
       where: { id: req.params.id },
-      relations: ['model', 'components']
+      relations: ['components']
     });
 
     if (!application) {
@@ -41,9 +39,9 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
 // POST /api/applications - Create new application
 router.post('/', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { name, displayName, description, modelId, userId, config } = req.body;
+    const { name, displayName, description, userId, config } = req.body;
 
-    if (!name || !displayName || !modelId || !userId) {
+    if (!name || !displayName || !userId) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
@@ -51,10 +49,8 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
       name,
       displayName,
       description: description || '',
-      modelId,
       userId,
-      config: config || {},
-      status: 'draft'
+      config: config || {}
     });
 
     const savedApplication = await applicationRepository.save(application);
@@ -75,13 +71,12 @@ router.put('/:id', async (req: Request, res: Response, next: NextFunction) => {
       return res.status(404).json({ error: 'Application not found' });
     }
 
-    const { name, displayName, description, config, status } = req.body;
+    const { name, displayName, description, config } = req.body;
 
     if (name) application.name = name;
     if (displayName) application.displayName = displayName;
     if (description !== undefined) application.description = description;
     if (config) application.config = config;
-    if (status) application.status = status;
 
     const updatedApplication = await applicationRepository.save(application);
     return res.json(updatedApplication);
@@ -108,9 +103,9 @@ router.post('/:id/build', async (req: Request, res: Response, next: NextFunction
       timestamp: new Date().toISOString()
     });
 
-    // Update application status
-    application.status = 'building';
-    await applicationRepository.save(application);
+    // Remove status update since status field is gone
+    // application.status = 'building';
+    // await applicationRepository.save(application);
 
     return res.json({
       message: 'Build started successfully',

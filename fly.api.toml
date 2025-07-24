@@ -7,7 +7,7 @@ primary_region = "sea"
   dockerfile = "Dockerfile.api"
 
 [processes]
-  app = "npm run start:debug"
+  app = "npm start"
 
 [env]
   NODE_ENV = "production"

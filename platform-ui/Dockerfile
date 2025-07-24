@@ -23,11 +23,10 @@ RUN npm install
 # Ensure Cypress binary is installed
 RUN npx cypress install
 
-# Copy the rest of the app
-COPY . .
-
 # Expose port for Vite dev server
 EXPOSE 3000
 
 # Start the Vite dev server
 CMD ["npm", "run", "dev"]
+
+ENV CHOKIDAR_USEPOLLING=true

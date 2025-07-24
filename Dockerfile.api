@@ -33,6 +33,9 @@ EXPOSE 4000
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD curl -f http://localhost:4000/health || exit 1
 
-# Start API service with ts-node
+# Build the application
 WORKDIR /app/platform-api
-CMD ["npx", "ts-node", "src/index.ts"]
+RUN npm run build
+
+# Start API service with compiled JavaScript
+CMD ["npm", "start"]

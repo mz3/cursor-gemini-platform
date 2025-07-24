@@ -3,8 +3,9 @@ import react from '@vitejs/plugin-react';
 
 // Use VITE_DOCKER env var for Docker Compose detection
 const isDocker = process.env.VITE_DOCKER === 'true';
-const isLocal = process.env.NODE_ENV === 'development' && !isDocker;
-const apiTarget = isLocal ? 'http://localhost:4000' : 'http://platform-api:4000';
+const apiTarget = isDocker ? 'http://platform-api:4000' : 'http://localhost:4000';
+
+console.log('apiTarget', apiTarget);
 
 export default defineConfig({
   plugins: [react()],
@@ -13,9 +14,8 @@ export default defineConfig({
     host: '0.0.0.0',
     proxy: {
       '/api': {
-        target: apiTarget,
+        target: 'http://platform-api:4000',
         changeOrigin: true,
-        secure: false,
       },
     },
   },
@@ -27,5 +27,12 @@ export default defineConfig({
       'localhost',
       '127.0.0.1'
     ],
+    proxy: {
+      '/api': {
+        target: apiTarget,
+        changeOrigin: true,
+        secure: false,
+      },
+    },
   },
 });

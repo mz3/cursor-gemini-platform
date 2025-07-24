@@ -22,17 +22,11 @@ export class Model {
   @Column({ default: false })
   isSystem!: boolean;
 
-  @Column({ default: true })
-  isActive!: boolean;
-
   @ManyToOne(() => User, user => user.id)
   user!: Relation<User>;
 
   @Column()
   userId!: string;
-
-  @OneToMany(() => Application, application => application.model)
-  applications!: Relation<Application>[];
 
   @CreateDateColumn()
   createdAt!: Date;
