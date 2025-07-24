@@ -23,6 +23,9 @@ COPY --chown=nodejs:nodejs platform-api/ ./platform-api/
 RUN mkdir -p /app/generated-apps && \
     chown -R nodejs:nodejs /app/generated-apps
 
+# Ensure dist directory exists and is writable by nodejs
+RUN mkdir -p /app/platform-api/dist && chown -R nodejs:nodejs /app/platform-api/dist
+
 # Switch to non-root user
 USER nodejs
 
