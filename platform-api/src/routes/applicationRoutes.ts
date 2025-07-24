@@ -103,9 +103,6 @@ router.post('/:id/build', async (req: Request, res: Response, next: NextFunction
       timestamp: new Date().toISOString()
     });
 
-    // Remove status update since status field is gone
-    // application.status = 'building';
-    // await applicationRepository.save(application);
 
     return res.json({
       message: 'Build started successfully',
