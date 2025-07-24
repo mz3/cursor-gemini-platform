@@ -33,8 +33,16 @@ export const AppDataSource = new DataSource({
     Prompt,
     PromptVersion
   ],
-  migrations: ['src/migrations/*.ts'],
-  subscribers: ['src/subscribers/*.ts'],
+  migrations: [
+    process.env.NODE_ENV === 'production'
+      ? 'dist/migrations/*.js'
+      : 'src/migrations/*.ts'
+  ],
+  subscribers: [
+    process.env.NODE_ENV === 'production'
+      ? 'dist/subscribers/*.js'
+      : 'src/subscribers/*.ts'
+  ],
 });
 
 export const initializeDatabase = async (): Promise<void> => {
