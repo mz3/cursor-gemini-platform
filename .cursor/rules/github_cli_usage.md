@@ -5,6 +5,9 @@
 - for issues, use --body-file to preserve markdown formatting
 - prefer GitHub CLI for monitoring CI/CD and workflow logs
 
+## ci/cd best practices
+- always run database migrations before starting the API in CI/CD workflows
+
 ## troubleshooting
 - if gh command fails, check authentication and repo permissions
 - use gh help for command options
