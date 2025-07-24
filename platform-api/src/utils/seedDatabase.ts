@@ -180,6 +180,7 @@ export const seedDatabase = async (): Promise<void> => {
       displayName: 'Meta Dashboard',
       type: 'dashboard',
       config: { widgets: ['models', 'applications', 'users', 'builds'] },
+      props: {},
       isActive: true,
       applicationId: savedMetaApp.id
     });
