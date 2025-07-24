@@ -35,11 +35,13 @@ npm run dev
   ```bash
   npm run migration:revert
   ```
-- **Generate a new migration (in Docker Compose):**
+- **Generate a new initial migration (in Docker Compose, database must be empty):**
   ```bash
-  docker-compose run --rm platform-api npm run migration:generate -- src/migrations/YourMigrationName
+  docker-compose down -v
+  docker-compose up -d postgres redis
+  docker-compose run --rm platform-api npm run migration:generate -- src/migrations/InitialSchema
   ```
-  Replace `YourMigrationName` with a descriptive name for your migration (e.g., `AddUserTable`).
+  Only one InitialSchema migration should exist. If you see errors about missing tables, delete all migrations, empty the database, and regenerate.
 
 ## Seeding the Database
 
