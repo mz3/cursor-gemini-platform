@@ -173,7 +173,8 @@ export const seedDatabase = async (): Promise<void> => {
     const savedMetaApp = await applicationRepository.save(metaApp);
 
     // Add a sample component for the meta application
-    const componentRepository = AppDataSource.getRepository(require('../entities/Component.js').Component);
+    const { Component } = await import('../entities/Component.js');
+    const componentRepository = AppDataSource.getRepository(Component);
     await componentRepository.save({
       name: 'meta-dashboard',
       displayName: 'Meta Dashboard',
@@ -184,7 +185,8 @@ export const seedDatabase = async (): Promise<void> => {
     });
 
     // Add a sample relationship for the meta application
-    const relationshipRepository = AppDataSource.getRepository(require('../entities/Relationship.js').Relationship);
+    const { Relationship } = await import('../entities/Relationship.js');
+    const relationshipRepository = AppDataSource.getRepository(Relationship);
     await relationshipRepository.save({
       name: 'model-applications',
       displayName: 'Model Applications',

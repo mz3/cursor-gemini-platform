@@ -57,9 +57,6 @@ const ViewModel: React.FC = () => {
 
       setModel(modelResponse.data);
 
-      // Get applications that use this model
-      const modelApplications = applicationsResponse.data.filter((app: any) => app.modelId === id);
-
       // Get relationships where this model is involved
       const modelRelationships = relationshipsResponse.data.filter((rel: any) =>
         rel.sourceModelId === id || rel.targetModelId === id
@@ -67,18 +64,6 @@ const ViewModel: React.FC = () => {
 
       // Transform into entities for display
       const entityList: Entity[] = [
-        // Applications using this model
-        ...modelApplications.map((app: any) => ({
-          name: app.name,
-          displayName: app.displayName,
-          description: app.description,
-          tableName: 'applications',
-          fields: 0,
-          relationships: 1, // Has relationship to model
-          isSystem: false,
-          createdAt: app.createdAt,
-          type: 'Application'
-        })),
         // Relationships involving this model
         ...modelRelationships.map((rel: any) => ({
           name: rel.name,
