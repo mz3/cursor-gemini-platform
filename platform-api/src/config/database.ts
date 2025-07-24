@@ -11,6 +11,9 @@ import { Relationship } from '../entities/Relationship.js';
 import { Prompt } from '../entities/Prompt.js';
 import { PromptVersion } from '../entities/PromptVersion.js';
 
+// Helper to determine if running from dist (production build)
+const isDist = __dirname.includes('/dist') || __dirname.includes('\\dist');
+
 export const AppDataSource = new DataSource({
   type: 'postgres',
   host: process.env.DB_HOST || 'localhost',
@@ -34,14 +37,10 @@ export const AppDataSource = new DataSource({
     PromptVersion
   ],
   migrations: [
-    process.env.NODE_ENV === 'production'
-      ? 'dist/migrations/*.js'
-      : 'src/migrations/*.ts'
+    isDist ? 'dist/migrations/*.js' : 'src/migrations/*.ts'
   ],
   subscribers: [
-    process.env.NODE_ENV === 'production'
-      ? 'dist/subscribers/*.js'
-      : 'src/subscribers/*.ts'
+    isDist ? 'dist/subscribers/*.js' : 'src/subscribers/*.ts'
   ],
 });
 
