@@ -62,10 +62,10 @@ jobs:
         run: npm test
         working-directory: ./webapp
 
-  # Stage 2: API Integration Tests
-  api-integration-tests:
+  # Stage 2: API Integration + E2E Tests
+  integration-and-e2e-tests:
     runs-on: ubuntu-latest
-    needs: [unit-tests-api]
+    needs: [unit-tests-api, unit-tests-ui]
     services:
       postgres:
         image: postgres:14-alpine
@@ -101,6 +101,10 @@ jobs:
         run: npm ci
         working-directory: ./api
 
+      - name: Install UI dependencies
+        run: npm ci
+        working-directory: ./webapp
+
       - name: Wait for PostgreSQL
         run: |
           until pg_isready -h localhost -p 5433 -U platform_user; do
@@ -124,6 +128,12 @@ jobs:
       - name: Build API
         run: npm run build
         working-directory: ./api
+
+      - name: Build UI
+        run: npm run build
+        working-directory: ./webapp
+        env:
+          NODE_ENV: test
 
       - name: Start API server
         run: |
@@ -150,6 +160,20 @@ jobs:
           JWT_SECRET: test-jwt-secret-key
           API_PORT: 4000
 
+      - name: Start UI server with nginx
+        env:
+          NODE_ENV: test
+        run: |
+          echo "Starting nginx for UI server..."
+          # Copy built files to nginx directory
+          sudo mkdir -p /usr/share/nginx/html
+          sudo cp -r webapp/dist/* /usr/share/nginx/html/
+
+          # Start nginx with the correct config path
+          sudo nginx -c $(pwd)/docker/nginx.conf
+          sleep 5
+          echo "Nginx started for UI server"
+
       - name: Verify API server is running
         run: |
           echo "Checking if API server is responding..."
@@ -167,6 +191,14 @@ jobs:
             fi
           done
           echo "API server is ready!"
+
+      - name: Verify UI server is running
+        run: |
+          until curl -f http://localhost:3000; do
+            echo "Waiting for UI server..."
+            sleep 2
+          done
+          echo "UI server is ready!"
 
       - name: Run API integration tests
         run: |
@@ -202,7 +234,7 @@ jobs:
           if [ "$http_code" -eq 200 ]; then
             echo "✅ Login test passed!"
             # Extract token for further testing
-            token=$(echo "$body" | grep -o '"token":"[^"]*"' | cut -d'"' -f4)
+            token=$(echo "$body" | grep -o '"token":"[^\"]*"' | cut -d'"' -f4)
             echo "Token extracted: ${token:0:20}..."
 
             # Test user profile endpoint
@@ -225,137 +257,6 @@ jobs:
             echo "❌ Login test failed!"
             exit 1
           fi
-
-  # Stage 3: E2E Tests
-  e2e-tests:
-    runs-on: ubuntu-latest
-    needs: [unit-tests-api, unit-tests-ui, api-integration-tests]
-    services:
-      postgres:
-        image: postgres:14-alpine
-        env:
-          POSTGRES_USER: platform_user
-          POSTGRES_PASSWORD: platform_password
-          POSTGRES_DB: platform_db
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5433:5432
-
-      redis:
-        image: redis:7-alpine
-        ports:
-          - 6379:6379
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '24'
-          cache: 'npm'
-          cache-dependency-path: webapp/package-lock.json
-
-      - name: Install UI dependencies
-        run: npm ci
-        working-directory: ./webapp
-
-      - name: Install API dependencies
-        run: npm ci
-        working-directory: ./api
-
-      - name: Wait for PostgreSQL
-        run: |
-          until pg_isready -h localhost -p 5433 -U platform_user; do
-            echo "Waiting for PostgreSQL..."
-            sleep 2
-          done
-
-      - name: Run database migrations
-        run: |
-          echo "Running database migrations..."
-          cd api
-          npm run migration:run
-        env:
-          NODE_ENV: test
-          DB_HOST: localhost
-          DB_PORT: 5433
-          DB_USER: platform_user
-          DB_PASSWORD: platform_password
-          DB_NAME: platform_db
-
-      - name: Build API
-        run: npm run build
-        working-directory: ./api
-
-      - name: Start API server
-        run: |
-          cd api
-          echo "Starting API server..."
-          npm start &
-          API_PID=$!
-          echo "API server started with PID: $API_PID"
-          sleep 5
-          echo "Checking if API process is still running..."
-          ps aux | grep node || echo "No node processes found"
-          echo "Checking port 4000..."
-          netstat -tlnp | grep :4000 || echo "Port 4000 not in use"
-          sleep 5
-        env:
-          NODE_ENV: test
-          DB_HOST: localhost
-          DB_PORT: 5433
-          DB_USER: platform_user
-          DB_PASSWORD: platform_password
-          DB_NAME: platform_db
-          REDIS_HOST: localhost
-          REDIS_PORT: 6379
-          JWT_SECRET: test-jwt-secret-key
-          API_PORT: 4000
-
-      - name: Verify API server is running
-        run: |
-          echo "Checking if API server is responding..."
-          curl -v http://localhost:4000/health || echo "Health endpoint not responding"
-          curl -v http://localhost:4000/api/health || echo "API health endpoint not responding"
-          until curl -f http://localhost:4000/health; do
-            echo "Waiting for API server..."
-            sleep 2
-          done
-          echo "API server is ready!"
-
-      - name: Build UI
-        run: npm run build
-        working-directory: ./webapp
-        env:
-          NODE_ENV: test
-
-      - name: Start UI server with nginx
-        env:
-          NODE_ENV: test
-        run: |
-          echo "Starting nginx for UI server..."
-          # Copy built files to nginx directory
-          sudo mkdir -p /usr/share/nginx/html
-          sudo cp -r webapp/dist/* /usr/share/nginx/html/
-
-          # Start nginx with the correct config path
-          sudo nginx -c $(pwd)/docker/nginx.conf
-          sleep 5
-          echo "Nginx started for UI server"
-
-      - name: Verify UI server is running
-        run: |
-          until curl -f http://localhost:3000; do
-            echo "Waiting for UI server..."
-            sleep 2
-          done
-          echo "UI server is ready!"
 
       - name: Run E2E tests
         run: npm run test:e2e:local
