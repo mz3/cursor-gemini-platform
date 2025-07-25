@@ -1,0 +1,70 @@
+# fly.toml for cursor-gemini-api (API service only)
+
+app = "cursor-gemini-api"
+primary_region = "sea"
+
+[build]
+  dockerfile = "Dockerfile.api"
+
+[processes]
+  app = "npm start"
+
+[env]
+  NODE_ENV = "production"
+  # Database configuration
+  DB_HOST = "cursor-gemini-platform-db.internal"
+  DB_PORT = "5432"
+  DB_NAME = "postgres"
+  DB_USER = "postgres"
+  DB_PASSWORD = "MnhrpJSzpoqmWiP"
+
+  # Redis configuration
+  REDIS_HOST = "fly-cursor-gemini-platform-redis.upstash.io"
+  REDIS_PORT = "6379"
+  REDIS_PASSWORD = "091e53933b3e4e0cad027c396bf5f17d"
+
+  # JWT configuration
+  JWT_SECRET = "your-jwt-secret-key"
+  JWT_EXPIRES_IN = "24h"
+
+  # API configuration - Updated to use port 4000
+  API_PORT = "4000"
+  API_URL = "https://cursor-gemini-api.fly.dev"
+
+[[services]]
+  processes = ["app"]
+  internal_port = 4000
+  protocol = "tcp"
+
+  [services.concurrency]
+    hard_limit = 25
+    soft_limit = 20
+    type = "connections"
+
+  [[services.ports]]
+    handlers = ["http"]
+    port = 80
+    force_https = true
+
+  [[services.ports]]
+    handlers = ["tls", "http"]
+    port = 443
+
+  [[services.tcp_checks]]
+    interval = "15s"
+    timeout = "2s"
+    grace_period = "1s"
+    restart_limit = 0
+
+[deploy]
+  strategy = "rolling"
+  max_unavailable = 1
+
+[metrics]
+  port = 9091
+  path = "/metrics"
+
+# Scaling configuration
+[scale]
+  min = 1
+  max = 3

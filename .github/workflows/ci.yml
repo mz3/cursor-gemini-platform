@@ -19,19 +19,19 @@ jobs:
         with:
           node-version: '24'
           cache: 'npm'
-          cache-dependency-path: platform-api/package-lock.json
+          cache-dependency-path: api/package-lock.json
 
       - name: Install API dependencies
         run: npm ci
-        working-directory: ./platform-api
+        working-directory: ./api
 
       - name: Check API TypeScript compilation
         run: npx tsc --noEmit
-        working-directory: ./platform-api
+        working-directory: ./api
 
       - name: Run API unit tests
         run: npm run test:unit
-        working-directory: ./platform-api
+        working-directory: ./api
 
   unit-tests-ui:
     runs-on: ubuntu-latest
@@ -44,23 +44,23 @@ jobs:
         with:
           node-version: '24'
           cache: 'npm'
-          cache-dependency-path: platform-ui/package-lock.json
+          cache-dependency-path: webapp/package-lock.json
 
       - name: Install UI dependencies
         run: npm ci
-        working-directory: ./platform-ui
+        working-directory: ./webapp
 
       - name: Check UI TypeScript compilation
         run: npx tsc --noEmit
-        working-directory: ./platform-ui
+        working-directory: ./webapp
 
       - name: Build UI
         run: npm run build
-        working-directory: ./platform-ui
+        working-directory: ./webapp
 
       - name: Run UI unit tests
         run: npm test
-        working-directory: ./platform-ui
+        working-directory: ./webapp
 
   # Stage 2: API Integration Tests
   api-integration-tests:
@@ -95,11 +95,11 @@ jobs:
         with:
           node-version: '24'
           cache: 'npm'
-          cache-dependency-path: platform-api/package-lock.json
+          cache-dependency-path: api/package-lock.json
 
       - name: Install API dependencies
         run: npm ci
-        working-directory: ./platform-api
+        working-directory: ./api
 
       - name: Wait for PostgreSQL
         run: |
@@ -111,7 +111,7 @@ jobs:
       - name: Run database migrations
         run: |
           echo "Running database migrations..."
-          cd platform-api
+          cd api
           npm run migration:run
         env:
           NODE_ENV: test
@@ -123,11 +123,11 @@ jobs:
 
       - name: Build API
         run: npm run build
-        working-directory: ./platform-api
+        working-directory: ./api
 
       - name: Start API server
         run: |
-          cd platform-api
+          cd api
           echo "Starting API server..."
           npm start &
           API_PID=$!
@@ -171,7 +171,7 @@ jobs:
       - name: Run API integration tests
         run: |
           echo "Running API integration tests..."
-          cd platform-api
+          cd api
           npm run test:integration
         env:
           NODE_ENV: test
@@ -259,15 +259,15 @@ jobs:
         with:
           node-version: '24'
           cache: 'npm'
-          cache-dependency-path: platform-ui/package-lock.json
+          cache-dependency-path: webapp/package-lock.json
 
       - name: Install UI dependencies
         run: npm ci
-        working-directory: ./platform-ui
+        working-directory: ./webapp
 
       - name: Install API dependencies
         run: npm ci
-        working-directory: ./platform-api
+        working-directory: ./api
 
       - name: Wait for PostgreSQL
         run: |
@@ -279,7 +279,7 @@ jobs:
       - name: Run database migrations
         run: |
           echo "Running database migrations..."
-          cd platform-api
+          cd api
           npm run migration:run
         env:
           NODE_ENV: test
@@ -291,11 +291,11 @@ jobs:
 
       - name: Build API
         run: npm run build
-        working-directory: ./platform-api
+        working-directory: ./api
 
       - name: Start API server
         run: |
-          cd platform-api
+          cd api
           echo "Starting API server..."
           npm start &
           API_PID=$!
@@ -331,7 +331,7 @@ jobs:
 
       - name: Build UI
         run: npm run build
-        working-directory: ./platform-ui
+        working-directory: ./webapp
         env:
           NODE_ENV: test
 
@@ -342,7 +342,7 @@ jobs:
           echo "Starting nginx for UI server..."
           # Copy built files to nginx directory
           sudo mkdir -p /usr/share/nginx/html
-          sudo cp -r platform-ui/dist/* /usr/share/nginx/html/
+          sudo cp -r webapp/dist/* /usr/share/nginx/html/
 
           # Start nginx
           sudo nginx -c $(pwd)/nginx.conf
@@ -359,7 +359,7 @@ jobs:
 
       - name: Run E2E tests
         run: npm run test:e2e:local
-        working-directory: ./platform-ui
+        working-directory: ./webapp
         env:
           CYPRESS_baseUrl: http://localhost:3000
           CYPRESS_apiUrl: http://localhost:4000
@@ -371,7 +371,7 @@ jobs:
         if: failure()
         with:
           name: cypress-screenshots
-          path: platform-ui/cypress/screenshots/
+          path: webapp/cypress/screenshots/
           if-no-files-found: ignore
 
       - name: Upload E2E videos (on failure)
@@ -379,5 +379,5 @@ jobs:
         if: failure()
         with:
           name: cypress-videos
-          path: platform-ui/cypress/videos/
+          path: webapp/cypress/videos/
           if-no-files-found: ignore

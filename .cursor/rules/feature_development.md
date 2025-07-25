@@ -4,9 +4,9 @@
 - implement db layer first, then api, then frontend
 - write unit, integration, and e2e tests (aim for >80% coverage)
 - use docker compose for local dev; all services have volume mounts for hot reload
-- api uses ts-node-dev, ui uses react-scripts start, worker uses ts-node-dev
-- to run migrations: npm run migration:run (in platform-api)
-- to seed database: npm run seed (in platform-api)
+- api uses ts-node-dev, webapp uses react-scripts start, bot uses ts-node-dev
+- to run migrations: npm run migration:run (in api)
+- to seed database: npm run seed (in api)
 - check container logs to verify hot reload worked correctly after modifications
 - rebuild container(s) if hot reload did not trigger correctly
 - check container logs to verify apps started correctly when starting them up
@@ -14,16 +14,16 @@
 - merge only after all tests pass
 
 ## microservices overview
-- platform-api: Node.js/TypeScript API (4000)
-- platform-ui: React frontend (3000)
-- worker: Node.js/TypeScript background worker
+- api: Node.js/TypeScript backend (4000)
+- webapp: React frontend (3000)
+- bot: Node.js/TypeScript background bot
 - postgres: PostgreSQL (5433)
 - redis: Redis (6379)
 
 ## test structure
-- unit: jest (api), react-testing-library (ui)
+- unit: jest (api), react-testing-library (webapp)
 - integration: supertest (api)
-- e2e: cypress (ui)
+- e2e: cypress (webapp)
 - run all tests in docker containers
 - coverage goal: >80%
 

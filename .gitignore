@@ -132,9 +132,9 @@ jest-results/
 .local/
 
 # Platform specific
-platform-api/dist/
-platform-ui/build/
-worker/dist/
+api/dist/
+webapp/build/
+bot/dist/
 
 # Redis dump
 dump.rdb
