@@ -28,5 +28,3 @@ EXPOSE 3000
 
 # Start the Vite dev server
 CMD ["npm", "run", "dev"]
-
-ENV CHOKIDAR_USEPOLLING=true
