@@ -9,12 +9,18 @@ interface User {
   role: string;
 }
 
+interface UserSettings {
+  darkMode: boolean;
+}
+
 interface AuthContextType {
   user: User | null;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
   loading: boolean;
   error: string | null;
+  darkMode: boolean;
+  setDarkMode: (value: boolean) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -35,11 +41,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [darkMode, setDarkModeState] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
       fetchUser();
+      fetchSettings();
     } else {
       setLoading(false);
     }
@@ -55,6 +63,24 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       localStorage.removeItem('token');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchSettings = async () => {
+    try {
+      const response = await api.get('/users/settings');
+      setDarkModeState(response.data.darkMode);
+    } catch (error) {
+      // ignore, default to false
+    }
+  };
+
+  const setDarkMode = async (value: boolean) => {
+    try {
+      await api.put('/users/settings', { darkMode: value });
+      setDarkModeState(value);
+    } catch (error) {
+      // Optionally handle error
     }
   };
 
@@ -81,7 +107,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     login,
     logout,
     loading,
-    error
+    error,
+    darkMode,
+    setDarkMode
   };
 
   return (

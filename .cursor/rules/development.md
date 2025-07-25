@@ -6,6 +6,7 @@
 - prefer unit tests, especially for business logic over integration (slightly slower) and e2e tests (much slower)
 - use docker compose for local dev; all services have volume mounts for hot reload
 - api uses ts-node-dev, webapp uses react-scripts start, bot uses ts-node-dev
+- generate and then run migrations after adding db fields
 - to run migrations: npm run migration:run (in api)
 - to seed database: npm run seed (in api)
 - check container logs to verify hot reload worked correctly after modifications
@@ -13,6 +14,7 @@
 - check container logs to verify apps started correctly when starting them up
 - push to feature branch, monitor CI
 - merge only after all tests pass
+- update cursor development.md rules after succesfully completing a feature (update the steps or any instructions if you learned a better way to do something or need to make a correction)
 
 ## microservices overview
 - api: Node.js/TypeScript backend (4000)
@@ -38,6 +40,7 @@
 - keep code organized, use clear naming, small functions
 - use try-catch, custom errors, log errors
 - document endpoints, update README, add inline comments
+- when defining TypeORM relations, always use the Relation<T> generic for the property type (e.g., settings: Relation<UserSettings>) to avoid circular reference and type issues
 
 ## troubleshooting
 - hot reload: check volume mounts, permissions, restart containers

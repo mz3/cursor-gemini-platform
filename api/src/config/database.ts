@@ -12,6 +12,7 @@ import { CodeTemplate } from '../entities/CodeTemplate.js';
 import { Relationship } from '../entities/Relationship.js';
 import { Prompt } from '../entities/Prompt.js';
 import { PromptVersion } from '../entities/PromptVersion.js';
+import { UserSettings } from '../entities/UserSettings.js';
 
 // Helper to determine if running from dist (production build), ESM compatible
 const filename = fileURLToPath(import.meta.url);
@@ -28,6 +29,7 @@ export const AppDataSource = new DataSource({
   logging: process.env.NODE_ENV === 'development',
   entities: [
     User,
+    UserSettings,
     Model,
     Application,
     Workflow,

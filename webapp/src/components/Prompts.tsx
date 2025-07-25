@@ -68,7 +68,7 @@ const Prompts: React.FC = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Prompts</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Prompts</h1>
           <p className="text-gray-600 mt-1">Manage your LLM and code generation prompts</p>
         </div>
         <button
@@ -83,8 +83,8 @@ const Prompts: React.FC = () => {
       {prompts.length === 0 ? (
         <div className="text-center py-12">
           <MessageSquare className="mx-auto h-12 w-12 text-gray-400" />
-          <h3 className="mt-2 text-sm font-medium text-gray-900">No prompts</h3>
-          <p className="mt-1 text-sm text-gray-500">Get started by creating your first prompt.</p>
+          <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-gray-100">No prompts</h3>
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Get started by creating your first prompt.</p>
           <div className="mt-6">
             <button
               onClick={() => navigate('/prompts/create')}
@@ -96,7 +96,7 @@ const Prompts: React.FC = () => {
           </div>
         </div>
       ) : (
-        <div className="bg-white shadow overflow-hidden sm:rounded-md">
+        <div className="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-md">
           <ul className="divide-y divide-gray-200">
             {prompts.map((prompt) => (
               <li key={prompt.id}>
@@ -108,7 +108,7 @@ const Prompts: React.FC = () => {
                       </div>
                       <div className="ml-4">
                         <div className="flex items-center">
-                          <p className="text-sm font-medium text-gray-900">{prompt.name}</p>
+                          <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{prompt.name}</p>
                           <span className={`ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getTypeColor(prompt.type)}`}>
                             {prompt.type === 'llm' ? 'LLM' : 'Code Generation'}
                           </span>
@@ -117,9 +117,9 @@ const Prompts: React.FC = () => {
                           </span>
                         </div>
                         {prompt.description && (
-                          <p className="text-sm text-gray-500 mt-1">{prompt.description}</p>
+                          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{prompt.description}</p>
                         )}
-                        <p className="text-sm text-gray-500 mt-1">
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                           Created {new Date(prompt.createdAt).toLocaleDateString()}
                         </p>
                       </div>

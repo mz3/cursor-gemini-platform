@@ -63,7 +63,7 @@ const Dashboard: React.FC = () => {
         {statCards.map((stat) => {
           const Icon = stat.icon;
           return (
-            <div key={stat.name} className="bg-white overflow-hidden shadow rounded-lg">
+            <div key={stat.name} className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
               <div className="p-5">
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
@@ -84,7 +84,7 @@ const Dashboard: React.FC = () => {
         })}
       </div>
 
-      <div className="bg-white shadow rounded-lg">
+      <div className="bg-white dark:bg-gray-800 shadow rounded-lg">
         <div className="px-4 py-5 sm:p-6">
           <h3 className="text-lg leading-6 font-medium text-gray-900">Getting Started</h3>
           <div className="mt-2 max-w-xl text-sm text-gray-500">

@@ -1,7 +1,7 @@
 /// <reference types="vite/client" />
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { Home, Database, AppWindow, Settings, Plus, LogOut, User, MessageSquare } from 'lucide-react';
+import { BrowserRouter as Router, Routes, Route, Navigate, Link, useLocation } from 'react-router-dom';
+import { Home, Database, AppWindow, Settings as SettingsIcon, Plus, LogOut, User, MessageSquare } from 'lucide-react';
 import Login from './components/Login';
 import Dashboard from './components/Dashboard';
 import Models from './components/Models';
@@ -16,6 +16,7 @@ import PromptVersions from './components/PromptVersions';
 import CreateApplication from './components/CreateApplication';
 import ViewApplication from './components/ViewApplication';
 import EditApplication from './components/EditApplication';
+import Settings from './components/Settings';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { cn } from './utils/cn';
 
@@ -23,8 +24,17 @@ import { cn } from './utils/cn';
 console.log('VITE ENV:', import.meta.env);
 
 const AppContent: React.FC = () => {
-  const { user, logout, loading } = useAuth();
+  const { user, logout, loading, darkMode } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const location = useLocation();
+
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [darkMode]);
 
   if (loading) {
     return (
@@ -43,43 +53,48 @@ const AppContent: React.FC = () => {
     { name: 'Models', href: '/models', icon: Database },
     { name: 'Applications', href: '/applications', icon: AppWindow },
     { name: 'Prompts', href: '/prompts', icon: MessageSquare },
-    { name: 'Settings', href: '/settings', icon: Settings },
+    { name: 'Settings', href: '/settings', icon: SettingsIcon },
   ];
 
   return (
-    <div className="app-root">
+    <div className="min-h-screen w-full flex flex-row bg-gray-50 dark:bg-gray-900">
       {/* Sidebar */}
       <aside className={cn(
-        "app-sidebar",
+        "w-64 h-screen bg-white dark:bg-gray-800 shadow-lg flex flex-col",
         "fixed inset-y-0 left-0 z-50 transform transition-transform duration-300 ease-in-out",
         sidebarOpen ? "translate-x-0" : "-translate-x-full",
         "lg:translate-x-0 lg:static lg:inset-0"
       )}>
         <div className="flex flex-col h-full">
           {/* Logo */}
-          <div className="flex items-center justify-center h-16 px-4 border-b border-gray-200">
-            <h1 className="text-xl font-bold text-gray-900">Meta Platform</h1>
+          <div className="flex items-center justify-center h-16 px-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
+            <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">Meta Platform</h1>
           </div>
 
           {/* Navigation */}
           <nav className="flex-1 px-4 py-6 space-y-2">
             {navigation.map((item) => {
               const Icon = item.icon;
+              const isActive = location.pathname.startsWith(item.href);
               return (
-                <a
+                <Link
                   key={item.name}
-                  href={item.href}
-                  className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 rounded-md hover:bg-gray-100 hover:text-gray-900 transition-colors"
+                  to={item.href}
+                  className={`flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors
+                    ${isActive
+                      ? 'bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-gray-100'
+                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-gray-700 dark:hover:text-gray-100'}
+                  `}
                 >
-                  <Icon className="w-5 h-5 mr-3" />
+                  <Icon className={`w-5 h-5 mr-3 ${isActive ? 'text-gray-900 dark:text-gray-100' : 'text-gray-400 dark:text-gray-400'}`} />
                   {item.name}
-                </a>
+                </Link>
               );
             })}
           </nav>
 
           {/* User section */}
-          <div className="p-4 border-t border-gray-200">
+          <div className="p-4 border-t border-gray-200 dark:border-gray-700">
             <div className="flex items-center">
               <div className="flex-shrink-0">
                 <div className="w-8 h-8 bg-primary-500 rounded-full flex items-center justify-center">
@@ -87,12 +102,12 @@ const AppContent: React.FC = () => {
                 </div>
               </div>
               <div className="ml-3 flex-1">
-                <p className="text-sm font-medium text-gray-700">{user.firstName} {user.lastName}</p>
-                <p className="text-xs text-gray-500">{user.email}</p>
+                <p className="text-sm font-medium text-gray-700 dark:text-gray-200">{user.firstName} {user.lastName}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">{user.email}</p>
               </div>
               <button
                 onClick={logout}
-                className="ml-2 p-1 text-gray-400 hover:text-gray-600 transition-colors"
+                className="ml-2 p-1 text-gray-400 hover:text-gray-600 dark:text-gray-300 dark:hover:text-gray-100 transition-colors"
               >
                 <LogOut className="w-4 h-4" />
               </button>
@@ -102,9 +117,9 @@ const AppContent: React.FC = () => {
       </aside>
 
       {/* Main content */}
-      <main className="app-main lg:pl-64">
+      <main className="flex-1 flex flex-col min-h-screen overflow-x-hidden bg-gray-50 dark:bg-gray-900 lg:pl-64">
         {/* Top bar */}
-        <div className="sticky top-0 z-40 bg-white shadow-sm border-b border-gray-200">
+        <div className="sticky top-0 z-40 bg-white dark:bg-gray-900 shadow-sm border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8">
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
@@ -134,7 +149,7 @@ const AppContent: React.FC = () => {
             <Route path="/prompts/create" element={<CreatePrompt />} />
             <Route path="/prompts/:id/edit" element={<EditPrompt />} />
             <Route path="/prompts/:id/versions" element={<PromptVersions />} />
-            <Route path="/settings" element={<div className="text-center py-12"><h2 className="text-2xl font-semibold text-gray-900">Settings</h2><p className="text-gray-600 mt-2">Settings page coming soon...</p></div>} />
+            <Route path="/settings" element={<Settings />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </div>

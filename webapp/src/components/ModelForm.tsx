@@ -203,10 +203,10 @@ const ModelForm: React.FC<ModelFormProps> = ({
     <form onSubmit={handleSubmit} className="space-y-8">
       {/* Basic Model Information */}
       <div className="bg-white shadow rounded-lg p-6">
-        <h2 className="text-lg font-medium text-gray-900 mb-4">Basic Information</h2>
+        <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">Basic Information</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Model Name *
             </label>
             <input
@@ -217,10 +217,10 @@ const ModelForm: React.FC<ModelFormProps> = ({
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
               placeholder="e.g., Product, Customer, Order"
             />
-            <p className="text-xs text-gray-500 mt-1">Used for database table name and API endpoints</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Used for database table name and API endpoints</p>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Display Name *
             </label>
             <input
@@ -252,7 +252,7 @@ const ModelForm: React.FC<ModelFormProps> = ({
       {/* Fields Section */}
       <div className="bg-white shadow rounded-lg p-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-medium text-gray-900">Fields</h2>
+          <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100">Fields</h2>
           <button
             type="button"
             onClick={addField}
@@ -264,15 +264,15 @@ const ModelForm: React.FC<ModelFormProps> = ({
         </div>
 
         {form.fields.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
+          <div className="text-center py-8 text-gray-500 dark:text-gray-400">
             <p>No fields added yet. Click "Add Field" to start building your schema.</p>
           </div>
         ) : (
           <div className="space-y-4">
             {form.fields.map((field, index) => (
-              <div key={index} className="border border-gray-200 rounded-lg p-4">
+              <div key={index} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-sm font-medium text-gray-900">Field {index + 1}</h3>
+                  <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">Field {index + 1}</h3>
                   <button
                     type="button"
                     onClick={() => removeField(index)}
@@ -284,7 +284,7 @@ const ModelForm: React.FC<ModelFormProps> = ({
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Field Name *
                     </label>
                     <input
@@ -296,7 +296,7 @@ const ModelForm: React.FC<ModelFormProps> = ({
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Display Name *
                     </label>
                     <input
@@ -308,7 +308,7 @@ const ModelForm: React.FC<ModelFormProps> = ({
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Data Type *
                     </label>
                     <select
@@ -346,7 +346,7 @@ const ModelForm: React.FC<ModelFormProps> = ({
                       onChange={(e) => updateField(index, { required: e.target.checked })}
                       className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
                     />
-                    <label htmlFor={`required-${index}`} className="ml-2 text-sm text-gray-700">
+                    <label htmlFor={`required-${index}`} className="ml-2 text-sm text-gray-700 dark:text-gray-300">
                       Required
                     </label>
                   </div>
@@ -358,7 +358,7 @@ const ModelForm: React.FC<ModelFormProps> = ({
                       onChange={(e) => updateField(index, { unique: e.target.checked })}
                       className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
                     />
-                    <label htmlFor={`unique-${index}`} className="ml-2 text-sm text-gray-700">
+                    <label htmlFor={`unique-${index}`} className="ml-2 text-sm text-gray-700 dark:text-gray-300">
                       Unique
                     </label>
                   </div>
@@ -378,7 +378,7 @@ const ModelForm: React.FC<ModelFormProps> = ({
 
                 {field.type === 'select' && (
                   <div className="mt-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Options (comma-separated)
                     </label>
                     <input
@@ -414,7 +414,7 @@ const ModelForm: React.FC<ModelFormProps> = ({
       {/* Relationships Section */}
       <div className="bg-white shadow rounded-lg p-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-medium text-gray-900">Relationships</h2>
+          <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100">Relationships</h2>
           <button
             type="button"
             onClick={addRelationship}
@@ -425,15 +425,15 @@ const ModelForm: React.FC<ModelFormProps> = ({
           </button>
         </div>
         {(form.relationships?.length === 0) ? (
-          <div className="text-center py-8 text-gray-500">
+          <div className="text-center py-8 text-gray-500 dark:text-gray-400">
             <p>No relationships defined yet. Click "Add Relationship" to link this model to others.</p>
           </div>
         ) : (
           <div className="space-y-4">
             {form.relationships?.map((rel, idx) => (
-              <div key={idx} className="border border-gray-200 rounded-lg p-4">
+              <div key={idx} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-sm font-medium text-gray-900">Relationship {idx + 1}</h3>
+                  <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">Relationship {idx + 1}</h3>
                   <button
                     type="button"
                     onClick={() => removeRelationship(idx)}
@@ -444,7 +444,7 @@ const ModelForm: React.FC<ModelFormProps> = ({
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Name *</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Name *</label>
                     <input
                       type="text"
                       value={rel.name}
@@ -454,7 +454,7 @@ const ModelForm: React.FC<ModelFormProps> = ({
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Display Name *</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Display Name *</label>
                     <input
                       type="text"
                       value={rel.displayName}
@@ -464,7 +464,7 @@ const ModelForm: React.FC<ModelFormProps> = ({
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Type *</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Type *</label>
                     <select
                       value={rel.type}
                       onChange={e => updateRelationship(idx, { type: e.target.value })}
@@ -476,7 +476,7 @@ const ModelForm: React.FC<ModelFormProps> = ({
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Target Model *</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Target Model *</label>
                     <select
                       value={rel.targetModelId}
                       onChange={e => updateRelationship(idx, { targetModelId: e.target.value })}
@@ -489,7 +489,7 @@ const ModelForm: React.FC<ModelFormProps> = ({
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Source Field *</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Source Field *</label>
                     <input
                       type="text"
                       value={rel.sourceField}
@@ -499,7 +499,7 @@ const ModelForm: React.FC<ModelFormProps> = ({
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Target Field *</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Target Field *</label>
                     <input
                       type="text"
                       value={rel.targetField}

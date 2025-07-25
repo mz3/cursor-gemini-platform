@@ -18,10 +18,10 @@ code {
 
 /* App layout utilities */
 .app-root {
-  @apply min-h-screen w-full flex flex-row bg-gray-50;
+  @apply min-h-screen w-full flex flex-row;
 }
 .app-sidebar {
-  @apply w-64 h-screen bg-white shadow-lg flex flex-col;
+  @apply w-64 h-screen shadow-lg flex flex-col;
 }
 .app-main {
   @apply flex-1 flex flex-col min-h-screen overflow-x-hidden;

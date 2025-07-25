@@ -43,7 +43,7 @@ const Applications: React.FC = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Applications</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Applications</h1>
           <p className="text-gray-600">Manage your applications</p>
         </div>
         <button
@@ -55,7 +55,7 @@ const Applications: React.FC = () => {
         </button>
       </div>
 
-      <div className="bg-white shadow overflow-hidden sm:rounded-md">
+      <div className="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-md">
         <ul className="divide-y divide-gray-200">
           {applications.map((app) => (
             <li key={app.id}>
@@ -68,9 +68,9 @@ const Applications: React.FC = () => {
                   </div>
                   <div className="ml-4">
                     <div className="flex items-center">
-                      <p className="text-sm font-medium text-gray-900">{app.displayName}</p>
+                      <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{app.displayName}</p>
                     </div>
-                    <p className="text-sm text-gray-500">{app.description}</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">{app.description}</p>
                   </div>
                 </div>
                 <div className="flex space-x-2">

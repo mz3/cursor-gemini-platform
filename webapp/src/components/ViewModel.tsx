@@ -97,17 +97,17 @@ const ViewModel: React.FC = () => {
   };
 
   const renderSchemaVisualization = (schema: any) => {
-    if (!schema?.fields) return <p className="text-gray-500">No schema defined</p>;
+    if (!schema?.fields) return <p className="text-gray-500 dark:text-gray-400">No schema defined</p>;
 
     return (
       <div className="bg-gray-50 rounded-lg p-4">
-        <h4 className="font-medium text-gray-900 mb-3">Schema Fields</h4>
+        <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-3">Schema Fields</h4>
         <div className="space-y-2">
           {schema.fields.map((field: any, index: number) => (
-            <div key={index} className="flex items-center justify-between p-3 bg-white rounded border">
+            <div key={index} className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700">
               <div className="flex-1">
                 <div className="flex items-center space-x-2">
-                  <span className="font-medium text-gray-900">{field.name}</span>
+                  <span className="font-medium text-gray-900 dark:text-gray-100">{field.name}</span>
                   <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
                     {field.type}
                   </span>
@@ -152,7 +152,7 @@ const ViewModel: React.FC = () => {
     return (
       <div className="max-w-6xl mx-auto p-6">
         <div className="text-center py-12">
-          <h2 className="text-2xl font-semibold text-gray-900 mb-4">Error Loading Model</h2>
+          <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-4">Error Loading Model</h2>
           <p className="text-gray-600 mb-4">{error}</p>
           <button
             onClick={() => navigate('/models')}
@@ -169,7 +169,7 @@ const ViewModel: React.FC = () => {
     return (
       <div className="max-w-6xl mx-auto p-6">
         <div className="text-center py-12">
-          <h2 className="text-2xl font-semibold text-gray-900 mb-4">Model Not Found</h2>
+          <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-4">Model Not Found</h2>
           <p className="text-gray-600 mb-4">The requested model could not be found.</p>
           <button
             onClick={() => navigate('/models')}
@@ -188,14 +188,14 @@ const ViewModel: React.FC = () => {
       <div className="mb-6">
         <button
           onClick={() => navigate('/models')}
-          className="flex items-center text-gray-600 hover:text-gray-900 mb-4"
+          className="flex items-center text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 mb-4"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
           Back to Models
         </button>
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">{model.displayName}</h1>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">{model.displayName}</h1>
             <p className="text-gray-600 mt-2">{model.description || 'No description provided'}</p>
           </div>
           <div className="flex space-x-3">
@@ -212,19 +212,19 @@ const ViewModel: React.FC = () => {
 
       {/* Model Information */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-        <div className="bg-white shadow rounded-lg p-6">
+        <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
           <div className="flex items-center mb-4">
             <Database className="w-5 h-5 text-gray-400 mr-2" />
-            <h3 className="text-lg font-medium text-gray-900">Model Details</h3>
+            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Model Details</h3>
           </div>
           <dl className="space-y-3">
             <div>
-              <dt className="text-sm font-medium text-gray-500">Name</dt>
-              <dd className="text-sm text-gray-900 font-mono">{model.name}</dd>
+              <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">Name</dt>
+              <dd className="text-sm text-gray-900 dark:text-gray-100 font-mono">{model.name}</dd>
             </div>
             <div>
-              <dt className="text-sm font-medium text-gray-500">Type</dt>
-              <dd className="text-sm text-gray-900">
+              <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">Type</dt>
+              <dd className="text-sm text-gray-900 dark:text-gray-100">
                 {model.isSystem ? (
                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                     System Model
@@ -239,36 +239,36 @@ const ViewModel: React.FC = () => {
           </dl>
         </div>
 
-        <div className="bg-white shadow rounded-lg p-6">
+        <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
           <div className="flex items-center mb-4">
             <User className="w-5 h-5 text-gray-400 mr-2" />
-            <h3 className="text-lg font-medium text-gray-900">Created By</h3>
+            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Created By</h3>
           </div>
           <dl className="space-y-3">
             <div>
-              <dt className="text-sm font-medium text-gray-500">User</dt>
-              <dd className="text-sm text-gray-900">{model.user?.firstName} {model.user?.lastName}</dd>
+              <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">User</dt>
+              <dd className="text-sm text-gray-900 dark:text-gray-100">{model.user?.firstName} {model.user?.lastName}</dd>
             </div>
             <div>
-              <dt className="text-sm font-medium text-gray-500">Email</dt>
-              <dd className="text-sm text-gray-900">{model.user?.email}</dd>
+              <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">Email</dt>
+              <dd className="text-sm text-gray-900 dark:text-gray-100">{model.user?.email}</dd>
             </div>
           </dl>
         </div>
 
-        <div className="bg-white shadow rounded-lg p-6">
+        <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
           <div className="flex items-center mb-4">
             <Calendar className="w-5 h-5 text-gray-400 mr-2" />
-            <h3 className="text-lg font-medium text-gray-900">Timestamps</h3>
+            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Timestamps</h3>
           </div>
           <dl className="space-y-3">
             <div>
-              <dt className="text-sm font-medium text-gray-500">Created</dt>
-              <dd className="text-sm text-gray-900">{formatDate(model.createdAt)}</dd>
+              <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">Created</dt>
+              <dd className="text-sm text-gray-900 dark:text-gray-100">{formatDate(model.createdAt)}</dd>
             </div>
             <div>
-              <dt className="text-sm font-medium text-gray-500">Last Updated</dt>
-              <dd className="text-sm text-gray-900">{formatDate(model.updatedAt)}</dd>
+              <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">Last Updated</dt>
+              <dd className="text-sm text-gray-900 dark:text-gray-100">{formatDate(model.updatedAt)}</dd>
             </div>
           </dl>
         </div>
@@ -278,15 +278,15 @@ const ViewModel: React.FC = () => {
       <div className="bg-white shadow rounded-lg p-6 mb-8">
         <div className="flex items-center mb-4">
           <Settings className="w-5 h-5 text-gray-400 mr-2" />
-          <h3 className="text-lg font-medium text-gray-900">Schema Definition</h3>
+          <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Schema Definition</h3>
         </div>
         {renderSchemaVisualization(model.schema)}
       </div>
 
       {/* Entities Table */}
       <div className="bg-white shadow rounded-lg">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h3 className="text-lg font-medium text-gray-900">Model Entities</h3>
+        <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+          <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Model Entities</h3>
           <p className="text-sm text-gray-600 mt-1">
             Entities and relationships defined by this model
           </p>
@@ -295,7 +295,7 @@ const ViewModel: React.FC = () => {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   Entity
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -318,17 +318,17 @@ const ViewModel: React.FC = () => {
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
               {entities.length > 0 ? (
                 entities.map((entity, index) => (
                   <tr key={index} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">{entity.name}</div>
+                      <div className="text-sm font-medium text-gray-900 dark:text-gray-100">{entity.name}</div>
                       {entity.description && (
-                        <div className="text-sm text-gray-500">{entity.description}</div>
+                        <div className="text-sm text-gray-500 dark:text-gray-400">{entity.description}</div>
                       )}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
                       {entity.displayName}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -336,10 +336,10 @@ const ViewModel: React.FC = () => {
                         {entity.tableName}
                       </code>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
                       {entity.fields}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
                       {entity.relationships}
                     </td>
                                          <td className="px-6 py-4 whitespace-nowrap">
@@ -347,14 +347,14 @@ const ViewModel: React.FC = () => {
                          {entity.type}
                        </span>
                      </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                       {formatDate(entity.createdAt)}
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan={7} className="px-6 py-4 text-center text-sm text-gray-500">
+                  <td colSpan={7} className="px-6 py-4 text-center text-sm text-gray-500 dark:text-gray-400">
                     No entities found for this model
                   </td>
                 </tr>

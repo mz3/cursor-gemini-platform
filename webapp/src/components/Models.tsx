@@ -57,7 +57,7 @@ const Models: React.FC = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Models</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Models</h1>
           <p className="text-gray-600">Manage your data models and sdsffsdfsdchemas</p>
         </div>
         <button
@@ -72,8 +72,8 @@ const Models: React.FC = () => {
       {models.length === 0 ? (
         <div className="text-center py-12">
           <Database className="mx-auto h-12 w-12 text-gray-400" />
-          <h3 className="mt-2 text-sm font-medium text-gray-900">No models</h3>
-          <p className="mt-1 text-sm text-gray-500">Get started by creating your first data model.</p>
+          <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-gray-100">No models</h3>
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Get started by creating your first data model.</p>
           <div className="mt-6">
             <button
               onClick={() => navigate('/models/create')}
@@ -85,7 +85,7 @@ const Models: React.FC = () => {
           </div>
         </div>
       ) : (
-        <div className="bg-white shadow overflow-hidden sm:rounded-md">
+        <div className="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-md">
           <ul className="divide-y divide-gray-200">
             {models.map((model) => (
               <li key={model.id}>
@@ -98,14 +98,14 @@ const Models: React.FC = () => {
                     </div>
                     <div className="ml-4">
                       <div className="flex items-center">
-                        <p className="text-sm font-medium text-gray-900">{model.displayName}</p>
+                        <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{model.displayName}</p>
                         {model.isSystem && (
                           <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
                             System
                           </span>
                         )}
                       </div>
-                      <p className="text-sm text-gray-500">{model.name}</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">{model.name}</p>
                       {model.description && (
                         <p className="text-sm text-gray-400 mt-1">{model.description}</p>
                       )}

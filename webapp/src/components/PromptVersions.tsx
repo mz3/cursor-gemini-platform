@@ -94,7 +94,7 @@ const PromptVersions: React.FC = () => {
           Back
         </button>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Prompt Versions</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Prompt Versions</h1>
           <p className="text-gray-600 mt-1">
             {versions.length > 0 ? `${versions[0].name} - ${versions.length} version${versions.length > 1 ? 's' : ''}` : 'No versions found'}
           </p>
@@ -103,16 +103,16 @@ const PromptVersions: React.FC = () => {
 
       {versions.length === 0 ? (
         <div className="text-center py-12">
-          <h3 className="mt-2 text-sm font-medium text-gray-900">No versions found</h3>
-          <p className="mt-1 text-sm text-gray-500">This prompt has no version history.</p>
+          <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-gray-100">No versions found</h3>
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">This prompt has no version history.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Version List */}
           <div className="lg:col-span-1">
-            <div className="bg-white shadow rounded-lg">
+            <div className="bg-white dark:bg-gray-800 shadow rounded-lg">
               <div className="px-4 py-5 sm:p-6">
-                <h3 className="text-lg font-medium text-gray-900 mb-4">Versions</h3>
+                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">Versions</h3>
                 <div className="space-y-2">
                   {versions.map((version) => (
                     <button
@@ -126,14 +126,14 @@ const PromptVersions: React.FC = () => {
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-2">
-                          <span className="text-sm font-medium text-gray-900">
+                          <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
                             v{version.version}
                           </span>
                           {version.isActive && (
                             <CheckCircle className="h-4 w-4 text-green-500" />
                           )}
                         </div>
-                        <span className="text-xs text-gray-500">
+                        <span className="text-xs text-gray-500 dark:text-gray-400">
                           {new Date(version.createdAt).toLocaleDateString()}
                         </span>
                       </div>
@@ -152,14 +152,14 @@ const PromptVersions: React.FC = () => {
           {/* Version Content */}
           <div className="lg:col-span-2">
             {selectedVersion ? (
-              <div className="bg-white shadow rounded-lg">
+              <div className="bg-white dark:bg-gray-800 shadow rounded-lg">
                 <div className="px-4 py-5 sm:p-6">
                   <div className="flex items-center justify-between mb-4">
                     <div>
-                      <h3 className="text-lg font-medium text-gray-900">
+                      <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">
                         Version {selectedVersion.version}
                       </h3>
-                      <p className="text-sm text-gray-500">
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
                         Created {new Date(selectedVersion.createdAt).toLocaleString()}
                       </p>
                     </div>
@@ -177,15 +177,15 @@ const PromptVersions: React.FC = () => {
 
                   {selectedVersion.description && (
                     <div className="mb-4">
-                      <h4 className="text-sm font-medium text-gray-700 mb-2">Description</h4>
+                      <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Description</h4>
                       <p className="text-sm text-gray-600">{selectedVersion.description}</p>
                     </div>
                   )}
 
                   <div>
-                    <h4 className="text-sm font-medium text-gray-700 mb-2">Content</h4>
+                    <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Content</h4>
                     <div className="bg-gray-50 rounded-md p-4">
-                      <pre className="text-sm text-gray-900 whitespace-pre-wrap font-mono">
+                      <pre className="text-sm text-gray-900 dark:text-gray-100 whitespace-pre-wrap font-mono">
                         {selectedVersion.content}
                       </pre>
                     </div>
@@ -193,11 +193,11 @@ const PromptVersions: React.FC = () => {
                 </div>
               </div>
             ) : (
-              <div className="bg-white shadow rounded-lg">
+              <div className="bg-white dark:bg-gray-800 shadow rounded-lg">
                 <div className="px-4 py-5 sm:p-6 text-center">
                   <Eye className="mx-auto h-12 w-12 text-gray-400" />
-                  <h3 className="mt-2 text-sm font-medium text-gray-900">Select a version</h3>
-                  <p className="mt-1 text-sm text-gray-500">Choose a version from the list to view its content.</p>
+                  <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-gray-100">Select a version</h3>
+                  <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Choose a version from the list to view its content.</p>
                 </div>
               </div>
             )}

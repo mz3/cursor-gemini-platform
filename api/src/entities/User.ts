@@ -1,5 +1,7 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany, Relation } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany, Relation, OneToOne } from 'typeorm';
 import { Application } from './Application.js';
+
+// No reference to UserSettings here
 
 @Entity('users')
 export class User {
