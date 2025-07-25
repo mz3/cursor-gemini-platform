@@ -89,7 +89,9 @@ router.get('/', authenticateUser, async (req: Request, res: Response) => {
 
     // Return prompts with their latest active version
     const promptsWithLatestVersion = prompts.map(prompt => {
-      const activeVersion = prompt.versions.find(v => v.isActive);
+      // Sort versions by version number and get the latest active one
+      const sortedVersions = prompt.versions.sort((a, b) => b.version - a.version);
+      const activeVersion = sortedVersions.find(v => v.isActive);
       if (!activeVersion) return null;
 
       return {
@@ -128,7 +130,9 @@ router.get('/:id', authenticateUser, async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Prompt not found' });
     }
 
-    const activeVersion = prompt.versions.find(v => v.isActive);
+    // Sort versions by version number and get the latest active one
+    const sortedVersions = prompt.versions.sort((a, b) => b.version - a.version);
+    const activeVersion = sortedVersions.find(v => v.isActive);
     if (!activeVersion) {
       return res.status(404).json({ error: 'No active version found' });
     }
@@ -175,9 +179,11 @@ router.put('/:id', authenticateUser, async (req: Request, res: Response) => {
 
     console.log('DEBUG currentVersion:', { id: currentVersion.id, version: currentVersion.version, isActive: currentVersion.isActive, name: currentVersion.name });
 
-    // Deactivate the current version
-    currentVersion.isActive = false;
-    await promptVersionRepository.save(currentVersion);
+    // Deactivate ALL existing versions first
+    for (const version of prompt.versions) {
+      version.isActive = false;
+      await promptVersionRepository.save(version);
+    }
 
     // Create a new version
     const newVersion = new PromptVersion();
