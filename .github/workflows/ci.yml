@@ -344,8 +344,8 @@ jobs:
           sudo mkdir -p /usr/share/nginx/html
           sudo cp -r webapp/dist/* /usr/share/nginx/html/
 
-          # Start nginx
-          sudo nginx -c $(pwd)/nginx.conf
+          # Start nginx with the correct config path
+          sudo nginx -c $(pwd)/docker/nginx.conf
           sleep 5
           echo "Nginx started for UI server"
 
