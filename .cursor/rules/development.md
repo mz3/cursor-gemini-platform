@@ -2,7 +2,8 @@
 
 - start with requirements and planning
 - implement db layer first, then api, then frontend
-- write unit, integration, and e2e tests (aim for >80% coverage)
+- write unit, integration, and e2e tests
+- prefer unit tests, especially for business logic over integration (slightly slower) and e2e tests (much slower)
 - use docker compose for local dev; all services have volume mounts for hot reload
 - api uses ts-node-dev, webapp uses react-scripts start, bot uses ts-node-dev
 - to run migrations: npm run migration:run (in api)

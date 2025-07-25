@@ -1,6 +1,6 @@
+// Refactored: This is now the base config for shared settings
 export default {
   preset: 'ts-jest',
   testEnvironment: 'node',
-  testPathPattern: '\\.spec\\.ts$|health\\.test\\.ts$',
   passWithNoTests: true,
 };

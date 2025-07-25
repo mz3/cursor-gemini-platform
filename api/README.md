@@ -79,7 +79,7 @@ npm run dev
 - `npm run dev` — Start the API in development mode with hot reload
 - `npm run migrate` — Compile and run all pending database migrations
 - `npm run seed` — Compile and run the seed script to populate the database
-- `npm run test:unit` — Run all unit tests (files matching `.spec.ts` or `health.test.ts`)
+- `npm run test:unit` — Run all unit tests (files matching `.unit.ts` or `health.test.ts`)
 - `npm run test:integration` — Run all integration tests (files matching `.integration.ts`)
 - `npm test` — Run all tests
 
