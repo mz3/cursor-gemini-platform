@@ -40,13 +40,20 @@ export const seedDatabase = async (): Promise<void> => {
     const relationshipRepository = AppDataSource.getRepository(Relationship);
     const userSettingsRepository = AppDataSource.getRepository(UserSettings);
 
+    // Add timeout to prevent hanging
+    const timeout = setTimeout(() => {
+      console.error('Seeding process timed out after 30 seconds');
+      process.exit(1);
+    }, 30000);
+
     // Check if data already exists
     const existingUsers = await userRepository.find();
     const existingFeatures = await featureRepository.find();
     const existingApplications = await applicationRepository.find();
-
+    
     if (existingUsers.length > 0 || existingFeatures.length > 0 || existingApplications.length > 0) {
       console.log('Database already seeded with data, skipping...');
+      clearTimeout(timeout);
       return;
     }
 
@@ -81,11 +88,15 @@ export const seedDatabase = async (): Promise<void> => {
     // Create system models from fixtures
     if (fixtures.models) {
       for (const modelData of fixtures.models) {
-        const model = modelRepository.create({
-          ...modelData,
-          userId: savedUser!.id
-        });
-        await modelRepository.save(model);
+        try {
+          const model = modelRepository.create({
+            ...modelData,
+            userId: savedUser!.id
+          });
+          await modelRepository.save(model);
+        } catch (error) {
+          console.error('Error creating model:', error);
+        }
       }
     }
 
@@ -93,11 +104,15 @@ export const seedDatabase = async (): Promise<void> => {
     // Create applications from fixtures
     if (fixtures.applications) {
       for (const appData of fixtures.applications) {
-        const application = applicationRepository.create({
-          ...appData,
-          userId: savedUser!.id
-        });
-        await applicationRepository.save(application);
+        try {
+          const application = applicationRepository.create({
+            ...appData,
+            userId: savedUser!.id
+          });
+          await applicationRepository.save(application);
+        } catch (error) {
+          console.error('Error creating application:', error);
+        }
       }
     }
 
@@ -106,12 +121,16 @@ export const seedDatabase = async (): Promise<void> => {
     if (fixtures.features) {
       console.log('Number of features in fixtures:', fixtures.features.length);
       for (const featureData of fixtures.features) {
-        const feature = featureRepository.create({
-          ...featureData,
-          userId: savedUser!.id
-        });
-        await featureRepository.save(feature);
-        console.log('Inserted feature:', JSON.stringify(feature, null, 2));
+        try {
+          const feature = featureRepository.create({
+            ...featureData,
+            userId: savedUser!.id
+          });
+          await featureRepository.save(feature);
+          console.log('Inserted feature:', JSON.stringify(feature, null, 2));
+        } catch (error) {
+          console.error('Error creating feature:', error);
+        }
       }
     }
 
@@ -124,11 +143,15 @@ export const seedDatabase = async (): Promise<void> => {
         console.log('No default application found, skipping components...');
       } else {
         for (const componentData of fixtures.components) {
-          const component = componentRepository.create({
-            ...componentData,
-            applicationId: defaultApp.id
-          });
-          await componentRepository.save(component);
+          try {
+            const component = componentRepository.create({
+              ...componentData,
+              applicationId: defaultApp.id
+            });
+            await componentRepository.save(component);
+          } catch (error) {
+            console.error('Error creating component:', error);
+          }
         }
       }
     }
@@ -137,11 +160,15 @@ export const seedDatabase = async (): Promise<void> => {
     // Create prompts from fixtures
     if (fixtures.prompts) {
       for (const promptData of fixtures.prompts) {
-        const prompt = promptRepository.create({
-          ...promptData,
-          userId: savedUser!.id
-        });
-        await promptRepository.save(prompt);
+        try {
+          const prompt = promptRepository.create({
+            ...promptData,
+            userId: savedUser!.id
+          });
+          await promptRepository.save(prompt);
+        } catch (error) {
+          console.error('Error creating prompt:', error);
+        }
       }
     }
 
@@ -149,11 +176,15 @@ export const seedDatabase = async (): Promise<void> => {
     // Create bots from fixtures
     if (fixtures.bots) {
       for (const botData of fixtures.bots) {
-        const bot = botRepository.create({
-          ...botData,
-          userId: savedUser!.id
-        });
-        await botRepository.save(bot);
+        try {
+          const bot = botRepository.create({
+            ...botData,
+            userId: savedUser!.id
+          });
+          await botRepository.save(bot);
+        } catch (error) {
+          console.error('Error creating bot:', error);
+        }
       }
     }
 
@@ -161,8 +192,12 @@ export const seedDatabase = async (): Promise<void> => {
     // Create workflows from fixtures
     if (fixtures.workflows) {
       for (const workflowData of fixtures.workflows) {
-        const workflow = workflowRepository.create(workflowData);
-        await workflowRepository.save(workflow);
+        try {
+          const workflow = workflowRepository.create(workflowData);
+          await workflowRepository.save(workflow);
+        } catch (error) {
+          console.error('Error creating workflow:', error);
+        }
       }
     }
 
@@ -179,11 +214,15 @@ export const seedDatabase = async (): Promise<void> => {
           console.log('No workflows found, skipping workflow actions...');
         } else {
           for (const actionData of fixtures.workflowActions) {
-            const action = workflowActionRepository.create({
-              ...actionData,
-              workflowId: defaultWorkflow.id
-            });
-            await workflowActionRepository.save(action);
+            try {
+              const action = workflowActionRepository.create({
+                ...actionData,
+                workflowId: defaultWorkflow.id
+              });
+              await workflowActionRepository.save(action);
+            } catch (error) {
+              console.error('Error creating workflow action:', error);
+            }
           }
         }
       }
@@ -193,8 +232,12 @@ export const seedDatabase = async (): Promise<void> => {
     // Create templates from fixtures
     if (fixtures.templates) {
       for (const templateData of fixtures.templates) {
-        const template = templateRepository.create(templateData);
-        await templateRepository.save(template);
+        try {
+          const template = templateRepository.create(templateData);
+          await templateRepository.save(template);
+        } catch (error) {
+          console.error('Error creating template:', error);
+        }
       }
     }
 
@@ -202,8 +245,12 @@ export const seedDatabase = async (): Promise<void> => {
     // Create code templates from fixtures
     if (fixtures.codeTemplates) {
       for (const codeTemplateData of fixtures.codeTemplates) {
-        const codeTemplate = codeTemplateRepository.create(codeTemplateData);
-        await codeTemplateRepository.save(codeTemplate);
+        try {
+          const codeTemplate = codeTemplateRepository.create(codeTemplateData);
+          await codeTemplateRepository.save(codeTemplate);
+        } catch (error) {
+          console.error('Error creating code template:', error);
+        }
       }
     }
 
@@ -211,11 +258,15 @@ export const seedDatabase = async (): Promise<void> => {
     // Create relationships from fixtures
     if (fixtures.relationships) {
       for (const relationshipData of fixtures.relationships) {
-        const relationship = relationshipRepository.create({
-          ...relationshipData,
-          userId: savedUser!.id
-        });
-        await relationshipRepository.save(relationship);
+        try {
+          const relationship = relationshipRepository.create({
+            ...relationshipData,
+            userId: savedUser!.id
+          });
+          await relationshipRepository.save(relationship);
+        } catch (error) {
+          console.error('Error creating relationship:', error);
+        }
       }
     }
 
@@ -223,14 +274,19 @@ export const seedDatabase = async (): Promise<void> => {
     // Create user settings from fixtures
     if (fixtures.userSettings) {
       for (const settingsData of fixtures.userSettings) {
-        const userSettings = userSettingsRepository.create({
-          ...settingsData,
-          user: savedUser
-        });
-        await userSettingsRepository.save(userSettings);
+        try {
+          const userSettings = userSettingsRepository.create({
+            ...settingsData,
+            user: savedUser
+          });
+          await userSettingsRepository.save(userSettings);
+        } catch (error) {
+          console.error('Error creating user settings:', error);
+        }
       }
     }
 
+    clearTimeout(timeout);
     console.log('Database seeded successfully with JSON fixtures');
   } catch (error) {
     console.error('Error seeding database:', error);
