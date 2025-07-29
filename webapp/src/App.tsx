@@ -1,7 +1,7 @@
 /// <reference types="vite/client" />
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, Link, useLocation } from 'react-router-dom';
-import { Home, Database, AppWindow, Settings as SettingsIcon, Plus, LogOut, User, MessageSquare } from 'lucide-react';
+import { Home, Database, AppWindow, Settings as SettingsIcon, Plus, LogOut, User, MessageSquare, Bot } from 'lucide-react';
 import Login from './components/Login';
 import Dashboard from './components/Dashboard';
 import Models from './components/Models';
@@ -16,6 +16,10 @@ import PromptVersions from './components/PromptVersions';
 import CreateApplication from './components/CreateApplication';
 import ViewApplication from './components/ViewApplication';
 import EditApplication from './components/EditApplication';
+import Bots from './components/Bots';
+import CreateBot from './components/CreateBot';
+import EditBot from './components/EditBot';
+import ViewBot from './components/ViewBot';
 import Settings from './components/Settings';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { cn } from './utils/cn';
@@ -53,6 +57,7 @@ const AppContent: React.FC = () => {
     { name: 'Models', href: '/models', icon: Database },
     { name: 'Applications', href: '/applications', icon: AppWindow },
     { name: 'Prompts', href: '/prompts', icon: MessageSquare },
+    { name: 'Bots', href: '/bots', icon: Bot },
     { name: 'Settings', href: '/settings', icon: SettingsIcon },
   ];
 
@@ -149,6 +154,10 @@ const AppContent: React.FC = () => {
             <Route path="/prompts/create" element={<CreatePrompt />} />
             <Route path="/prompts/:id/edit" element={<EditPrompt />} />
             <Route path="/prompts/:id/versions" element={<PromptVersions />} />
+            <Route path="/bots" element={<Bots />} />
+            <Route path="/bots/create" element={<CreateBot />} />
+            <Route path="/bots/:id" element={<ViewBot />} />
+            <Route path="/bots/:id/edit" element={<EditBot />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>

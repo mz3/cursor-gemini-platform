@@ -1,0 +1,54 @@
+# Cursor Rules for Full-Stack Feature Implementation
+
+## Full-Stack Feature Pattern
+
+When implementing a new full-stack feature (like the Bot feature), follow this comprehensive pattern:
+
+### Backend Implementation (API)
+1. **Create TypeORM Entity** in `api/src/entities/` with proper relationships
+2. **Create Database Migration** in `api/src/migrations/` with timestamp prefix
+3. **Create API Routes** in `api/src/routes/` with full CRUD operations:
+   - GET /api/[resource] - List all
+   - GET /api/[resource]/:id - Get specific
+   - POST /api/[resource] - Create new
+   - PUT /api/[resource]/:id - Update
+   - DELETE /api/[resource]/:id - Delete
+4. **Update Database Config** to include new entity
+5. **Register Routes** in `api/src/index.ts`
+6. **Run Migration** with `npm run migration:run`
+
+### Frontend Implementation (React)
+1. **Create List Component** in `webapp/src/components/` (e.g., `[Resource]s.tsx`)
+2. **Create Form Component** for create/edit operations
+3. **Create Individual Components**:
+   - `Create[Resource].tsx` - Create new
+   - `Edit[Resource].tsx` - Edit existing
+   - `View[Resource].tsx` - View details
+4. **Update App.tsx** with routes and navigation
+5. **Add to Navigation Menu** with appropriate icon
+
+### Testing Pattern
+1. **Test API Endpoints** with curl commands
+2. **Verify Database** with direct queries
+3. **Test Frontend** by accessing webapp
+4. **Verify CRUD Operations** work end-to-end
+
+### File Organization
+- All Docker files in `docker/` folder
+- All deployment files in `deploy/` folder
+- API runs on port 4000
+- UI runs on port 3000 (served by Nginx)
+- Database on port 5433
+- Redis on port 6379
+
+### Development Environment
+- Use `docker-compose up --build` to start local dev
+- API container auto-rebuilds on code changes
+- Frontend has hot reload via Vite
+- Database migrations run automatically
+
+### Bot Feature Specific Notes
+- Bots have many-to-many relationship with Prompts
+- Bot entity includes: name, displayName, description, isActive, userId
+- Frontend includes prompt selection in BotForm
+- All CRUD operations tested and working

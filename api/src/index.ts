@@ -12,6 +12,7 @@ import { applicationRoutes } from './routes/applicationRoutes.js';
 import { userRoutes } from './routes/userRoutes.js';
 import { workflowRoutes } from './routes/workflowRoutes.js';
 import promptRoutes from './routes/promptRoutes.js';
+import { botRoutes } from './routes/botRoutes.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { seedDatabase } from './utils/seedDatabase.js';
 
@@ -64,6 +65,7 @@ app.use('/api/applications', applicationRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/workflows', workflowRoutes);
 app.use('/api/prompts', promptRoutes);
+app.use('/api/bots', botRoutes);
 console.log('✅ API routes configured');
 
 // Error handling
