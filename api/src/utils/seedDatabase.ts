@@ -41,9 +41,12 @@ export const seedDatabase = async (): Promise<void> => {
     const userSettingsRepository = AppDataSource.getRepository(UserSettings);
 
     // Check if data already exists
+    const existingUsers = await userRepository.find();
     const existingFeatures = await featureRepository.find();
-    if (existingFeatures.length > 0) {
-      console.log('Database already seeded with features, skipping...');
+    const existingApplications = await applicationRepository.find();
+    
+    if (existingUsers.length > 0 || existingFeatures.length > 0 || existingApplications.length > 0) {
+      console.log('Database already seeded with data, skipping...');
       return;
     }
 
