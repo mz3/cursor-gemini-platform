@@ -14,6 +14,7 @@ import { Prompt } from '../entities/Prompt.js';
 import { PromptVersion } from '../entities/PromptVersion.js';
 import { UserSettings } from '../entities/UserSettings.js';
 import { Bot } from '../entities/Bot.js';
+import { Feature } from '../entities/Feature.js';
 
 // Helper to determine if running from dist (production build), ESM compatible
 const filename = fileURLToPath(import.meta.url);
@@ -41,7 +42,8 @@ export const AppDataSource = new DataSource({
     Relationship,
     Prompt,
     PromptVersion,
-    Bot
+    Bot,
+    Feature
   ],
   migrations: [
     isDist ? 'dist/migrations/*.js' : 'src/migrations/*.ts'

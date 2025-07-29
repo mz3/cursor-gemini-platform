@@ -6,10 +6,13 @@ import {
   UpdateDateColumn,
   ManyToOne,
   OneToMany,
+  ManyToMany,
+  JoinTable,
   Relation,
 } from 'typeorm';
 import { User } from './User.js';
 import { Component } from './Component.js';
+import { Feature } from './Feature.js';
 
 @Entity('applications')
 export class Application {
@@ -75,6 +78,13 @@ export class Application {
    */
   @OneToMany(() => Component, (component: Component) => component.application)
   components!: Relation<Component>[];
+
+  /**
+   * Features associated with this application.
+   * @example [ { id: "feat-1", name: "Analytics" }, { id: "feat-2", name: "Notifications" } ]
+   */
+  @ManyToMany(() => Feature, (feature: Feature) => feature.applications)
+  features!: Relation<Feature>[];
 
   /**
    * Timestamp when the application was created.

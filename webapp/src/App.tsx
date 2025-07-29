@@ -1,7 +1,7 @@
 /// <reference types="vite/client" />
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, Link, useLocation } from 'react-router-dom';
-import { Home, Database, AppWindow, Settings as SettingsIcon, Plus, LogOut, User, MessageSquare, Bot } from 'lucide-react';
+import { Home, Database, AppWindow, Settings as SettingsIcon, Plus, LogOut, User, MessageSquare, Bot, Zap } from 'lucide-react';
 import Login from './components/Login';
 import Dashboard from './components/Dashboard';
 import Models from './components/Models';
@@ -20,6 +20,10 @@ import Bots from './components/Bots';
 import CreateBot from './components/CreateBot';
 import EditBot from './components/EditBot';
 import ViewBot from './components/ViewBot';
+import Features from './components/Features';
+import CreateFeature from './components/CreateFeature';
+import EditFeature from './components/EditFeature';
+import ViewFeature from './components/ViewFeature';
 import Settings from './components/Settings';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { cn } from './utils/cn';
@@ -56,6 +60,7 @@ const AppContent: React.FC = () => {
     { name: 'Dashboard', href: '/', icon: Home },
     { name: 'Models', href: '/models', icon: Database },
     { name: 'Applications', href: '/applications', icon: AppWindow },
+    { name: 'Features', href: '/features', icon: Zap },
     { name: 'Prompts', href: '/prompts', icon: MessageSquare },
     { name: 'Bots', href: '/bots', icon: Bot },
     { name: 'Settings', href: '/settings', icon: SettingsIcon },
@@ -150,6 +155,10 @@ const AppContent: React.FC = () => {
             <Route path="/applications/create" element={<CreateApplication />} />
             <Route path="/applications/:id" element={<ViewApplication />} />
             <Route path="/applications/:id/edit" element={<EditApplication />} />
+            <Route path="/features" element={<Features />} />
+            <Route path="/features/create" element={<CreateFeature />} />
+            <Route path="/features/:id" element={<ViewFeature />} />
+            <Route path="/features/:id/edit" element={<EditFeature />} />
             <Route path="/prompts" element={<Prompts />} />
             <Route path="/prompts/create" element={<CreatePrompt />} />
             <Route path="/prompts/:id/edit" element={<EditPrompt />} />
