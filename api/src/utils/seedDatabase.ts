@@ -44,7 +44,7 @@ export const seedDatabase = async (): Promise<void> => {
     const existingUsers = await userRepository.find();
     const existingFeatures = await featureRepository.find();
     const existingApplications = await applicationRepository.find();
-    
+
     if (existingUsers.length > 0 || existingFeatures.length > 0 || existingApplications.length > 0) {
       console.log('Database already seeded with data, skipping...');
       return;
@@ -169,12 +169,23 @@ export const seedDatabase = async (): Promise<void> => {
     console.log('Creating workflow actions...');
     // Create workflow actions from fixtures
     if (fixtures.workflowActions) {
-      for (const actionData of fixtures.workflowActions) {
-        const action = workflowActionRepository.create({
-          ...actionData,
-          workflowId: savedUser!.id // Use user ID as placeholder for now
-        });
-      await workflowActionRepository.save(action);
+      // Get the first workflow to use as default workflowId
+      const workflows = await workflowRepository.find();
+      if (workflows.length === 0) {
+        console.log('No workflows found, skipping workflow actions...');
+      } else {
+        const defaultWorkflow = workflows[0];
+        if (!defaultWorkflow) {
+          console.log('No workflows found, skipping workflow actions...');
+        } else {
+          for (const actionData of fixtures.workflowActions) {
+            const action = workflowActionRepository.create({
+              ...actionData,
+              workflowId: defaultWorkflow.id
+            });
+            await workflowActionRepository.save(action);
+          }
+        }
       }
     }
 
