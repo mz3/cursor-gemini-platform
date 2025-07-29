@@ -54,8 +54,8 @@ export const seedDatabase = async (): Promise<void> => {
     const existingPrompts = await promptRepository.find();
     const existingBots = await botRepository.find();
     const existingWorkflows = await workflowRepository.find();
-    
-    if (existingUsers.length > 0 || existingFeatures.length > 0 || existingApplications.length > 0 || 
+
+    if (existingUsers.length > 0 || existingFeatures.length > 0 || existingApplications.length > 0 ||
         existingModels.length > 0 || existingPrompts.length > 0 || existingBots.length > 0 || existingWorkflows.length > 0) {
       console.log('Database already seeded with data, skipping...');
       clearTimeout(timeout);
@@ -298,13 +298,3 @@ export const seedDatabase = async (): Promise<void> => {
     throw error;
   }
 };
-
-AppDataSource.initialize()
-  .then(async () => {
-    await seedDatabase();
-    process.exit(0);
-  })
-  .catch((error) => {
-    console.error('Error during Data Source initialization:', error);
-    process.exit(1);
-  });
