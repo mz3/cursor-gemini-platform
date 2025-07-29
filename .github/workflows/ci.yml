@@ -112,6 +112,11 @@ jobs:
             sleep 2
           done
 
+      - name: Clear database
+        run: |
+          echo "Clearing database..."
+          PGPASSWORD=platform_password psql -h localhost -p 5433 -U platform_user -d platform_db -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public; GRANT ALL ON SCHEMA public TO platform_user; GRANT ALL ON SCHEMA public TO public;"
+
       - name: Run database migrations
         run: |
           echo "Running database migrations..."
