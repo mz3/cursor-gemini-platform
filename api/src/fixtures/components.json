@@ -1,0 +1,87 @@
+[
+  {
+    "name": "meta-dashboard",
+    "type": "dashboard",
+    "config": {
+      "widgets": ["models", "applications", "users", "builds"],
+      "layout": "grid"
+    },
+    "props": {
+      "theme": "dark",
+      "refreshInterval": 30000
+    },
+    "isActive": true,
+    "applicationId": "api-system-id"
+  },
+  {
+    "name": "model-form",
+    "type": "form",
+    "config": {
+      "fields": ["name", "displayName", "description", "schema"],
+      "validation": true
+    },
+    "props": {
+      "submitAction": "create-model",
+      "cancelAction": "navigate-back"
+    },
+    "isActive": true,
+    "applicationId": "webapp-system-id"
+  },
+  {
+    "name": "prompt-editor",
+    "type": "editor",
+    "config": {
+      "syntax": "markdown",
+      "variables": true
+    },
+    "props": {
+      "autoSave": true,
+      "versioning": true
+    },
+    "isActive": true,
+    "applicationId": "webapp-system-id"
+  },
+  {
+    "name": "workflow-canvas",
+    "type": "canvas",
+    "config": {
+      "nodes": ["trigger", "action", "condition"],
+      "connections": true
+    },
+    "props": {
+      "dragAndDrop": true,
+      "validation": true
+    },
+    "isActive": true,
+    "applicationId": "webapp-system-id"
+  },
+  {
+    "name": "navigation-sidebar",
+    "type": "navigation",
+    "config": {
+      "items": ["dashboard", "models", "prompts", "workflows", "applications"],
+      "collapsible": true
+    },
+    "props": {
+      "theme": "dark",
+      "expanded": true
+    },
+    "isActive": true,
+    "applicationId": "webapp-system-id"
+  },
+  {
+    "name": "data-table",
+    "type": "table",
+    "config": {
+      "sortable": true,
+      "filterable": true,
+      "pagination": true
+    },
+    "props": {
+      "pageSize": 10,
+      "showSearch": true
+    },
+    "isActive": true,
+    "applicationId": "webapp-system-id"
+  }
+]

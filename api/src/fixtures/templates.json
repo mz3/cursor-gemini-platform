@@ -1,0 +1,77 @@
+[
+  {
+    "name": "react-app",
+    "displayName": "React Application",
+    "description": "Standard React application template",
+    "schema": {
+      "fields": [
+        { "name": "appName", "type": "string", "required": true },
+        { "name": "description", "type": "text", "required": false }
+      ]
+    },
+    "config": {
+      "framework": "react",
+      "typescript": true,
+      "tailwind": true
+    },
+    "isSystem": true,
+    "isActive": true
+  },
+  {
+    "name": "api-service",
+    "displayName": "API Service",
+    "description": "Node.js API service template",
+    "schema": {
+      "fields": [
+        { "name": "serviceName", "type": "string", "required": true },
+        { "name": "port", "type": "number", "required": true, "default": 3000 }
+      ]
+    },
+    "config": {
+      "framework": "express",
+      "typescript": true,
+      "database": "postgresql"
+    },
+    "isSystem": true,
+    "isActive": true
+  },
+  {
+    "name": "full-stack-app",
+    "displayName": "Full Stack Application",
+    "description": "Complete full-stack application with API and frontend",
+    "schema": {
+      "fields": [
+        { "name": "appName", "type": "string", "required": true },
+        { "name": "description", "type": "text", "required": false },
+        { "name": "features", "type": "array", "required": false }
+      ]
+    },
+    "config": {
+      "frontend": "react",
+      "backend": "express",
+      "database": "postgresql",
+      "typescript": true
+    },
+    "isSystem": true,
+    "isActive": true
+  },
+  {
+    "name": "dashboard-app",
+    "displayName": "Dashboard Application",
+    "description": "Admin dashboard with charts and data visualization",
+    "schema": {
+      "fields": [
+        { "name": "appName", "type": "string", "required": true },
+        { "name": "theme", "type": "string", "required": false, "default": "dark" }
+      ]
+    },
+    "config": {
+      "framework": "react",
+      "ui": "tailwind",
+      "charts": "recharts",
+      "tables": "react-table"
+    },
+    "isSystem": true,
+    "isActive": true
+  }
+]

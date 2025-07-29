@@ -1,0 +1,51 @@
+[
+  {
+    "name": "publish_event",
+    "type": "publish_event",
+    "config": {
+      "queue": "app_builds",
+      "event": "build_started"
+    },
+    "order": 0,
+    "workflowId": "build_application_id"
+  },
+  {
+    "name": "validate_model",
+    "type": "validation",
+    "config": {
+      "rules": ["required_fields", "data_types", "relationships"]
+    },
+    "order": 0,
+    "workflowId": "create_model_id"
+  },
+  {
+    "name": "build_docker_image",
+    "type": "docker_build",
+    "config": {
+      "registry": "docker-hub",
+      "tag": "latest"
+    },
+    "order": 1,
+    "workflowId": "build_application_id"
+  },
+  {
+    "name": "deploy_to_fly",
+    "type": "deployment",
+    "config": {
+      "platform": "fly.io",
+      "region": "sea"
+    },
+    "order": 2,
+    "workflowId": "deploy_application_id"
+  },
+  {
+    "name": "generate_api_docs",
+    "type": "documentation",
+    "config": {
+      "format": "openapi",
+      "output": "swagger.json"
+    },
+    "order": 0,
+    "workflowId": "generate_documentation_id"
+  }
+]

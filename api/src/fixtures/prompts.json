@@ -1,0 +1,27 @@
+[
+  {
+    "name": "code-generation",
+    "description": "Generate application code based on models",
+    "userId": "system"
+  },
+  {
+    "name": "model-creation",
+    "description": "Create data models from natural language",
+    "userId": "system"
+  },
+  {
+    "name": "workflow-generation",
+    "description": "Generate workflow automation scripts",
+    "userId": "system"
+  },
+  {
+    "name": "component-generation",
+    "description": "Generate UI components from specifications",
+    "userId": "system"
+  },
+  {
+    "name": "api-documentation",
+    "description": "Generate API documentation from models",
+    "userId": "system"
+  }
+]

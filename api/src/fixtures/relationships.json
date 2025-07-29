@@ -1,0 +1,93 @@
+[
+  {
+    "name": "user-applications",
+    "displayName": "User Applications",
+    "type": "one-to-many",
+    "sourceModelId": "user-model-id",
+    "targetModelId": "application-model-id",
+    "sourceField": "id",
+    "targetField": "userId",
+    "cascade": false,
+    "nullable": true,
+    "description": "A user can have many applications",
+    "userId": "system"
+  },
+  {
+    "name": "application-components",
+    "displayName": "Application Components",
+    "type": "one-to-many",
+    "sourceModelId": "application-model-id",
+    "targetModelId": "component-model-id",
+    "sourceField": "id",
+    "targetField": "applicationId",
+    "cascade": true,
+    "nullable": false,
+    "description": "An application can have many components",
+    "userId": "system"
+  },
+  {
+    "name": "application-features",
+    "displayName": "Application Features",
+    "type": "many-to-many",
+    "sourceModelId": "application-model-id",
+    "targetModelId": "feature-model-id",
+    "sourceField": "id",
+    "targetField": "id",
+    "cascade": false,
+    "nullable": true,
+    "description": "Applications and features have a many-to-many relationship",
+    "userId": "system"
+  },
+  {
+    "name": "bot-prompts",
+    "displayName": "Bot Prompts",
+    "type": "many-to-many",
+    "sourceModelId": "bot-model-id",
+    "targetModelId": "prompt-model-id",
+    "sourceField": "id",
+    "targetField": "id",
+    "cascade": false,
+    "nullable": true,
+    "description": "Bots and prompts have a many-to-many relationship",
+    "userId": "system"
+  },
+  {
+    "name": "workflow-actions",
+    "displayName": "Workflow Actions",
+    "type": "one-to-many",
+    "sourceModelId": "workflow-model-id",
+    "targetModelId": "workflow-action-model-id",
+    "sourceField": "id",
+    "targetField": "workflowId",
+    "cascade": true,
+    "nullable": false,
+    "description": "A workflow can have many actions",
+    "userId": "system"
+  },
+  {
+    "name": "user-settings",
+    "displayName": "User Settings",
+    "type": "one-to-one",
+    "sourceModelId": "user-model-id",
+    "targetModelId": "user-settings-model-id",
+    "sourceField": "id",
+    "targetField": "userId",
+    "cascade": true,
+    "nullable": false,
+    "description": "A user has one settings record",
+    "userId": "system"
+  },
+  {
+    "name": "prompt-versions",
+    "displayName": "Prompt Versions",
+    "type": "one-to-many",
+    "sourceModelId": "prompt-model-id",
+    "targetModelId": "prompt-version-model-id",
+    "sourceField": "id",
+    "targetField": "promptId",
+    "cascade": true,
+    "nullable": false,
+    "description": "A prompt can have many versions",
+    "userId": "system"
+  }
+]

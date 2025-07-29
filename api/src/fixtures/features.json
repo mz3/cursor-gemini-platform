@@ -1,0 +1,134 @@
+[
+  {
+    "name": "authentication",
+    "displayName": "Authentication",
+    "description": "JWT-based user authentication and authorization",
+    "config": {
+      "type": "security",
+      "dependencies": ["jwt", "bcrypt"]
+    },
+    "isActive": true,
+    "status": "active",
+    "userId": "system"
+  },
+  {
+    "name": "data-modeling",
+    "displayName": "Data Modeling",
+    "description": "Visual data model creation and management",
+    "config": {
+      "type": "core",
+      "dependencies": ["typeorm", "postgresql"]
+    },
+    "isActive": true,
+    "status": "active",
+    "userId": "system"
+  },
+  {
+    "name": "crud-operations",
+    "displayName": "CRUD Operations",
+    "description": "Create, Read, Update, Delete operations for all entities",
+    "config": {
+      "type": "core",
+      "dependencies": ["express", "typeorm"]
+    },
+    "isActive": true,
+    "status": "active",
+    "userId": "system"
+  },
+  {
+    "name": "workflows",
+    "displayName": "Workflows",
+    "description": "Workflow automation and orchestration",
+    "config": {
+      "type": "automation",
+      "dependencies": ["redis", "bull"]
+    },
+    "isActive": true,
+    "status": "active",
+    "userId": "system"
+  },
+  {
+    "name": "dashboard",
+    "displayName": "Dashboard",
+    "description": "Main application dashboard with widgets",
+    "config": {
+      "type": "ui",
+      "widgets": ["models", "applications", "users", "builds"]
+    },
+    "isActive": true,
+    "status": "active",
+    "userId": "system"
+  },
+  {
+    "name": "model-builder",
+    "displayName": "Model Builder",
+    "description": "Visual model creation interface",
+    "config": {
+      "type": "ui",
+      "components": ["field-editor", "relationship-builder"]
+    },
+    "isActive": true,
+    "status": "active",
+    "userId": "system"
+  },
+  {
+    "name": "prompt-management",
+    "displayName": "Prompt Management",
+    "description": "LLM prompt creation and versioning system",
+    "config": {
+      "type": "ai",
+      "versioning": true
+    },
+    "isActive": true,
+    "status": "active",
+    "userId": "system"
+  },
+  {
+    "name": "workflow-designer",
+    "displayName": "Workflow Designer",
+    "description": "Visual workflow creation and management",
+    "config": {
+      "type": "automation",
+      "actions": ["api-call", "data-processing", "notification"]
+    },
+    "isActive": true,
+    "status": "active",
+    "userId": "system"
+  },
+  {
+    "name": "job-processing",
+    "displayName": "Job Processing",
+    "description": "Background job queue processing",
+    "config": {
+      "type": "backend",
+      "queue": "redis"
+    },
+    "isActive": true,
+    "status": "active",
+    "userId": "system"
+  },
+  {
+    "name": "docker-building",
+    "displayName": "Docker Building",
+    "description": "Automated Docker image building",
+    "config": {
+      "type": "deployment",
+      "registry": "docker-hub"
+    },
+    "isActive": true,
+    "status": "active",
+    "userId": "system"
+  },
+  {
+    "name": "deployment",
+    "displayName": "Deployment",
+    "description": "Application deployment automation",
+    "config": {
+      "type": "deployment",
+      "platforms": ["fly.io", "docker"]
+    },
+    "isActive": true,
+    "status": "active",
+    "userId": "system"
+  }
+]

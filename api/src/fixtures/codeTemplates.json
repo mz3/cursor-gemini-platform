@@ -1,0 +1,50 @@
+[
+  {
+    "name": "react_app_package_json",
+    "type": "package.json",
+    "content": "{\n  \"name\": \"<%= appName %>\",\n  \"version\": \"1.0.0\",\n  \"private\": true,\n  \"dependencies\": {\n    \"react\": \"^18.2.0\",\n    \"react-dom\": \"^18.2.0\",\n    \"react-scripts\": \"5.0.1\"\n  },\n  \"scripts\": {\n    \"start\": \"react-scripts start\",\n    \"build\": \"react-scripts build\",\n    \"test\": \"react-scripts test\",\n    \"eject\": \"react-scripts eject\"\n  }\n}",
+    "variables": ["appName"],
+    "isSystem": true,
+    "isActive": true
+  },
+  {
+    "name": "api_package_json",
+    "type": "package.json",
+    "content": "{\n  \"name\": \"<%= serviceName %>\",\n  \"version\": \"1.0.0\",\n  \"main\": \"dist/index.js\",\n  \"scripts\": {\n    \"build\": \"tsc\",\n    \"start\": \"node dist/index.js\",\n    \"dev\": \"ts-node src/index.ts\"\n  },\n  \"dependencies\": {\n    \"express\": \"^4.18.0\",\n    \"typeorm\": \"^0.3.0\",\n    \"pg\": \"^8.11.0\"\n  }\n}",
+    "variables": ["serviceName"],
+    "isSystem": true,
+    "isActive": true
+  },
+  {
+    "name": "dockerfile_api",
+    "type": "Dockerfile",
+    "content": "FROM node:18-alpine\n\nWORKDIR /app\n\nCOPY package*.json ./\nRUN npm install\n\nCOPY . .\nRUN npm run build\n\nEXPOSE <%= port %>\n\nCMD [\"npm\", \"start\"]",
+    "variables": ["port"],
+    "isSystem": true,
+    "isActive": true
+  },
+  {
+    "name": "dockerfile_webapp",
+    "type": "Dockerfile",
+    "content": "FROM node:18-alpine\n\nWORKDIR /app\n\nCOPY package*.json ./\nRUN npm install\n\nCOPY . .\nRUN npm run build\n\nEXPOSE 3000\n\nCMD [\"npm\", \"start\"]",
+    "variables": [],
+    "isSystem": true,
+    "isActive": true
+  },
+  {
+    "name": "docker_compose",
+    "type": "docker-compose.yml",
+    "content": "version: '3.8'\n\nservices:\n  api:\n    build: ./api\n    ports:\n      - \"<%= apiPort %>:4000\"\n    environment:\n      - NODE_ENV=production\n    depends_on:\n      - postgres\n      - redis\n\n  webapp:\n    build: ./webapp\n    ports:\n      - \"<%= webappPort %>:3000\"\n    environment:\n      - NODE_ENV=production\n\n  postgres:\n    image: postgres:14\n    environment:\n      - POSTGRES_DB=platform\n      - POSTGRES_USER=postgres\n      - POSTGRES_PASSWORD=password\n    ports:\n      - \"5432:5432\"\n    volumes:\n      - postgres_data:/var/lib/postgresql/data\n\n  redis:\n    image: redis:7-alpine\n    ports:\n      - \"6379:6379\"\n\nvolumes:\n  postgres_data:",
+    "variables": ["apiPort", "webappPort"],
+    "isSystem": true,
+    "isActive": true
+  },
+  {
+    "name": "entity_template",
+    "type": "entity.ts",
+    "content": "import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';\n\n@Entity('<%= tableName %>')\nexport class <%= className %> {\n  @PrimaryGeneratedColumn('uuid')\n  id!: string;\n\n  @Column()\n  name!: string;\n\n  @CreateDateColumn()\n  createdAt!: Date;\n\n  @UpdateDateColumn()\n  updatedAt!: Date;\n}",
+    "variables": ["tableName", "className"],
+    "isSystem": true,
+    "isActive": true
+  }
+]

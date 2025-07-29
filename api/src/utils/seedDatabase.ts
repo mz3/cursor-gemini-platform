@@ -5,262 +5,231 @@ import { Workflow } from '../entities/Workflow.js';
 import { WorkflowAction } from '../entities/WorkflowAction.js';
 import { CodeTemplate } from '../entities/CodeTemplate.js';
 import { Application } from '../entities/Application.js';
+import { Feature } from '../entities/Feature.js';
+import { Component } from '../entities/Component.js';
+import { Prompt } from '../entities/Prompt.js';
+import { Bot } from '../entities/Bot.js';
+import { Template } from '../entities/Template.js';
+import { Relationship } from '../entities/Relationship.js';
+import { UserSettings } from '../entities/UserSettings.js';
+import { FixtureLoader } from './fixtureLoader.js';
 import bcrypt from 'bcryptjs';
 
 export const seedDatabase = async (): Promise<void> => {
   try {
+    console.log('Loading fixtures...');
+    const fixtureLoader = new FixtureLoader();
+    const fixtures = fixtureLoader.loadAllFixtures();
+    console.log('Loaded fixture keys:', Object.keys(fixtures));
+    if (fixtures.features) {
+      console.log('Loaded features fixture length:', fixtures.features.length);
+    }
+
+    // Initialize repositories
     const userRepository = AppDataSource.getRepository(User);
     const modelRepository = AppDataSource.getRepository(Model);
     const workflowRepository = AppDataSource.getRepository(Workflow);
     const workflowActionRepository = AppDataSource.getRepository(WorkflowAction);
     const codeTemplateRepository = AppDataSource.getRepository(CodeTemplate);
     const applicationRepository = AppDataSource.getRepository(Application);
+    const featureRepository = AppDataSource.getRepository(Feature);
+    const componentRepository = AppDataSource.getRepository(Component);
+    const promptRepository = AppDataSource.getRepository(Prompt);
+    const botRepository = AppDataSource.getRepository(Bot);
+    const templateRepository = AppDataSource.getRepository(Template);
+    const relationshipRepository = AppDataSource.getRepository(Relationship);
+    const userSettingsRepository = AppDataSource.getRepository(UserSettings);
 
     // Check if data already exists
-    const existingUser = await userRepository.findOne({ where: { email: 'admin@platform.com' } });
-    if (existingUser) {
-      console.log('Database already seeded, skipping...');
+    const existingFeatures = await featureRepository.find();
+    if (existingFeatures.length > 0) {
+      console.log('Database already seeded with features, skipping...');
       return;
     }
 
-    // Create default user
-    const hashedPassword = await bcrypt.hash('admin123', 10);
-    const defaultUser = userRepository.create({
-      email: 'admin@platform.com',
-      password: hashedPassword,
-      firstName: 'Admin',
-      lastName: 'User',
-      role: 'admin'
-    });
-    await userRepository.save(defaultUser);
-
-    // Create system models
-    const systemModels = [
-      {
-        name: 'User',
-        displayName: 'Users',
-        schema: {
-          fields: [
-            { name: 'email', type: 'string', required: true, label: 'Email Address' },
-            { name: 'firstName', type: 'string', required: true, label: 'First Name' },
-            { name: 'lastName', type: 'string', required: true, label: 'Last Name' },
-            { name: 'role', type: 'string', required: true, label: 'Role', options: ['admin', 'user'] }
-          ]
-        },
-        isSystem: true,
-        userId: defaultUser.id
-      },
-      {
-        name: 'Model',
-        displayName: 'Models',
-        schema: {
-          fields: [
-            { name: 'name', type: 'string', required: true, label: 'Model Name' },
-            { name: 'displayName', type: 'string', required: true, label: 'Display Name' },
-            { name: 'description', type: 'text', required: false, label: 'Description' },
-            { name: 'schema', type: 'json', required: true, label: 'Schema Definition' },
-            { name: 'isSystem', type: 'boolean', required: true, label: 'System Model', default: false }
-          ]
-        },
-        isSystem: true,
-        userId: defaultUser.id
-      },
-      {
-        name: 'Application',
-        displayName: 'Applications',
-        schema: {
-          fields: [
-            { name: 'name', type: 'string', required: true, label: 'Application Name' },
-            { name: 'displayName', type: 'string', required: true, label: 'Display Name' },
-            { name: 'description', type: 'text', required: false, label: 'Description' },
-            { name: 'config', type: 'json', required: true, label: 'Config' }
-          ]
-        },
-        isSystem: true,
-        userId: defaultUser.id
-      },
-      {
-        name: 'Property',
-        displayName: 'Properties',
-        schema: {
-          fields: [
-            { name: 'name', type: 'string', required: true, label: 'Property Name' },
-            { name: 'displayName', type: 'string', required: true, label: 'Display Name' },
-            { name: 'type', type: 'string', required: true, label: 'Data Type', options: ['string', 'number', 'boolean', 'date', 'email', 'url', 'text', 'json', 'uuid'] },
-            { name: 'required', type: 'boolean', required: true, label: 'Required', default: false },
-            { name: 'unique', type: 'boolean', required: true, label: 'Unique', default: false },
-            { name: 'defaultValue', type: 'string', required: false, label: 'Default Value' },
-            { name: 'validation', type: 'json', required: false, label: 'Validation Rules' },
-            { name: 'options', type: 'json', required: false, label: 'Options (for select/enum)' },
-            { name: 'description', type: 'text', required: false, label: 'Description' },
-            { name: 'order', type: 'number', required: true, label: 'Display Order', default: 0 }
-          ]
-        },
-        isSystem: true,
-        userId: defaultUser.id
-      },
-      {
-        name: 'Relationship',
-        displayName: 'Relationships',
-        schema: {
-          fields: [
-            { name: 'name', type: 'string', required: true, label: 'Relationship Name' },
-            { name: 'displayName', type: 'string', required: true, label: 'Display Name' },
-            { name: 'type', type: 'string', required: true, label: 'Relationship Type', options: ['one-to-one', 'one-to-many', 'many-to-one', 'many-to-many'] },
-            { name: 'sourceModelId', type: 'uuid', required: true, label: 'Source Model' },
-            { name: 'targetModelId', type: 'uuid', required: true, label: 'Target Model' },
-            { name: 'sourceField', type: 'string', required: true, label: 'Source Field' },
-            { name: 'targetField', type: 'string', required: true, label: 'Target Field' },
-            { name: 'cascade', type: 'boolean', required: true, label: 'Cascade Delete', default: false },
-            { name: 'nullable', type: 'boolean', required: true, label: 'Nullable', default: true },
-            { name: 'description', type: 'text', required: false, label: 'Description' }
-          ]
-        },
-        isSystem: true,
-        userId: defaultUser.id
-      },
-      {
-        name: 'Component',
-        displayName: 'Components',
-        schema: {
-          fields: [
-            { name: 'name', type: 'string', required: true, label: 'Component Name' },
-            { name: 'displayName', type: 'string', required: true, label: 'Display Name' },
-            { name: 'type', type: 'string', required: true, label: 'Component Type', options: ['form', 'table', 'card', 'chart', 'custom'] },
-            { name: 'config', type: 'json', required: true, label: 'Configuration' },
-            { name: 'modelId', type: 'uuid', required: true, label: 'Associated Model' },
-            { name: 'isActive', type: 'boolean', required: true, label: 'Active', default: true }
-          ]
-        },
-        isSystem: true,
-        userId: defaultUser.id
-      },
-      {
-        name: 'Template',
-        displayName: 'Templates',
-        schema: {
-          fields: [
-            { name: 'name', type: 'string', required: true, label: 'Template Name' },
-            { name: 'displayName', type: 'string', required: true, label: 'Display Name' },
-            { name: 'type', type: 'string', required: true, label: 'Template Type', options: ['page', 'component', 'layout', 'email'] },
-            { name: 'content', type: 'text', required: true, label: 'Template Content' },
-            { name: 'variables', type: 'json', required: false, label: 'Template Variables' },
-            { name: 'isSystem', type: 'boolean', required: true, label: 'System Template', default: false }
-          ]
-        },
-        isSystem: true,
-        userId: defaultUser.id
-      }
-    ];
-
-    for (const modelData of systemModels) {
-      const model = modelRepository.create(modelData);
-      await modelRepository.save(model);
+    console.log('Creating default user...');
+    // Create default user from fixtures or use existing
+    const userData = fixtures.users?.[0];
+    if (!userData) {
+      throw new Error('No user data found in fixtures');
     }
 
-    // Create Meta Platform application fixture
-    const metaApp = applicationRepository.create({
-      name: 'meta-platform',
-      displayName: 'Meta Platform',
-      description: 'Meta Platform is a meta-application platform that enables users to design, build, and manage applications through a unified UI and API. It features a microservices architecture with Node.js/TypeScript API, React frontend, background worker, PostgreSQL, and Redis. Users can create models, prompts, workflows, relationships, and components, and deploy applications with Docker orchestration. The UI provides a dashboard for managing all entities, while the API exposes RESTful endpoints for automation and integration.',
-      config: {
-        features: ['models', 'prompts', 'workflows', 'relationships', 'components', 'deployment'],
-        microservices: ['api', 'webapp', 'bot', 'postgres', 'redis'],
-        orchestration: 'docker-compose',
-      },
-      userId: defaultUser.id
-    });
-    const savedMetaApp = await applicationRepository.save(metaApp);
-
-    // Add a sample component for the meta application
-    const { Component } = await import('../entities/Component.js');
-    const componentRepository = AppDataSource.getRepository(Component);
-    await componentRepository.save({
-      name: 'meta-dashboard',
-      displayName: 'Meta Dashboard',
-      type: 'dashboard',
-      config: { widgets: ['models', 'applications', 'users', 'builds'] },
-      props: {},
-      isActive: true,
-      applicationId: savedMetaApp.id
-    });
-
-    // Add a sample relationship for the meta application
-    const { Relationship } = await import('../entities/Relationship.js');
-    const relationshipRepository = AppDataSource.getRepository(Relationship);
-    await relationshipRepository.save({
-      name: 'model-applications',
-      displayName: 'Model Applications',
-      type: 'one-to-many',
-      sourceModelId: savedMetaApp.id, // Use application id for demonstration
-      targetModelId: savedMetaApp.id,
-      sourceField: 'id',
-      targetField: 'id',
-      cascade: false,
-      nullable: true,
-      description: 'A model can have many applications',
-      userId: defaultUser.id
-    });
-
-    // Create default workflow
-    const buildWorkflow = workflowRepository.create({
-      name: 'build_application',
-      displayName: 'Build Application',
-      description: 'Build and deploy an application',
-      config: { queue: 'app_builds' }
-    });
-    await workflowRepository.save(buildWorkflow);
-
-    // Create workflow actions
-    const actions = [
-      {
-        name: 'publish_event',
-        type: 'publish_event',
-        config: { queue: 'app_builds' },
-        order: 0,
-        workflowId: buildWorkflow.id
+    // Check if user already exists
+    let savedUser: User | null = await userRepository.findOne({ where: { email: userData.email } });
+    if (!savedUser) {
+      const hashedPassword = await bcrypt.hash('admin123', 10);
+      const defaultUser = userRepository.create({
+        ...userData,
+        password: hashedPassword
+      });
+      const savedUsers = await userRepository.save(defaultUser);
+      const newUser = Array.isArray(savedUsers) ? savedUsers[0] : savedUsers;
+      if (!newUser) {
+        throw new Error('Failed to save user');
       }
-    ];
+      savedUser = newUser;
+    }
 
-    for (const actionData of actions) {
-      const action = workflowActionRepository.create(actionData);
+    if (!savedUser) {
+      throw new Error('Failed to create or find user for seeding');
+    }
+
+    console.log('Creating system models...');
+    // Create system models from fixtures
+    if (fixtures.models) {
+      for (const modelData of fixtures.models) {
+        const model = modelRepository.create({
+          ...modelData,
+          userId: savedUser!.id
+        });
+        await modelRepository.save(model);
+      }
+    }
+
+    console.log('Creating applications...');
+    // Create applications from fixtures
+    if (fixtures.applications) {
+      for (const appData of fixtures.applications) {
+        const application = applicationRepository.create({
+          ...appData,
+          userId: savedUser!.id
+        });
+        await applicationRepository.save(application);
+      }
+    }
+
+    console.log('Creating features...');
+    // Create features from fixtures
+    if (fixtures.features) {
+      console.log('Number of features in fixtures:', fixtures.features.length);
+      for (const featureData of fixtures.features) {
+        const feature = featureRepository.create({
+          ...featureData,
+          userId: savedUser!.id
+        });
+        await featureRepository.save(feature);
+        console.log('Inserted feature:', JSON.stringify(feature, null, 2));
+      }
+    }
+
+    console.log('Creating components...');
+    // Create components from fixtures
+    if (fixtures.components) {
+      // Get the first application to use as default applicationId
+      const defaultApp = await applicationRepository.findOne({ where: { name: 'api' } });
+      if (!defaultApp) {
+        console.log('No default application found, skipping components...');
+      } else {
+        for (const componentData of fixtures.components) {
+          const component = componentRepository.create({
+            ...componentData,
+            applicationId: defaultApp.id
+          });
+          await componentRepository.save(component);
+        }
+      }
+    }
+
+    console.log('Creating prompts...');
+    // Create prompts from fixtures
+    if (fixtures.prompts) {
+      for (const promptData of fixtures.prompts) {
+        const prompt = promptRepository.create({
+          ...promptData,
+          userId: savedUser!.id
+        });
+        await promptRepository.save(prompt);
+      }
+    }
+
+    console.log('Creating bots...');
+    // Create bots from fixtures
+    if (fixtures.bots) {
+      for (const botData of fixtures.bots) {
+        const bot = botRepository.create({
+          ...botData,
+          userId: savedUser!.id
+        });
+        await botRepository.save(bot);
+      }
+    }
+
+    console.log('Creating workflows...');
+    // Create workflows from fixtures
+    if (fixtures.workflows) {
+      for (const workflowData of fixtures.workflows) {
+        const workflow = workflowRepository.create(workflowData);
+        await workflowRepository.save(workflow);
+      }
+    }
+
+    console.log('Creating workflow actions...');
+    // Create workflow actions from fixtures
+    if (fixtures.workflowActions) {
+      for (const actionData of fixtures.workflowActions) {
+        const action = workflowActionRepository.create({
+          ...actionData,
+          workflowId: savedUser!.id // Use user ID as placeholder for now
+        });
       await workflowActionRepository.save(action);
-    }
-
-    // Create code templates
-    const templates = [
-      {
-        name: 'react_app_package_json',
-        type: 'package.json',
-        content: `{
-  "name": "<%= appName %>",
-  "version": "1.0.0",
-  "private": true,
-  "dependencies": {
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-scripts": "5.0.1"
-  },
-  "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
-  }
-}`,
-        variables: ['appName'],
-        isSystem: true
       }
-    ];
-
-    for (const templateData of templates) {
-      const template = codeTemplateRepository.create(templateData);
-      await codeTemplateRepository.save(template);
     }
 
-    console.log('Database seeded successfully');
+    console.log('Creating templates...');
+    // Create templates from fixtures
+    if (fixtures.templates) {
+      for (const templateData of fixtures.templates) {
+        const template = templateRepository.create(templateData);
+        await templateRepository.save(template);
+      }
+    }
+
+    console.log('Creating code templates...');
+    // Create code templates from fixtures
+    if (fixtures.codeTemplates) {
+      for (const codeTemplateData of fixtures.codeTemplates) {
+        const codeTemplate = codeTemplateRepository.create(codeTemplateData);
+        await codeTemplateRepository.save(codeTemplate);
+      }
+    }
+
+    console.log('Creating relationships...');
+    // Create relationships from fixtures
+    if (fixtures.relationships) {
+      for (const relationshipData of fixtures.relationships) {
+        const relationship = relationshipRepository.create({
+          ...relationshipData,
+          userId: savedUser!.id
+        });
+        await relationshipRepository.save(relationship);
+      }
+    }
+
+    console.log('Creating user settings...');
+    // Create user settings from fixtures
+    if (fixtures.userSettings) {
+      for (const settingsData of fixtures.userSettings) {
+        const userSettings = userSettingsRepository.create({
+          ...settingsData,
+          user: savedUser
+        });
+        await userSettingsRepository.save(userSettings);
+      }
+    }
+
+    console.log('Database seeded successfully with JSON fixtures');
   } catch (error) {
     console.error('Error seeding database:', error);
     throw error;
   }
 };
+
+AppDataSource.initialize()
+  .then(async () => {
+    await seedDatabase();
+    process.exit(0);
+  })
+  .catch((error) => {
+    console.error('Error during Data Source initialization:', error);
+    process.exit(1);
+  });

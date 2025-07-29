@@ -29,7 +29,8 @@
     "noEmit": false
   },
   "include": [
-    "src/**/*"
+    "src/**/*",
+    "src/fixtures/**/*"
   ],
   "exclude": [
     "node_modules",

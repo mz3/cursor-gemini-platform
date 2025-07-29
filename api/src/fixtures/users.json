@@ -1,0 +1,10 @@
+[
+  {
+    "email": "admin@platform.com",
+    "password": "hashed_password_here",
+    "firstName": "Admin",
+    "lastName": "User",
+    "role": "admin",
+    "isActive": true
+  }
+]

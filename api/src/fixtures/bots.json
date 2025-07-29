@@ -1,0 +1,30 @@
+[
+  {
+    "name": "code-generator",
+    "displayName": "Code Generator Bot",
+    "description": "Generates application code from models and specifications",
+    "isActive": true,
+    "userId": "system"
+  },
+  {
+    "name": "deployment-bot",
+    "displayName": "Deployment Bot",
+    "description": "Handles application deployment and infrastructure",
+    "isActive": true,
+    "userId": "system"
+  },
+  {
+    "name": "model-assistant",
+    "displayName": "Model Assistant Bot",
+    "description": "Assists with data model creation and optimization",
+    "isActive": true,
+    "userId": "system"
+  },
+  {
+    "name": "workflow-assistant",
+    "displayName": "Workflow Assistant Bot",
+    "description": "Helps create and optimize workflow automation",
+    "isActive": true,
+    "userId": "system"
+  }
+]

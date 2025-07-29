@@ -1,5 +1,34 @@
 # Cursor Rules for Full-Stack Feature Implementation
 
+## Project Backlog and Task Management
+
+### Notion Backlog Integration
+- **Primary Backlog**: [Software Backlog](https://www.notion.so/23fff2c597af80328ea0c6dd02467973?v=23fff2c597af8036aa05000c95b4831e&source=copy_link)
+- **Database ID**: `23fff2c597af80328ea0c6dd02467973`
+- **Board Type**: Kanban with columns: Backlog, In Progress, Review, Done
+
+### Notion CLI Usage
+- **CLI Location**: `/cli` directory in project root
+- **Authentication**: Configure `cli/.env` with Notion integration token
+- **Commands**:
+  ```bash
+  cd cli
+  npm run dev create                    # Interactive task creation
+  npm run dev create -- --title "Task" # Command-line task creation
+  npm run dev info                      # Show database information
+  ```
+- **Task Creation Examples**:
+  ```bash
+  npm run dev create -- --title "Fix login bug" --status "In Progress" --priority "High"
+  npm run dev create -- --title "Add user authentication" --description "Implement JWT auth" --tags "backend,security"
+  ```
+
+### Task Management Workflow
+1. **Create tasks** using CLI when starting new work
+2. **Update status** manually in Notion as work progresses
+3. **Use tags** for categorization (backend, frontend, bug, feature, etc.)
+4. **Set priority** based on business impact and urgency
+
 ## Full-Stack Feature Pattern
 
 When implementing a new full-stack feature (like the Bot feature), follow this comprehensive pattern:

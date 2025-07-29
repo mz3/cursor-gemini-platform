@@ -1,0 +1,42 @@
+[
+  {
+    "name": "build_application",
+    "displayName": "Build Application",
+    "description": "Build and deploy an application",
+    "config": {
+      "queue": "app_builds",
+      "steps": ["validate", "build", "test", "deploy"]
+    },
+    "isActive": true
+  },
+  {
+    "name": "create_model",
+    "displayName": "Create Model",
+    "description": "Create a new data model with relationships",
+    "config": {
+      "queue": "model_creation",
+      "steps": ["validate", "create", "generate-code"]
+    },
+    "isActive": true
+  },
+  {
+    "name": "deploy_application",
+    "displayName": "Deploy Application",
+    "description": "Deploy application to production environment",
+    "config": {
+      "queue": "deployment",
+      "steps": ["build", "test", "deploy", "health-check"]
+    },
+    "isActive": true
+  },
+  {
+    "name": "generate_documentation",
+    "displayName": "Generate Documentation",
+    "description": "Generate API documentation from models",
+    "config": {
+      "queue": "documentation",
+      "steps": ["analyze", "generate", "publish"]
+    },
+    "isActive": true
+  }
+]
