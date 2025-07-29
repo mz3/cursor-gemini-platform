@@ -46,12 +46,17 @@ export const seedDatabase = async (): Promise<void> => {
       process.exit(1);
     }, 30000);
 
-    // Check if data already exists
+    // Check if data already exists - check all tables
     const existingUsers = await userRepository.find();
     const existingFeatures = await featureRepository.find();
     const existingApplications = await applicationRepository.find();
+    const existingModels = await modelRepository.find();
+    const existingPrompts = await promptRepository.find();
+    const existingBots = await botRepository.find();
+    const existingWorkflows = await workflowRepository.find();
     
-    if (existingUsers.length > 0 || existingFeatures.length > 0 || existingApplications.length > 0) {
+    if (existingUsers.length > 0 || existingFeatures.length > 0 || existingApplications.length > 0 || 
+        existingModels.length > 0 || existingPrompts.length > 0 || existingBots.length > 0 || existingWorkflows.length > 0) {
       console.log('Database already seeded with data, skipping...');
       clearTimeout(timeout);
       return;
