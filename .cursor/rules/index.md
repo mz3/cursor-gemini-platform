@@ -1,7 +1,6 @@
 # Cursor Rules Index
 
-## Overview
-This document provides an index of all cursor rules and their purposes. These rules help maintain consistency, best practices, and efficient development workflows across the platform.
+This directory contains comprehensive rules and guidelines for the cursor-gemini-platform project. These rules are organized by category and provide specific guidance for different aspects of development.
 
 ## Core Development Rules
 
@@ -14,6 +13,8 @@ This document provides an index of all cursor rules and their purposes. These ru
 
 ### 🔧 [Development](./development.md)
 **Purpose**: General development workflow and practices
+- **Current Mode**: Native Development (API/Webapp/Bot run locally, DB/Redis via Docker)
+- **Alternative Mode**: Docker Development (all services in containers - disabled)
 - Feature development workflow
 - Microservices architecture overview
 - Development commands and container management
@@ -22,210 +23,172 @@ This document provides an index of all cursor rules and their purposes. These ru
 
 ### 🗄️ [Migrations](./migrations.md)
 **Purpose**: Database migration patterns and commands
-- TypeORM migration commands using docker exec
+- **Current Mode**: Native migration commands (from api/ folder)
+- **Alternative Mode**: Docker migration commands (disabled - for reference)
 - Migration workflow and best practices
 - Database connection and configuration
 - TypeORM configuration patterns
+- Troubleshooting migration issues
 
-## Architecture & Design
+## Development Modes
 
-### 🏗️ [Architecture](./architecture.md)
-**Purpose**: System architecture and design patterns
-- Microservices architecture overview
-- Service communication patterns
-- Data flow and integration points
-- Scalability considerations
+### Native Development Mode (Current)
+- **API**: Run locally from `api/` folder with environment variables
+- **Webapp**: Run locally from `webapp/` folder with `npm run dev`
+- **Bot**: Run locally from `bot/` folder with environment variables
+- **Database**: PostgreSQL via Docker (port 5433)
+- **Cache**: Redis via Docker (port 6379)
 
-### 🔐 [Security](./security.md)
-**Purpose**: Security best practices and implementation
-- Authentication and authorization patterns
-- JWT implementation and management
-- Input validation and sanitization
-- Security headers and middleware
+### Docker Development Mode (Disabled)
+- All services run in Docker containers
+- See individual rule files for Docker commands
+- Used for reference when switching to Docker mode
 
-## Testing & Quality
+## Quick Start Commands
 
-### 🧪 [Testing](./testing.md)
-**Purpose**: Testing strategies and implementation
-- Unit testing patterns
-- Integration testing approaches
-- E2E testing with Cypress
-- Test coverage and quality metrics
-
-### 🐛 [Bugfixes](./bugfixes.md)
-**Purpose**: Bug fixing workflow and practices
-- Bug identification and reproduction
-- Debugging techniques and tools
-- Fix implementation and verification
-- Prevention strategies
-
-## DevOps & Deployment
-
-### 🐳 [Docker](./docker.md)
-**Purpose**: Containerization and Docker practices
-- Docker configuration and optimization
-- Container management and monitoring
-- Development environment setup
-- Production deployment considerations
-
-### 🚀 [Deployment](./deployment.md)
-**Purpose**: Deployment strategies and processes
-- Production deployment workflows
-- Environment configuration
-- Monitoring and logging
-- Rollback procedures
-
-### 🔄 [CI/CD](./cicd.md)
-**Purpose**: Continuous integration and deployment
-- Automated testing and building
-- Deployment pipelines
-- Quality gates and checks
-- Release management
-
-## Version Control & Collaboration
-
-### 📝 [Git](./git.md)
-**Purpose**: Git workflow and best practices
-- Branch naming conventions
-- Commit message standards
-- Code review processes
-- Merge strategies
-
-### 🔄 [Pull Requests](./pull_requests.md)
-**Purpose**: Pull request workflow and standards
-- PR creation and review process
-- Code review guidelines
-- Merge criteria and checks
-- Documentation requirements
-
-### 🐙 [GitHub](./gh.md)
-**Purpose**: GitHub-specific workflows and tools
-- Issue management and tracking
-- Project board organization
-- GitHub Actions integration
-- Repository management
-
-### 🚀 [Fly.io](./flyctl.md)
-**Purpose**: Fly.io deployment and management
-- Application deployment
-- Environment configuration
-- Scaling and monitoring
-- Database management
-
-## Personality & Communication
-
-### 👤 [Personality](./personality.md)
-**Purpose**: AI assistant personality and communication style
-- Response tone and style
-- Technical communication patterns
-- User interaction guidelines
-- Problem-solving approach
-
-## Documentation
-
-### 📚 [README](./README.md)
-**Purpose**: Project documentation standards
-- README file structure and content
-- API documentation patterns
-- Code documentation standards
-- User guide creation
-
-## Rule Usage Guidelines
-
-### When to Use Each Rule
-
-#### For New Feature Development
-1. Start with **Full-Stack Features** rule for complete implementation pattern
-2. Reference **Development** rule for workflow and best practices
-3. Use **Migrations** rule for database changes
-4. Follow **Testing** rule for comprehensive testing
-
-#### For Bug Fixes
-1. Use **Bugfixes** rule for systematic approach
-2. Reference **Testing** rule for verification
-3. Follow **Git** rule for version control
-
-#### For Deployment
-1. Use **Docker** rule for container management
-2. Follow **Deployment** rule for production deployment
-3. Reference **CI/CD** rule for automated processes
-
-#### For Database Changes
-1. Use **Migrations** rule for database schema changes
-2. Reference **Development** rule for database best practices
-3. Follow **Testing** rule for data integrity verification
-
-### Rule Integration
-
-#### Cross-Reference Patterns
-- **Full-Stack Features** references **Migrations** for database changes
-- **Development** references **Docker** for container management
-- **Testing** references **Security** for security testing
-- **Deployment** references **CI/CD** for automated deployment
-
-#### Workflow Integration
-1. **Planning**: Use Architecture and Development rules
-2. **Implementation**: Use Full-Stack Features and Development rules
-3. **Testing**: Use Testing and Security rules
-4. **Deployment**: Use Docker, Deployment, and CI/CD rules
-5. **Maintenance**: Use Bugfixes and Git rules
-
-## Rule Maintenance
-
-### Updating Rules
-- Update rules when new patterns are discovered
-- Validate rule recommendations through testing
-- Document rule changes in CHANGELOG
-- Share rule updates with the team
-
-### Rule Validation
-- Test rule recommendations in development environment
-- Verify rule consistency across different contexts
-- Ensure rules work with current toolchain
-- Validate rule effectiveness through user feedback
-
-## Quick Reference
-
-### Common Commands
+### Native Development
 ```bash
-# Start development environment
-cd docker && docker-compose up --build
+# Start infrastructure
+docker-compose up postgres redis -d
 
-# Run migrations
-docker exec -it api npm run migration:run
+# Start API
+cd api/
+NODE_ENV=development DB_HOST=127.0.0.1 DB_PORT=5433 DB_USER=platform_user DB_PASSWORD=platform_password DB_NAME=platform_db REDIS_HOST=127.0.0.1 REDIS_PORT=6379 npm run dev
 
-# Access database
-docker exec -it postgres psql -U platform_user -d platform_db
+# Start Webapp
+cd webapp/
+npm run dev
 
-# View logs
-docker-compose logs [service]
-
-# Rebuild service
-docker-compose up --build [service]
+# Start Bot (if needed)
+cd bot/
+NODE_ENV=development DB_HOST=127.0.0.1 DB_PORT=5433 DB_USER=platform_user DB_PASSWORD=platform_password DB_NAME=platform_db REDIS_HOST=127.0.0.1 REDIS_PORT=6379 npm run dev
 ```
 
-### File Locations
-- **API**: `api/src/` - Backend TypeScript code
-- **Frontend**: `webapp/src/` - React TypeScript code
-- **Docker**: `docker/` - Container configuration
-- **Deployment**: `deploy/` - Production deployment files
+### Database Operations (Native Mode)
+```bash
+# Generate migration
+cd api/
+npm run migration:generate -- src/migrations/NewMigration
 
-### Key Services
-- **API**: http://localhost:4000 - Backend API
-- **Webapp**: http://localhost:3000 - React frontend
-- **Database**: localhost:5433 - PostgreSQL
-- **Redis**: localhost:6379 - Cache and message queue
+# Run migrations
+npm run migration:run
 
-## Rule Effectiveness
+# Check status
+npm run migration:show
+```
 
-### Success Metrics
-- Consistent code quality across features
-- Reduced development time for new features
-- Fewer bugs and deployment issues
-- Improved team collaboration and knowledge sharing
+## Service URLs
+- **API**: http://localhost:4000
+- **Webapp**: http://localhost:3000
+- **Database**: localhost:5433
+- **Redis**: localhost:6379
 
-### Continuous Improvement
-- Regular rule review and updates
-- Feedback collection from development team
-- Performance monitoring and optimization
-- Tool integration and automation
+## Architecture Overview
+
+### Microservices
+- **API Service**: Node.js/Express.js/TypeScript/TypeORM
+- **Webapp Service**: React/TypeScript/Vite/Tailwind CSS
+- **Bot Service**: Node.js/TypeScript (Worker)
+- **Database**: PostgreSQL with TypeORM
+- **Cache**: Redis
+
+### Development Best Practices
+- Use TypeScript for all services
+- Follow ESLint and Prettier configurations
+- Write meaningful commit messages
+- Use conventional commits format
+- Implement proper error handling
+- Use JWT for authentication
+- Follow RESTful API conventions
+- Use React functional components with hooks
+- Implement proper state management
+- Use Tailwind CSS for styling
+
+## Troubleshooting
+
+### Common Issues
+- **API Connection**: Check if API is running on port 4000
+- **Database Connection**: Verify PostgreSQL is running on port 5433
+- **Webapp Issues**: Check if webapp is running on port 3000
+- **Migration Issues**: Ensure you're in the api/ folder when running migrations
+
+### Performance Optimization
+- Use proper database indexing
+- Implement caching strategies
+- Optimize API queries
+- Use lazy loading for components
+- Implement proper pagination
+
+### Security Best Practices
+- Use environment variables for secrets
+- Implement proper authentication
+- Validate all inputs
+- Use HTTPS in production
+- Implement rate limiting
+
+## Rule Updates
+
+### When to Update Rules
+- After implementing new features that change development patterns
+- When discovering better practices or workflows
+- When adding new tools or technologies
+- When fixing common issues or pain points
+
+### How to Update Rules
+1. Identify the specific rule file that needs updating
+2. Make the necessary changes
+3. Update this index file if needed
+4. Test the new rules in practice
+5. Document any learnings or improvements
+
+## Usage Guidelines
+
+### For New Features
+1. Check the [Full-Stack Features](./fullstack-features.md) guide
+2. Follow the established patterns for entities, migrations, routes, and components
+3. Use the native development commands from [Development](./development.md)
+4. Follow migration patterns from [Migrations](./migrations.md)
+
+### For Database Changes
+1. Create or update TypeORM entities
+2. Generate migrations using native commands
+3. Review and test migrations
+4. Update database configuration if needed
+
+### For API Development
+1. Follow RESTful conventions
+2. Implement proper error handling
+3. Use JWT authentication where needed
+4. Write comprehensive tests
+
+### For Frontend Development
+1. Use React functional components with hooks
+2. Implement proper state management
+3. Use Tailwind CSS for styling
+4. Follow responsive design principles
+
+## Environment Configuration
+
+### Required Environment Variables
+```bash
+# API Environment
+NODE_ENV=development
+DB_HOST=127.0.0.1
+DB_PORT=5433
+DB_USER=platform_user
+DB_PASSWORD=platform_password
+DB_NAME=platform_db
+REDIS_HOST=127.0.0.1
+REDIS_PORT=6379
+API_PORT=4000
+JWT_SECRET=your-super-secret-jwt-key-change-in-production
+```
+
+### Development Tools
+- **TypeScript**: Strict mode for all services
+- **ESLint**: Code linting and formatting
+- **Prettier**: Code formatting
+- **TypeORM**: Database ORM
+- **React**: Frontend framework
+- **Tailwind CSS**: Styling framework
+- **Vite**: Build tool for webapp

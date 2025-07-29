@@ -1,87 +1,129 @@
-# Development Rules
+# Development Environment Rules
 
-## Feature Development Workflow
+## Development Mode
 
-### 1. Planning & Requirements
-- Start with clear requirements and acceptance criteria
-- Plan database schema changes first
-- Design API endpoints and frontend components
-- Consider testing strategy early
+### Current Mode: Native Development
+- **API**: Run locally from `api/` folder
+- **Webapp**: Run locally from `webapp/` folder
+- **Bot**: Run locally from `bot/` folder
+- **Database**: PostgreSQL via Docker (port 5433)
+- **Cache**: Redis via Docker (port 6379)
 
-### 2. Database-First Approach
-- **Entity Design**: Define TypeORM entities with proper relationships
-- **Migration Generation**: Use `docker exec -it api npm run migration:generate` in api/
-- **Migration Execution**: Run migrations with `docker exec -it api npm run migration:run` in api/
-- **Database Seeding**: Use `docker exec -it api npm run seed` in api/ for test data
-- **Relationship Types**: Always use `Relation<T>` generic for TypeORM relationships
+### Alternative Mode: Docker Development (Disabled)
+- All services run in Docker containers
+- See Docker rules below for reference
 
-### 3. API Development
-- **Route Structure**: Follow RESTful conventions
-- **Validation**: Use class-validator for input validation
-- **Error Handling**: Implement comprehensive error handling
-- **Authentication**: Use JWT middleware for protected routes
-- **Testing**: Write unit and integration tests
+## Native Development Commands
 
-### 4. Frontend Development
-- **Component Structure**: Use functional components with hooks
-- **State Management**: Use React Context for global state
-- **API Integration**: Use axios for API calls
-- **Styling**: Use Tailwind CSS for styling
-- **Testing**: Write unit tests with React Testing Library
-
-### 5. Testing Strategy
-- **Unit Tests**: Focus on business logic (Jest for API, React Testing Library for UI)
-- **Integration Tests**: Test API endpoints with Supertest
-- **E2E Tests**: Use Cypress for end-to-end testing
-- **Coverage Goal**: Maintain >80% test coverage
-- **Test Order**: Unit → Integration → E2E (fastest to slowest)
-
-## Microservices Architecture
-
-### Service Overview
-- **api**: Node.js/TypeScript backend (port 4000)
-  - Express.js, TypeORM, JWT auth
-  - PostgreSQL database, Redis cache
-  - Hot reload with ts-node-dev
-- **webapp**: React frontend (port 3000)
-  - React, TypeScript, Tailwind CSS
-  - Vite for development, hot reload
-  - Proxy to API for development
-- **bot**: Background worker service
-  - Node.js/TypeScript background processing
-  - Redis job queue integration
-  - Docker image building capabilities
-- **postgres**: PostgreSQL database (port 5433)
-  - Persistent data storage
-  - Health checks and monitoring
-- **redis**: Redis cache/message queue (port 6379)
-  - Session storage and job queuing
-  - Health checks and monitoring
-
-### Development Environment
-- **Docker Compose**: All services run in containers
-- **Volume Mounts**: Source code mounted for hot reload
-- **Network**: Services communicate via Docker network
-- **Environment**: Consistent environment across team
-
-## Development Commands
-
-### Starting Development
+### Start Infrastructure (Docker)
 ```bash
-# Start all services
-cd docker && docker compose up --build
+# Start only database and cache services
+docker-compose up postgres redis -d
 
-# Start specific service
-docker compose up api
-
-# View logs
-docker logs <service> --tail 50
-
-# Access container shell
-docker exec -it <service> sh
+# Check status
+docker-compose ps
 ```
 
-### Database Operations (Docker Environment)
+### Start API Service
+```bash
+cd api/
+NODE_ENV=development DB_HOST=127.0.0.1 DB_PORT=5433 DB_USER=platform_user DB_PASSWORD=platform_password DB_NAME=platform_db REDIS_HOST=127.0.0.1 REDIS_PORT=6379 npm run dev
+```
+
+### Start Webapp Service
+```bash
+cd webapp/
+npm run dev
+```
+
+### Start Bot Service
+```bash
+cd bot/
+NODE_ENV=development DB_HOST=127.0.0.1 DB_PORT=5433 DB_USER=platform_user DB_PASSWORD=platform_password DB_NAME=platform_db REDIS_HOST=127.0.0.1 REDIS_PORT=6379 npm run dev
+```
+
+### Database Operations (Native Mode)
+```bash
+# Connect to database
+psql -h localhost -p 5433 -U platform_user -d platform_db
+
+# Or via Docker if needed
+docker exec -it platform-postgres psql -U platform_user -d platform_db
+
+# Generate migration (from api/ folder)
+npm run migration:generate -- src/migrations/NewMigration
+
+# Run migrations (from api/ folder)
+npm run migration:run
+
+# Revert migration (from api/ folder)
+npm run migration:revert
+
+# Check migration status (from api/ folder)
+npm run migration:show
+```
+
+## Development Workflow
+
+### 1. Start Development Environment
+```bash
+# Terminal 1: Start infrastructure
+docker-compose up postgres redis -d
+
+# Terminal 2: Start API
+cd api/
+NODE_ENV=development DB_HOST=127.0.0.1 DB_PORT=5433 DB_USER=platform_user DB_PASSWORD=platform_password DB_NAME=platform_db REDIS_HOST=127.0.0.1 REDIS_PORT=6379 npm run dev
+
+# Terminal 3: Start Webapp
+cd webapp/
+npm run dev
+
+# Terminal 4: Start Bot (if needed)
+cd bot/
+NODE_ENV=development DB_HOST=127.0.0.1 DB_PORT=5433 DB_USER=platform_user DB_PASSWORD=platform_password DB_NAME=platform_db REDIS_HOST=127.0.0.1 REDIS_PORT=6379 npm run dev
+```
+
+### 2. Service URLs
+- **API**: http://localhost:4000
+- **Webapp**: http://localhost:3000
+- **Database**: localhost:5433
+- **Redis**: localhost:6379
+
+### 3. Testing API Endpoints
+```bash
+# Health check
+curl http://localhost:4000/health
+
+# Test API endpoints
+curl http://localhost:4000/api/bots
+curl http://localhost:4000/api/features
+```
+
+## Docker Development Mode (Disabled - For Reference)
+
+### Docker Commands (When switching to Docker mode)
+```bash
+# Start all services
+docker-compose up -d
+
+# Start specific service
+docker-compose up api -d
+docker-compose up webapp -d
+docker-compose up bot -d
+
+# View logs
+docker-compose logs api
+docker-compose logs webapp
+docker-compose logs bot
+
+# Stop services
+docker-compose down
+
+# Rebuild and start
+docker-compose up --build -d
+```
+
+### Database Operations (Docker Mode)
 ```bash
 # Generate migration
 docker exec -it api npm run migration:generate -- src/migrations/NewMigration
@@ -92,183 +134,109 @@ docker exec -it api npm run migration:run
 # Revert migration
 docker exec -it api npm run migration:revert
 
-# Seed database
-docker exec -it api npm run seed
+# Check migration status
+docker exec -it api npm run migration:show
 
-# Check database
-docker exec -it postgres psql -U platform_user -d platform_db
-
-# View database tables
-docker exec -it postgres psql -U platform_user -d platform_db -c "\dt"
-
-# Check specific table
-docker exec -it postgres psql -U platform_user -d platform_db -c "SELECT * FROM [table_name];"
+# Connect to database
+docker exec -it platform-postgres psql -U platform_user -d platform_db
 ```
 
-### Testing Commands
-```bash
-# API unit tests
-docker exec -it api npm run test:unit
+## Architecture Overview
 
-# API integration tests
-docker exec -it api npm run test:integration
+### Microservices
+- **API Service**: Node.js/Express.js/TypeScript/TypeORM
+- **Webapp Service**: React/TypeScript/Vite/Tailwind CSS
+- **Bot Service**: Node.js/TypeScript (Worker)
+- **Database**: PostgreSQL with TypeORM
+- **Cache**: Redis
 
-# Webapp unit tests
-docker exec -it webapp npm test
+### Development Best Practices
 
-# Webapp E2E tests
-docker exec -it webapp npm run test:e2e
+#### Code Quality
+- Use TypeScript for all services
+- Follow ESLint and Prettier configurations
+- Write meaningful commit messages
+- Use conventional commits format
 
-# All tests
-docker exec -it api npm run test:unit && docker exec -it api npm run test:integration && docker exec -it webapp npm test
-```
+#### API Development
+- Use TypeORM entities for database models
+- Implement proper error handling
+- Use JWT for authentication
+- Follow RESTful API conventions
+- Implement proper validation
 
-### Container Management
-```bash
-# Rebuild specific service
-docker-compose up --build [service]
+#### Frontend Development
+- Use React functional components with hooks
+- Implement proper state management
+- Use Tailwind CSS for styling
+- Follow responsive design principles
+- Implement proper error boundaries
 
-# Restart specific service
-docker-compose restart [service]
-
-# Stop and remove containers
-docker-compose down
-
-# View running containers
-docker-compose ps
-
-# View container logs
-docker-compose logs [service]
-```
-
-## Best Practices
-
-### Code Quality
-- **TypeScript**: Use strict mode, proper interfaces, avoid `any`
-- **Naming**: Use clear, descriptive names for functions and variables
-- **Functions**: Keep functions small and focused
-- **Error Handling**: Use try-catch, custom errors, proper logging
-- **Documentation**: Add inline comments and update README files
-
-### Database Best Practices
-- **Relationships**: Use `Relation<T>` generic for TypeORM relationships
-- **Migrations**: Always generate migrations for schema changes using docker exec
-- **Indexing**: Add indexes for frequently queried fields
-- **Validation**: Use database constraints and application validation
-- **Seeding**: Maintain consistent seed data for development
-
-### API Best Practices
-- **RESTful Design**: Follow REST conventions
-- **Status Codes**: Use appropriate HTTP status codes
-- **Response Format**: Consistent JSON response format
-- **Error Messages**: Clear, actionable error messages
-- **Rate Limiting**: Implement rate limiting for public endpoints
-
-### Frontend Best Practices
-- **Component Design**: Reusable, composable components
-- **State Management**: Minimize prop drilling with Context
-- **Performance**: Use React.memo, useMemo, useCallback appropriately
-- **Accessibility**: Follow WCAG guidelines
-- **Responsive Design**: Mobile-first approach with Tailwind
+#### Database Best Practices
+- Use migrations for schema changes
+- Implement proper relationships
+- Use UUIDs for primary keys
+- Implement soft deletes where appropriate
+- Use proper indexing strategies
 
 ## Troubleshooting
 
-### Hot Reload Issues
-1. **Check Volume Mounts**: Verify source code is mounted correctly
-2. **File Permissions**: Ensure proper file permissions
-3. **Container Restart**: Restart affected container
-4. **Logs**: Check container logs for errors
-5. **Node Modules**: Ensure node_modules is excluded from mounts
+### Common Issues
 
-### Database Issues
-1. **Container Health**: Verify PostgreSQL container is healthy
-2. **Migrations**: Run pending migrations with docker exec
-3. **Connection**: Check database connection settings
-4. **Seed Data**: Verify seed data is loaded
-5. **Network**: Ensure services can communicate
-
-### Test Failures
-1. **Environment**: Ensure all containers are running
-2. **Database State**: Check database state and migrations
-3. **Port Conflicts**: Verify no port conflicts
-4. **Dependencies**: Ensure all dependencies are installed
-5. **Logs**: Check test logs for specific errors
-
-### Network Issues
-1. **Service Names**: Use Docker service names, not localhost
-2. **Network**: Verify services are on same Docker network
-3. **Ports**: Check port mappings in docker-compose.yml
-4. **Health Checks**: Ensure dependent services are healthy
-5. **DNS**: Use service names for internal communication
-
-### Migration Issues
-1. **Use Docker Exec**: Always use `docker exec -it api` for migration commands
-2. **Check Entity Config**: Verify entity is properly configured
-3. **Review Migration**: Check generated migration file for accuracy
-4. **Database Connection**: Ensure API can connect to database
-5. **Rollback**: Test migration rollback if needed
-
-## Development Workflow Updates
-
-### After Feature Completion
-- Update this development.md file with any new processes
-- Document any discovered best practices
-- Update README files with new instructions
-- Share learnings with the team
-
-### Continuous Improvement
-- **Process Updates**: Update rules when better processes are discovered
-- **Tool Integration**: Integrate new tools and practices
-- **Documentation**: Keep documentation current
-- **Testing**: Validate all rule recommendations
-
-## Environment Configuration
-
-### Development Environment Variables
+#### API Connection Issues
 ```bash
-# API Environment
-NODE_ENV=development
-DB_HOST=postgres
-DB_PORT=5432
-DB_USER=platform_user
-DB_PASSWORD=platform_password
-DB_NAME=platform_db
-REDIS_HOST=redis
-REDIS_PORT=6379
-API_PORT=4000
-JWT_SECRET=dev-jwt-secret
+# Check if API is running
+curl http://localhost:4000/health
 
-# Webapp Environment
-REACT_APP_API_URL=http://api:4000
-REACT_APP_WS_URL=ws://api:4000
+# Check API logs
+# (In native mode, check terminal output)
+# (In Docker mode: docker-compose logs api)
 ```
 
-### TypeORM Configuration
-```typescript
-// Example TypeORM relationship
-@Entity()
-export class User {
-  @OneToOne(() => UserSettings, settings => settings.user)
-  settings: Relation<UserSettings>;
-}
+#### Database Connection Issues
+```bash
+# Check if PostgreSQL is running
+docker-compose ps postgres
 
-@Entity()
-export class UserSettings {
-  @OneToOne(() => User, user => user.settings)
-  user: Relation<User>;
-}
+# Test database connection
+psql -h localhost -p 5433 -U platform_user -d platform_db
+
+# Check database logs
+docker-compose logs postgres
 ```
 
-## Performance Considerations
+#### Webapp Issues
+```bash
+# Check if webapp is running
+curl http://localhost:3000
 
-### Development Performance
-- **Hot Reload**: Use volume mounts for fast development
-- **Caching**: Leverage Docker layer caching
-- **Parallel Testing**: Run tests in parallel when possible
-- **Resource Limits**: Monitor container resource usage
+# Check webapp logs
+# (In native mode, check terminal output)
+# (In Docker mode: docker-compose logs webapp)
+```
 
-### Production Performance
-- **Database Indexing**: Optimize database queries
-- **Caching**: Implement Redis caching strategies
-- **CDN**: Use CDN for static assets
-- **Monitoring**: Implement performance monitoring
+#### Migration Issues
+```bash
+# Check migration status
+npm run migration:show
+
+# Reset database (if needed)
+docker-compose down postgres
+docker volume rm docker_postgres-data
+docker-compose up postgres -d
+npm run migration:run
+```
+
+### Performance Optimization
+- Use proper database indexing
+- Implement caching strategies
+- Optimize API queries
+- Use lazy loading for components
+- Implement proper pagination
+
+### Security Best Practices
+- Use environment variables for secrets
+- Implement proper authentication
+- Validate all inputs
+- Use HTTPS in production
+- Implement rate limiting

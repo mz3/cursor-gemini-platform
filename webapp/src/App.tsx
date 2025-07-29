@@ -25,6 +25,7 @@ import CreateFeature from './components/CreateFeature';
 import EditFeature from './components/EditFeature';
 import ViewFeature from './components/ViewFeature';
 import Settings from './components/Settings';
+import ChatSidebar from './components/ChatSidebar';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { cn } from './utils/cn';
 
@@ -34,6 +35,7 @@ console.log('VITE ENV:', import.meta.env);
 const AppContent: React.FC = () => {
   const { user, logout, loading, darkMode } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [chatOpen, setChatOpen] = useState(true); // Default to open
   const location = useLocation();
 
   useEffect(() => {
@@ -68,7 +70,7 @@ const AppContent: React.FC = () => {
 
   return (
     <div className="min-h-screen w-full flex flex-row bg-gray-50 dark:bg-gray-900">
-      {/* Sidebar */}
+      {/* Left Sidebar */}
       <aside className={cn(
         "w-64 h-screen bg-white dark:bg-gray-800 shadow-lg flex flex-col",
         "fixed inset-y-0 left-0 z-50 transform transition-transform duration-300 ease-in-out",
@@ -172,6 +174,16 @@ const AppContent: React.FC = () => {
           </Routes>
         </div>
       </main>
+
+      {/* Right Chat Sidebar - Fixed part of layout */}
+      <aside className={cn(
+        "w-80 h-screen bg-white dark:bg-gray-800 shadow-lg flex flex-col",
+        "fixed inset-y-0 right-0 z-50 transform transition-transform duration-300 ease-in-out",
+        chatOpen ? "translate-x-0" : "translate-x-full",
+        "lg:translate-x-0 lg:static lg:inset-0"
+      )}>
+        <ChatSidebar isOpen={chatOpen} onToggle={() => setChatOpen(!chatOpen)} />
+      </aside>
 
       {/* Mobile overlay */}
       {sidebarOpen && (
