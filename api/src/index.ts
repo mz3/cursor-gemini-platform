@@ -13,6 +13,7 @@ import { userRoutes } from './routes/userRoutes.js';
 import { workflowRoutes } from './routes/workflowRoutes.js';
 import promptRoutes from './routes/promptRoutes.js';
 import { botRoutes } from './routes/botRoutes.js';
+import { botExecutionRoutes } from './routes/botExecutionRoutes.js';
 import { featureRoutes } from './routes/featureRoutes.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { seedDatabase } from './utils/seedDatabase.js';
@@ -67,6 +68,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/workflows', workflowRoutes);
 app.use('/api/prompts', promptRoutes);
 app.use('/api/bots', botRoutes);
+app.use('/api/bot-execution', botExecutionRoutes);
 app.use('/api/features', featureRoutes);
 console.log('✅ API routes configured');
 

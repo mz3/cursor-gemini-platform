@@ -14,6 +14,8 @@ import { Prompt } from '../entities/Prompt.js';
 import { PromptVersion } from '../entities/PromptVersion.js';
 import { UserSettings } from '../entities/UserSettings.js';
 import { Bot } from '../entities/Bot.js';
+import { BotInstance } from '../entities/BotInstance.js';
+import { ChatMessage } from '../entities/ChatMessage.js';
 import { Feature } from '../entities/Feature.js';
 
 // Helper to determine if running from dist (production build), ESM compatible
@@ -43,6 +45,8 @@ export const AppDataSource = new DataSource({
     Prompt,
     PromptVersion,
     Bot,
+    BotInstance,
+    ChatMessage,
     Feature
   ],
   migrations: [

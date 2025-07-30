@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Edit, Bot, MessageSquare, Calendar, User } from 'lucide-react';
+import { ArrowLeft, Edit, Bot, MessageSquare, Calendar, User, MessageCircle } from 'lucide-react';
 import api from '../utils/api';
+import { BotChat } from './BotChat';
 
 interface Bot {
   id: string;
@@ -20,6 +21,7 @@ const ViewBot: React.FC = () => {
   const [bot, setBot] = useState<Bot | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [activeTab, setActiveTab] = useState<'details' | 'chat'>('details');
 
   useEffect(() => {
     fetchBot();
@@ -87,11 +89,42 @@ const ViewBot: React.FC = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Bot Details */}
-        <div className="lg:col-span-2 space-y-6">
-          <div className="bg-white shadow rounded-lg p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Bot Details</h2>
+      {/* Tab Navigation */}
+      <div className="mb-6">
+        <div className="border-b border-gray-200">
+          <nav className="-mb-px flex space-x-8">
+            <button
+              onClick={() => setActiveTab('details')}
+              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'details'
+                  ? 'border-primary-500 text-primary-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              <Bot className="w-4 h-4 inline mr-2" />
+              Details
+            </button>
+            <button
+              onClick={() => setActiveTab('chat')}
+              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'chat'
+                  ? 'border-primary-500 text-primary-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              <MessageCircle className="w-4 h-4 inline mr-2" />
+              Chat
+            </button>
+          </nav>
+        </div>
+      </div>
+
+      {activeTab === 'details' ? (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Bot Details */}
+          <div className="lg:col-span-2 space-y-6">
+            <div className="bg-white shadow rounded-lg p-6">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">Bot Details</h2>
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700">Name</label>
@@ -165,6 +198,15 @@ const ViewBot: React.FC = () => {
           </div>
         </div>
       </div>
+      ) : (
+        <div className="h-[600px]">
+          <BotChat 
+            botId={bot.id} 
+            userId="user-123" // TODO: Get from auth context
+            botName={bot.displayName}
+          />
+        </div>
+      )}
     </div>
   );
 };
