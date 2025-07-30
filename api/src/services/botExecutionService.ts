@@ -53,7 +53,7 @@ export class BotExecutionService {
       // Update existing instance
       instance.status = BotInstanceStatus.STARTING;
       instance.lastStartedAt = new Date();
-      instance.errorMessage = null;
+      instance.errorMessage = undefined;
     }
 
     await botInstanceRepository.save(instance);
