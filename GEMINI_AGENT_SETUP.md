@@ -1,13 +1,13 @@
 # 🤖 Gemini LLM Integration - Agent Setup Guide
 
 ## 🎯 **Task Overview**
-Replace mock bot responses with real Google Gemini 2.5 Flash API integration.
+Replace mock bot responses with real Google Gemini 2.5 Flash API integration using native development environment.
 
 ## ✅ **Prerequisites (Already Done)**
 - ✅ Gemini API key configured as `GEMINI_API_KEY` environment variable
 - ✅ Usage-based billing enabled
 - ✅ Environment configuration created (`api/src/config/environment.ts`)
-- ✅ Docker Compose updated to pass `GEMINI_API_KEY` to API and bot services
+- ✅ Native development environment configured (PostgreSQL and Redis installed directly)
 - ✅ Mock bot execution system already implemented and tested
 
 ## 📋 **Implementation Checklist**
@@ -315,22 +315,27 @@ npm install @google/generative-ai
 
 ### **Step 4: Run Migration**
 ```bash
-docker exec -it api npm run migration:run
+# For native development environment
+cd api && npm run migration:run
 ```
 
 ### **Step 5: Test Implementation**
 ```bash
 # Run unit tests
-docker exec -it api npm run test:unit
+cd api && npm run test:unit
 
 # Run integration tests
-docker exec -it api npm run test:integration
+cd api && npm run test:integration
 ```
 
 ### **Step 6: Manual Testing**
 ```bash
-# Start the environment
-docker compose up -d
+# Start the services (if not already running)
+sudo systemctl start postgresql
+sudo systemctl start redis-server
+
+# Start API development server
+cd api && npm run dev
 
 # Test bot chat via API
 curl -X POST http://localhost:4000/api/bot-execution/chat \
@@ -344,22 +349,34 @@ curl -X POST http://localhost:4000/api/bot-execution/chat \
 
 1. **"Invalid API Key"**
    - Verify `GEMINI_API_KEY` is set in environment
-   - Check Docker Compose environment variables
-   - Restart containers after adding env vars
+   - Check environment variables in your shell
+   - Restart services after adding env vars
 
 2. **"Module not found"**
    - Ensure `@google/generative-ai` is installed
    - Check import paths use `.js` extension
+   - Run `npm install` in the api directory
 
 3. **"Migration failed"**
    - Check migration timestamp is unique
-   - Verify database connection
-   - Run `docker exec -it api npm run migration:show`
+   - Verify database connection (PostgreSQL running on port 5432)
+   - Run `cd api && npm run migration:show`
+   - Check database exists: `psql -h localhost -U platform_user -d platform_db`
 
 4. **"Tests failing"**
    - Update test expectations for real responses
    - Mock Gemini API for unit tests
    - Check API key is available in test environment
+   - Ensure PostgreSQL and Redis are running
+
+5. **"Database connection failed"**
+   - Check PostgreSQL service: `sudo systemctl status postgresql`
+   - Verify database exists: `sudo -u postgres psql -l`
+   - Test connection: `psql -h localhost -U platform_user -d platform_db`
+
+6. **"Redis connection failed"**
+   - Check Redis service: `sudo systemctl status redis-server`
+   - Test connection: `redis-cli ping`
 
 ## 📝 **PR Checklist**
 
@@ -375,6 +392,7 @@ Before submitting PR, ensure:
 - [ ] No hardcoded API keys
 - [ ] Environment variables properly configured
 - [ ] Documentation updated
+- [ ] Native development environment working
 
 ## 🎯 **Success Criteria**
 
@@ -385,9 +403,12 @@ Before submitting PR, ensure:
 - [ ] New unit tests for GeminiService pass
 - [ ] Manual testing shows real AI responses
 - [ ] No breaking changes to existing API
+- [ ] Works with native PostgreSQL and Redis setup
 
 ## 📚 **Resources**
 
 - [Google Generative AI SDK](https://ai.google.dev/tutorials/node_quickstart)
 - [Gemini API Reference](https://ai.google.dev/api/gemini-api)
-- [Gemini 2.5 Flash Model](https://ai.google.dev/models/gemini) 
+- [Gemini 2.5 Flash Model](https://ai.google.dev/models/gemini)
+- [PostgreSQL Installation](https://www.postgresql.org/download/linux/ubuntu/)
+- [Redis Installation](https://redis.io/docs/getting-started/installation/install-redis-on-linux/) 
