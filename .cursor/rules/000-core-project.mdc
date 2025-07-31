@@ -1,0 +1,148 @@
+# Meta-Application Platform
+
+## Project Overview
+A highly dynamic Platform-as-a-Service (PaaS) where users visually design and model their own applications. The platform's UI is driven by the same modeling system, creating a "meta" experience.
+
+## Tech Stack
+
+### Backend (API)
+- **Runtime**: Node.js v24 + TypeScript
+- **Framework**: Express.js
+- **ORM**: TypeORM with PostgreSQL
+- **Authentication**: JWT + bcryptjs
+- **Validation**: class-validator + Joi
+- **Testing**: Jest + Supertest
+- **Port**: 4000
+
+### Frontend (Webapp)
+- **Framework**: React 18 + TypeScript
+- **Build Tool**: Vite
+- **Styling**: Tailwind CSS + Lucide React icons
+- **Routing**: React Router DOM
+- **HTTP Client**: Axios
+- **Testing**: Jest + Cypress E2E
+- **Port**: 3000 (served by Nginx)
+
+### Worker (Bot)
+- **Runtime**: Node.js v24 + TypeScript
+- **Queue**: Redis for job processing
+- **File System**: fs-extra for operations
+- **Templating**: EJS for code generation
+
+### Infrastructure
+- **Database**: PostgreSQL 14 (port 5433)
+- **Cache/Queue**: Redis 7 (port 6379)
+- **Containerization**: Docker + Docker Compose
+- **Deployment**: Fly.io with separate apps for API and UI
+
+## Development Environment
+
+### Local Development
+```bash
+# Start all services
+docker-compose up --build
+
+# API development
+cd api
+npm run dev                    # Start with hot reload
+npm run migration:run         # Run database migrations
+npm run test:unit            # Run unit tests
+npm run test:integration     # Run integration tests
+
+# Frontend development
+cd webapp
+npm run dev                  # Start Vite dev server
+npm run test:e2e:local      # Run E2E tests locally
+
+# Bot development
+cd bot
+npm run dev                  # Start with hot reload
+```
+
+### Database Operations
+```bash
+# Run migrations
+docker exec api npm run migration:run
+
+# Generate new migration
+docker exec api npm run migration:generate -- src/migrations/[MigrationName]
+
+# Revert migration
+docker exec api npm run migration:revert
+```
+
+## File Organization
+
+### Project Structure
+```
+cursor-gemini-platform/
+├── api/                    # Backend API service
+├── webapp/                 # React frontend
+├── bot/                    # Background worker
+├── cli/                    # Notion CLI tools
+├── docker/                 # Docker configuration
+├── deploy/                 # Deployment files
+└── telegram/               # Telegram bot integration
+```
+
+### API Structure
+```
+api/src/
+├── entities/               # TypeORM entities
+├── routes/                 # Express routes
+├── services/               # Business logic
+├── config/                 # Configuration
+├── middleware/             # Express middleware
+├── migrations/             # Database migrations
+├── fixtures/               # Seed data
+└── utils/                  # Utilities
+```
+
+### Frontend Structure
+```
+webapp/src/
+├── components/             # React components
+├── contexts/               # React contexts
+├── utils/                  # Utilities
+└── index.tsx              # App entry point
+```
+
+## Core Patterns
+
+### Backend Patterns
+- **Entities**: Use TypeORM decorators with proper relationships
+- **Routes**: RESTful endpoints with proper error handling
+- **Services**: Business logic separation from routes
+- **Validation**: Use class-validator for DTOs
+- **Testing**: Unit tests for services, integration tests for routes
+
+### Frontend Patterns
+- **Components**: Functional components with TypeScript interfaces
+- **State Management**: React Context for auth and global state
+- **API Integration**: Axios with proper error handling
+- **Styling**: Tailwind CSS with dark mode support
+- **Testing**: Jest for unit tests, Cypress for E2E
+
+### Database Patterns
+- **Migrations**: Timestamped migration files
+- **Entities**: Proper relationships and constraints
+- **Seeding**: Fixture-based database seeding
+- **UUIDs**: Use UUIDs for all primary keys
+
+## Authentication & Security
+- **JWT**: Token-based authentication
+- **Password Hashing**: bcryptjs for password security
+- **CORS**: Proper CORS configuration
+- **Helmet**: Security headers middleware
+- **Input Validation**: Comprehensive validation on all inputs
+
+## Deployment
+- **Fly.io**: Separate apps for API and UI
+- **Docker**: Multi-stage builds for production
+- **Environment**: Proper environment variable management
+- **Secrets**: Fly.io secrets for sensitive data
+- **Scaling**: Horizontal scaling with Fly.io
+description:
+globs:
+alwaysApply: false
+---
