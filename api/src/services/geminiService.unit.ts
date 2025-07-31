@@ -19,7 +19,7 @@ jest.mock('@google/generative-ai', () => ({
   }))
 }));
 
-import { GeminiService } from '../services/geminiService.js';
+import { GeminiService } from './geminiService.js';
 
 describe('GeminiService', () => {
   let geminiService: GeminiService;
