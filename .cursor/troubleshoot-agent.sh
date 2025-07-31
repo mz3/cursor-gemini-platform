@@ -34,9 +34,13 @@ if pg_isready -h localhost -p 5432 &> /dev/null; then
 else
     echo "⚠️  PostgreSQL is not running. Attempting to start..."
 
-    # Check if data directory exists
-    if [ -d "/var/lib/postgresql/17/main" ]; then
-        echo "📁 PostgreSQL data directory exists, attempting to start..."
+    # Check if data directory exists and is not empty
+    if [ -d "/var/lib/postgresql/17/main" ] && [ "$(ls -A /var/lib/postgresql/17/main)" ]; then
+        echo "📁 PostgreSQL data directory exists and is not empty, attempting to start..."
+        sudo -u postgres /usr/lib/postgresql/17/bin/pg_ctl -D /var/lib/postgresql/17/main -l /var/log/postgresql/postgresql-17-main.log start
+    elif [ -d "/var/lib/postgresql/17/main" ] && [ ! "$(ls -A /var/lib/postgresql/17/main)" ]; then
+        echo "📁 PostgreSQL data directory exists but is empty, initializing..."
+        sudo -u postgres /usr/lib/postgresql/17/bin/initdb -D /var/lib/postgresql/17/main --auth=trust
         sudo -u postgres /usr/lib/postgresql/17/bin/pg_ctl -D /var/lib/postgresql/17/main -l /var/log/postgresql/postgresql-17-main.log start
     else
         echo "📁 Initializing new PostgreSQL instance..."
@@ -141,3 +145,4 @@ echo "If you're still having issues, try:"
 echo "1. Restart the background agent"
 echo "2. Check the logs: tail -f /var/log/postgresql/postgresql-17-main.log"
 echo "3. Verify services: sudo systemctl status postgresql redis-server"
+echo "4. Run this script again: bash .cursor/troubleshoot-agent.sh"
