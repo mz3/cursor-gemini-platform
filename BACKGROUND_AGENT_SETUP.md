@@ -9,9 +9,8 @@ The `.cursor/environment.json` file is configured for native development:
 
 ```json
 {
-  "snapshot": "POPULATED_FROM_SETTINGS",
-  "install": "curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash - && sudo apt-get install -y nodejs postgresql postgresql-contrib redis-server && sudo systemctl start postgresql && sudo systemctl enable postgresql && sudo systemctl start redis-server && sudo systemctl enable redis-server && sudo -u postgres psql -c \"CREATE USER platform_user WITH PASSWORD 'platform_password';\" && sudo -u postgres psql -c \"CREATE DATABASE platform_db OWNER platform_user;\" && npm install",
-  "start": "sudo systemctl start postgresql && sudo systemctl start redis-server",
+  "install": "curl -fsSL https://deb.nodesource.com/setup_24.x | sudo -E bash - && sudo apt-get install -y nodejs postgresql postgresql-contrib redis-server && sudo -u postgres /usr/lib/postgresql/17/bin/initdb -D /var/lib/postgresql/17/main && sudo -u postgres /usr/lib/postgresql/17/bin/pg_ctl -D /var/lib/postgresql/17/main -l /var/log/postgresql/postgresql-17-main.log start && sudo redis-server --daemonize yes && sudo -u postgres psql -c \"CREATE USER platform_user WITH PASSWORD 'platform_password';\" && sudo -u postgres psql -c \"CREATE DATABASE platform_db OWNER platform_user;\" && npm install",
+  "start": "sudo -u postgres /usr/lib/postgresql/17/bin/pg_ctl -D /var/lib/postgresql/17/main -l /var/log/postgresql/postgresql-17-main.log start && sudo redis-server --daemonize yes",
   "terminals": [
     {
       "name": "API Development",
@@ -25,7 +24,7 @@ The `.cursor/environment.json` file is configured for native development:
 }
 ```
 
-## Setup Approach: Native Development
+## Setup Approach: Container-Native Development
 
 ### **Pros:**
 - Faster startup and development
@@ -33,11 +32,13 @@ The `.cursor/environment.json` file is configured for native development:
 - No Docker dependency
 - Simpler debugging
 - Matches the current environment configuration
+- Works in container environments without init systems
 
 ### **Cons:**
 - Different from production environment (which uses Docker)
 - Requires system-level installation of PostgreSQL and Redis
 - Potential permission issues with database setup
+- Services run as direct binaries rather than managed by systemd
 
 ## How to Use
 
@@ -87,16 +88,18 @@ The background agent will need these environment variables:
 
 ### PostgreSQL Issues
 If PostgreSQL fails to start or connect:
-1. Check service status: `sudo systemctl status postgresql`
-2. Check logs: `sudo journalctl -u postgresql`
+1. Check if PostgreSQL is running: `ps aux | grep postgres`
+2. Check logs: `tail -f /var/log/postgresql/postgresql-17-main.log`
 3. Verify database exists: `sudo -u postgres psql -l`
 4. Test connection: `psql -h localhost -U platform_user -d platform_db`
+5. Start PostgreSQL manually: `sudo -u postgres /usr/lib/postgresql/17/bin/pg_ctl -D /var/lib/postgresql/17/main start`
 
 ### Redis Issues
 If Redis fails to start or connect:
-1. Check service status: `sudo systemctl status redis-server`
-2. Check logs: `sudo journalctl -u redis-server`
+1. Check if Redis is running: `ps aux | grep redis`
+2. Check logs: `tail -f /var/log/redis/redis-server.log`
 3. Test connection: `redis-cli ping`
+4. Start Redis manually: `sudo redis-server --daemonize yes`
 
 ### Port Conflicts
 If services can't start due to port conflicts:
