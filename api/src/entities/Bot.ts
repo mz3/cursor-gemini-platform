@@ -19,6 +19,9 @@ export class Bot {
   @Column({ default: true })
   isActive!: boolean;
 
+  @Column({ default: 'gemini-2.5-flash' })
+  model!: string;
+
   @ManyToOne(() => User, { onDelete: 'CASCADE' })
   user!: Relation<User>;
 
