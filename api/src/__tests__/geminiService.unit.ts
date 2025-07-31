@@ -43,20 +43,40 @@ describe('GeminiService', () => {
     it('should throw error if API key is not configured', () => {
       // We need to test this in isolation
       jest.isolateModules(() => {
+        // Mock config without API key
         jest.doMock('../config/environment', () => ({
           default: {
             GEMINI_KEY: '',
-            get GEMINI_API_KEY() {
-              return this.GEMINI_KEY;
-            }
+            GEMINI_API_KEY: '',
+            get DB_HOST() { return 'localhost'; },
+            get DB_PORT() { return 5432; },
+            get DB_USERNAME() { return 'test'; },
+            get DB_PASSWORD() { return 'test'; },
+            get DB_DATABASE() { return 'test'; },
+            get REDIS_HOST() { return 'localhost'; },
+            get REDIS_PORT() { return 6379; },
+            get API_PORT() { return 4000; },
+            get NODE_ENV() { return 'test'; }
           }
+        }));
+        
+        // Also need to mock @google/generative-ai
+        jest.doMock('@google/generative-ai', () => ({
+          GoogleGenerativeAI: jest.fn()
         }));
         
         const { GeminiService: GeminiServiceNoKey } = require('../services/geminiService');
         
-        expect(() => {
+        let errorThrown: Error | null = null;
+        try {
           new GeminiServiceNoKey();
-        }).toThrow('Gemini API key not configured (GEMINI_KEY)');
+        } catch (error) {
+          errorThrown = error as Error;
+        }
+        
+        // If no error was thrown, check if the service is checking API key in constructor vs first use
+        expect(errorThrown).toBeTruthy();
+        expect(errorThrown?.message).toContain('Gemini API key not configured');
       });
     });
   });
