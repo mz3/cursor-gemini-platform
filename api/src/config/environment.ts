@@ -16,6 +16,7 @@ export interface EnvironmentConfig {
 
   // Gemini AI
   GEMINI_API_KEY: string;
+  GEMINI_KEY: string;
 }
 
 export const config: EnvironmentConfig = {
@@ -36,6 +37,7 @@ export const config: EnvironmentConfig = {
 
   // Gemini AI
   GEMINI_API_KEY: process.env.GEMINI_API_KEY || '',
+  GEMINI_KEY: process.env.GEMINI_KEY || '',
 };
 
 export default config;

@@ -13,6 +13,7 @@ const promptRepository = AppDataSource.getRepository(Prompt);
 
 export class BotExecutionService {
   private static runningInstances = new Map<string, NodeJS.Timeout>();
+  private static geminiService = new GeminiService();
 
   /**
    * Start a bot instance
@@ -229,15 +230,32 @@ export class BotExecutionService {
       .join('\n');
 
     // Generate response using prompt context and conversation history
-    const response = await this.generateBotResponse(promptContext, conversationHistory, message);
+    try {
+      const geminiResult = await this.geminiService.generateResponse(
+        promptContext,
+        conversationHistory,
+        message
+      );
 
-    return chatMessageRepository.create({
-      botInstanceId: instance.id,
-      userId: instance.userId,
-      role: MessageRole.BOT,
-      content: response,
-      tokensUsed: this.estimateTokenCount(response)
-    });
+      return chatMessageRepository.create({
+        botInstanceId: instance.id,
+        userId: instance.userId,
+        role: MessageRole.BOT,
+        content: geminiResult.response,
+        tokensUsed: geminiResult.tokensUsed
+      });
+    } catch (error) {
+      console.error('Failed to generate bot response:', error);
+      // Fallback response
+      const fallbackResponse = 'I apologize, but I encountered an error processing your request. Please try again.';
+      return chatMessageRepository.create({
+        botInstanceId: instance.id,
+        userId: instance.userId,
+        role: MessageRole.BOT,
+        content: fallbackResponse,
+        tokensUsed: this.estimateTokenCount(fallbackResponse)
+      });
+    }
   }
 
   /**
@@ -248,22 +266,17 @@ export class BotExecutionService {
     conversationHistory: string, 
     userMessage: string
   ): Promise<string> {
-    // This is a simplified response generation
-    // In a real implementation, you'd integrate with an LLM API
-    
-    const systemPrompt = `You are a helpful AI assistant. Use the following context to guide your responses:
-
-${promptContext}
-
-Previous conversation:
-${conversationHistory}
-
-User: ${userMessage}
-Assistant:`;
-
-    // For now, return a simple response
-    // In production, you'd call an LLM API here
-    return `I understand you said: "${userMessage}". Based on my configuration, I'm here to help you. How can I assist you further?`;
+    try {
+      const result = await this.geminiService.generateResponse(
+        promptContext,
+        conversationHistory,
+        userMessage
+      );
+      return result.response;
+    } catch (error) {
+      console.error('Failed to generate bot response:', error);
+      return 'I apologize, but I encountered an error processing your request. Please try again.';
+    }
   }
 
   /**
