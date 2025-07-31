@@ -51,17 +51,18 @@ Assistant:`;
       console.error('Gemini API error:', error);
 
       if (error instanceof Error) {
-        if (error.message.includes('API_KEY') || error.message.includes('API key')) {
-          throw new Error('Invalid Gemini API key');
-        }
-        if (error.message.includes('QUOTA') || error.message.includes('quota')) {
+        // Check for more specific patterns first
+        if (error.message.toLowerCase().includes('quota')) {
           throw new Error('Gemini API quota exceeded');
         }
-        if (error.message.includes('SAFETY') || error.message.includes('safety')) {
+        if (error.message.toLowerCase().includes('rate limit')) {
+          throw new Error('Gemini API rate limit exceeded');
+        }
+        if (error.message.toLowerCase().includes('safety')) {
           throw new Error('Content blocked by safety filters');
         }
-        if (error.message.includes('RATE_LIMIT') || error.message.includes('rate limit')) {
-          throw new Error('Gemini API rate limit exceeded');
+        if (error.message.toLowerCase().includes('api key') || error.message.includes('API_KEY')) {
+          throw new Error('Invalid Gemini API key');
         }
       }
 
