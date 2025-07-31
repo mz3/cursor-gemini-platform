@@ -33,7 +33,7 @@ if pg_isready -h localhost -p 5432 &> /dev/null; then
     echo "✅ PostgreSQL is running"
 else
     echo "⚠️  PostgreSQL is not running. Attempting to start..."
-    
+
     # Check if data directory exists
     if [ -d "/var/lib/postgresql/17/main" ]; then
         echo "📁 PostgreSQL data directory exists, attempting to start..."
@@ -66,7 +66,7 @@ fi
 echo "=== Database Setup ==="
 if sudo -u postgres psql -c "SELECT 1;" &> /dev/null; then
     echo "✅ PostgreSQL connection works"
-    
+
     # Create user if it doesn't exist
     if ! sudo -u postgres psql -c "SELECT 1 FROM pg_user WHERE usename='platform_user';" | grep -q "1 row"; then
         echo "👤 Creating platform_user..."
@@ -74,7 +74,7 @@ if sudo -u postgres psql -c "SELECT 1;" &> /dev/null; then
     else
         echo "✅ platform_user exists"
     fi
-    
+
     # Create database if it doesn't exist
     if ! sudo -u postgres psql -c "SELECT 1 FROM pg_database WHERE datname='platform_db';" | grep -q "1 row"; then
         echo "🗄️  Creating platform_db..."
@@ -140,4 +140,4 @@ echo "=== Troubleshooting Complete ==="
 echo "If you're still having issues, try:"
 echo "1. Restart the background agent"
 echo "2. Check the logs: tail -f /var/log/postgresql/postgresql-17-main.log"
-echo "3. Verify services: sudo systemctl status postgresql redis-server" 
+echo "3. Verify services: sudo systemctl status postgresql redis-server"
