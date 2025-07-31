@@ -1,0 +1,19 @@
+{
+  "snapshot": "POPULATED_FROM_SETTINGS",
+  "install": "curl -fsSL https://get.docker.com -o get-docker.sh && sudo sh get-docker.sh && sudo usermod -aG docker $USER && sudo systemctl start docker && sudo systemctl enable docker && npm install",
+  "start": "sudo service docker start",
+  "terminals": [
+    {
+      "name": "Database & Redis",
+      "command": "cd /workspace && docker compose up postgres redis -d"
+    },
+    {
+      "name": "API Development",
+      "command": "cd /workspace/api && npm run dev"
+    },
+    {
+      "name": "Webapp Development", 
+      "command": "cd /workspace/webapp && npm run dev"
+    }
+  ]
+} 

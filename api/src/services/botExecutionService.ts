@@ -4,6 +4,7 @@ import { ChatMessage, MessageRole } from '../entities/ChatMessage.js';
 import { Bot } from '../entities/Bot.js';
 import { Prompt } from '../entities/Prompt.js';
 import { PromptVersion } from '../entities/PromptVersion.js';
+import { GeminiService } from './geminiService.js';
 
 const botInstanceRepository = AppDataSource.getRepository(BotInstance);
 const chatMessageRepository = AppDataSource.getRepository(ChatMessage);
