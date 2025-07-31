@@ -4,47 +4,47 @@
 
 ### Problem: "Error allocating resources" when starting background agent
 
-This error typically occurs when the background agent environment doesn't have enough resources to run the full Docker-based development stack.
+This error typically occurs when the background agent environment doesn't have enough resources to run the full development stack or when trying to install system services.
 
-### Solution 1: Use Native Development (Recommended)
+### Solution 1: Use Simple Development (Recommended)
 
-The current `.cursor/environment.json` is configured for native development which uses significantly fewer resources:
+The current `.cursor/environment.json` is configured for simple development which uses minimal resources:
 
-- **PostgreSQL**: Runs directly on the host (port 5432)
-- **Redis**: Runs directly on the host (port 6379)  
-- **No Docker**: Eliminates container overhead
-- **Faster startup**: No container build times
+- **No System Services**: No PostgreSQL/Redis installation required
+- **Docker Services**: Uses existing docker-compose for database/redis
+- **Fast Startup**: No system service installation
+- **Minimal Resource Usage**: Only runs Node.js applications
 
-### Solution 2: Minimal Docker Setup
+### Solution 2: Docker-Based Development
 
-If you prefer Docker, use this minimal configuration:
+If you prefer Docker services, use the Docker configuration:
 
 ```json
 {
   "snapshot": "POPULATED_FROM_SETTINGS",
-  "install": "curl -fsSL https://get.docker.com -o get-docker.sh && sudo sh get-docker.sh && sudo usermod -aG docker $USER && sudo systemctl start docker && sudo systemctl enable docker && npm install",
-  "start": "sudo service docker start",
+  "install": "npm install",
+  "start": "cd /workspace/docker && docker compose up postgres redis -d",
   "terminals": [
     {
-      "name": "Minimal Services",
-      "command": "cd /workspace/docker && docker compose up postgres redis -d"
+      "name": "API Development",
+      "command": "cd /workspace/api && DB_HOST=localhost DB_PORT=5433 REDIS_HOST=localhost REDIS_PORT=6379 npm run dev"
     },
     {
-      "name": "API Development",
-      "command": "cd /workspace/api && npm run dev"
+      "name": "Webapp Development", 
+      "command": "cd /workspace/webapp && npm run dev"
     }
   ]
 }
 ```
 
-### Solution 3: Single Service Setup
+### Solution 3: API-Only Development
 
 For very limited resources, run only the API:
 
 ```json
 {
   "snapshot": "POPULATED_FROM_SETTINGS", 
-  "install": "curl -fsSL https://deb.nodesource.com/setup_24.x | sudo -E bash - && sudo apt-get install -y nodejs && npm install",
+  "install": "npm install",
   "start": "",
   "terminals": [
     {
@@ -57,17 +57,16 @@ For very limited resources, run only the API:
 
 ## Environment Configuration Options
 
-### Current Setup (Native)
+### Current Setup (Simple)
 - **File**: `.cursor/environment.json`
-- **Services**: PostgreSQL + Redis + API + Webapp
-- **Resource Usage**: Low
+- **Services**: Uses Docker for database/redis
+- **Resource Usage**: Very Low
 - **Startup Time**: Fast
 
 ### Alternative Configurations
 
 1. **Docker Setup**: `.cursor/environment-docker.json`
-2. **Native Setup**: `.cursor/environment-native.json` 
-3. **Simple Setup**: `.cursor/environment-simple.json`
+2. **Simple Setup**: `.cursor/environment-simple.json`
 
 ## Troubleshooting Steps
 
@@ -83,52 +82,55 @@ df -h
 ps aux | head -20
 ```
 
-### 2. Verify Service Status
+### 2. Verify Docker Services
 ```bash
-# PostgreSQL
-sudo systemctl status postgresql
+# Check if Docker is running
+docker --version
 
-# Redis
-sudo systemctl status redis-server
+# Start database services
+cd docker && docker compose up postgres redis -d
 
-# Docker (if using)
-sudo systemctl status docker
+# Check service status
+docker compose ps
 ```
 
 ### 3. Test Database Connection
 ```bash
-# Test PostgreSQL
-psql -h localhost -p 5432 -U platform_user -d platform_db
+# Test PostgreSQL (if using Docker)
+docker exec -it docker-postgres-1 psql -U platform_user -d platform_db
 
-# Test Redis
-redis-cli ping
+# Test Redis (if using Docker)
+docker exec -it docker-redis-1 redis-cli ping
 ```
 
 ### 4. Check Port Availability
 ```bash
 # Check what's using ports
-sudo netstat -tulpn | grep -E ':(5432|6379|4000|3000)'
+sudo netstat -tulpn | grep -E ':(5433|6379|4000|3000)'
 ```
 
 ## Common Issues
 
-### Issue: PostgreSQL Connection Refused
+### Issue: Docker Not Available
+**Solution**: Use the simple environment configuration that doesn't require Docker.
+
+### Issue: Database Connection Refused
 **Solution**: 
 ```bash
-sudo systemctl start postgresql
-sudo -u postgres psql -c "ALTER USER platform_user WITH PASSWORD 'platform_password';"
-```
+# Start Docker services
+cd docker && docker compose up postgres redis -d
 
-### Issue: Redis Connection Refused
-**Solution**:
-```bash
-sudo systemctl start redis-server
-redis-cli ping
+# Wait for services to be ready
+sleep 10
 ```
 
 ### Issue: Node.js Not Found
 **Solution**:
 ```bash
+# Check Node.js version
+node --version
+
+# Install if needed (should be handled by environment)
 curl -fsSL https://deb.nodesource.com/setup_24.x | sudo -E bash -
 sudo apt-get install -y nodejs
 ```
@@ -136,12 +138,9 @@ sudo apt-get install -y nodejs
 ### Issue: Permission Denied
 **Solution**:
 ```bash
-# For PostgreSQL
-sudo chown -R postgres:postgres /var/lib/postgresql
-sudo chmod 700 /var/lib/postgresql/data
-
-# For Redis
-sudo chown -R redis:redis /var/lib/redis
+# For Docker
+sudo usermod -aG docker $USER
+newgrp docker
 ```
 
 ## Performance Optimization
@@ -154,7 +153,7 @@ sudo chown -R redis:redis /var/lib/redis
 
 ### For Better Performance:
 1. **Increase swap**: Add swap space if memory is limited
-2. **Optimize PostgreSQL**: Reduce shared_buffers and work_mem
+2. **Optimize Docker**: Reduce memory limits for containers
 3. **Use connection pooling**: Configure connection limits
 
 ## Monitoring
@@ -164,20 +163,17 @@ sudo chown -R redis:redis /var/lib/redis
 # API health
 curl http://localhost:4000/health
 
-# Database health
-psql -h localhost -U platform_user -d platform_db -c "SELECT 1;"
+# Database health (Docker)
+docker exec docker-postgres-1 psql -U platform_user -d platform_db -c "SELECT 1;"
 
-# Redis health
-redis-cli ping
+# Redis health (Docker)
+docker exec docker-redis-1 redis-cli ping
 ```
 
 ### Log Monitoring:
 ```bash
-# PostgreSQL logs
-sudo journalctl -u postgresql -f
-
-# Redis logs  
-sudo journalctl -u redis-server -f
+# Docker logs
+docker compose logs -f
 
 # API logs
 tail -f /workspace/api/logs/app.log

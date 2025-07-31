@@ -1,11 +1,11 @@
 {
   "snapshot": "POPULATED_FROM_SETTINGS",
   "install": "npm install",
-  "start": "",
+  "start": "cd /workspace/docker && docker compose up postgres redis -d",
   "terminals": [
     {
       "name": "API Development",
-      "command": "cd /workspace/api && npm run dev"
+      "command": "cd /workspace/api && DB_HOST=localhost DB_PORT=5433 REDIS_HOST=localhost REDIS_PORT=6379 npm run dev"
     },
     {
       "name": "Webapp Development", 
