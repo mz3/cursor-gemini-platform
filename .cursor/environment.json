@@ -1,19 +1,15 @@
 {
   "snapshot": "POPULATED_FROM_SETTINGS",
-  "install": "curl -fsSL https://get.docker.com -o get-docker.sh && sudo sh get-docker.sh && sudo usermod -aG docker $USER && sudo systemctl start docker && sudo systemctl enable docker && npm install",
-  "start": "sudo service docker start",
+  "install": "curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash - && sudo apt-get install -y nodejs postgresql postgresql-contrib redis-server && sudo systemctl start postgresql && sudo systemctl enable postgresql && sudo systemctl start redis-server && sudo systemctl enable redis-server && sudo -u postgres psql -c \"CREATE USER platform_user WITH PASSWORD 'platform_password';\" && sudo -u postgres psql -c \"CREATE DATABASE platform_db OWNER platform_user;\" && npm install",
+  "start": "sudo systemctl start postgresql && sudo systemctl start redis-server",
   "terminals": [
-    {
-      "name": "Database & Redis",
-      "command": "cd /workspace && docker compose up postgres redis -d"
-    },
     {
       "name": "API Development",
       "command": "cd /workspace/api && npm run dev"
     },
     {
-      "name": "Webapp Development", 
+      "name": "Webapp Development",
       "command": "cd /workspace/webapp && npm run dev"
     }
   ]
-} 
+}

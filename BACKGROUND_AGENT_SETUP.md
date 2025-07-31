@@ -18,7 +18,7 @@ The `.cursor/environment.json` file is configured for native development:
       "command": "cd /workspace/api && npm run dev"
     },
     {
-      "name": "Webapp Development", 
+      "name": "Webapp Development",
       "command": "cd /workspace/webapp && npm run dev"
     }
   ]
@@ -166,4 +166,4 @@ If you were previously using Docker and want to switch to native development:
 2. Verify all services start correctly
 3. Run the Gemini integration tests
 4. Monitor agent performance and adjust as needed
-5. Consider production deployment differences (Docker vs native) 
+5. Consider production deployment differences (Docker vs native)

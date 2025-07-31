@@ -52,10 +52,10 @@ Assistant:`;
     try {
       const result = await this.model.generateContent(systemPrompt);
       const response = result.response.text();
-      
+
       // Estimate tokens (Gemini doesn't provide exact count in response)
       const tokensUsed = this.estimateTokenCount(systemPrompt + response);
-      
+
       return { response, tokensUsed };
     } catch (error) {
       console.error('Gemini API error:', error);
@@ -88,14 +88,14 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
 export class AddBotModelField1753436000000 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
-      ALTER TABLE "bots" 
+      ALTER TABLE "bots"
       ADD COLUMN "model" VARCHAR(50) NOT NULL DEFAULT 'gemini-2.5-flash'
     `);
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
-      ALTER TABLE "bots" 
+      ALTER TABLE "bots"
       DROP COLUMN "model"
     `);
   }
@@ -115,8 +115,8 @@ private static geminiService = new GeminiService();
 
 // Replace generateBotResponse method
 private static async generateBotResponse(
-  promptContext: string, 
-  conversationHistory: string, 
+  promptContext: string,
+  conversationHistory: string,
   userMessage: string
 ): Promise<string> {
   try {
@@ -141,8 +141,8 @@ Update the `processMessage` method to use real token count:
 ```typescript
 // In processMessage method, replace the tokensUsed line:
 const geminiResult = await this.geminiService.generateResponse(
-  promptContext, 
-  conversationHistory, 
+  promptContext,
+  conversationHistory,
   message
 );
 
@@ -198,17 +198,17 @@ Assistant:`;
   try {
     const result = await this.model.generateContent(systemPrompt);
     const response = result.response.text();
-    
+
     if (!response) {
       throw new Error('Empty response from Gemini API');
     }
-    
+
     const tokensUsed = this.estimateTokenCount(systemPrompt + response);
-    
+
     return { response, tokensUsed };
   } catch (error) {
     console.error('Gemini API error:', error);
-    
+
     if (error instanceof Error) {
       if (error.message.includes('API_KEY')) {
         throw new Error('Invalid Gemini API key');
@@ -220,7 +220,7 @@ Assistant:`;
         throw new Error('Content blocked by safety filters');
       }
     }
-    
+
     throw new Error(`Gemini API error: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
@@ -411,4 +411,4 @@ Before submitting PR, ensure:
 - [Gemini API Reference](https://ai.google.dev/api/gemini-api)
 - [Gemini 2.5 Flash Model](https://ai.google.dev/models/gemini)
 - [PostgreSQL Installation](https://www.postgresql.org/download/linux/ubuntu/)
-- [Redis Installation](https://redis.io/docs/getting-started/installation/install-redis-on-linux/) 
+- [Redis Installation](https://redis.io/docs/getting-started/installation/install-redis-on-linux/)
