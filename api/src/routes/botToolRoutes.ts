@@ -162,9 +162,24 @@ router.post('/bots/:botId/tools/:toolId/test', async (req, res) => {
       return res.status(404).json({ error: 'Tool not found' });
     }
 
+    // Provide default test parameters based on tool type
+    let testParams = { ...params };
+    if (tool.type === 'shell_command') {
+      if (tool.name.includes('ping') || tool.config.command?.includes('ping')) {
+        testParams.host = 'localhost';
+      }
+      if (tool.name.includes('curl') || tool.config.command?.includes('curl')) {
+        testParams.url = 'https://httpbin.org/get';
+      }
+    } else if (tool.type === 'http_request') {
+      testParams.url = 'https://httpbin.org/get';
+    } else if (tool.type === 'file_operation') {
+      testParams.path = '/tmp/test.txt';
+    }
+
     // Import and execute tool
     const { ToolExecutionService } = await import('../services/toolExecutionService.js');
-    const result = await ToolExecutionService.executeTool(tool, params);
+    const result = await ToolExecutionService.executeTool(tool, testParams);
 
     return res.json({ success: true, result });
   } catch (error) {
