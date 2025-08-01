@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Edit, Bot, MessageSquare, Calendar, User, MessageCircle } from 'lucide-react';
 import api from '../utils/api';
 import { BotChat } from './BotChat';
+import { useAuth } from '../contexts/AuthContext';
 
 interface Bot {
   id: string;
@@ -18,6 +19,7 @@ interface Bot {
 const ViewBot: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
+  const { user } = useAuth();
   const [bot, setBot] = useState<Bot | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -200,11 +202,20 @@ const ViewBot: React.FC = () => {
       </div>
       ) : (
         <div className="h-[600px]">
-          <BotChat 
-            botId={bot.id} 
-            userId="user-123" // TODO: Get from auth context
-            botName={bot.displayName}
-          />
+          {user ? (
+            <BotChat
+              botId={bot.id}
+              userId={user.id}
+              botName={bot.displayName}
+            />
+          ) : (
+            <div className="flex items-center justify-center h-full">
+              <div className="text-center">
+                <h3 className="text-lg font-medium text-gray-900 mb-2">Authentication Required</h3>
+                <p className="text-gray-600">Please log in to chat with this bot.</p>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
