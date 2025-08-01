@@ -1,71 +1,262 @@
-# Application Builder Service
+# Bot Processing Worker
 
-This service handles the generation and building of user applications. It's a background worker that processes build jobs from Redis queues.
+The Bot Processing Worker is a dedicated service for handling asynchronous bot message processing and tool execution in the Meta Platform.
 
-## Purpose
+## 🎯 Purpose
 
-The Application Builder Service is responsible for:
-- Processing application build requests
-- Generating React applications from user specifications
-- Building Docker images for applications
-- Managing the build pipeline
+This worker processes bot messages from Redis queues, executes tools, and generates responses using LLM services. It's designed to handle the heavy computational work of bot interactions without blocking the main API thread.
 
-## Architecture
+## 🏗️ Architecture
 
 ```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Webapp UI     │    │   API Service   │    │  Builder Service │
-│                 │    │                 │    │   (this folder)  │
-│ • Create Apps   │───▶│ • Queue Build   │───▶│ • Generate Code │
-│ • Manage Apps   │    │ • Track Status  │    │ • Build Docker  │
-│ • Deploy Apps   │    │ • Handle Auth   │    │ • File Ops      │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
+API Server → Redis Queue → Bot Worker → LLM + Tools → Response
 ```
 
-## Key Differences from User Bots
+### Key Features
 
-| Aspect | Application Builder | User Bots |
-|--------|-------------------|-----------|
-| **Purpose** | Build applications | AI chat assistants |
-| **Who uses** | Platform system | End users |
-| **Execution** | Background worker | API calls |
-| **Technology** | Code generation | AI/ML (Gemini) |
-| **Scale** | One per deployment | Multiple per user |
+- **Async Processing**: Bot messages are queued and processed asynchronously
+- **Tool Execution**: Supports all tool types (HTTP, Database, Shell, MCP, etc.)
+- **LLM Integration**: Uses Google Gemini for response generation
+- **Error Handling**: Robust error handling with retry mechanisms
+- **Real-time Updates**: Publishes results back to Redis for real-time updates
 
-## Development
+## 🚀 Getting Started
+
+### Prerequisites
+
+- Node.js 18+
+- PostgreSQL database
+- Redis server
+- Google Gemini API key
+
+### Installation
 
 ```bash
-# Start the builder service
-npm run dev
+npm install
+```
 
-# Run tests
-npm test
+### Environment Variables
+
+Create a `.env` file:
+
+```env
+# Database
+DB_HOST=localhost
+DB_PORT=5432
+DB_USER=platform_user
+DB_PASSWORD=platform_password
+DB_NAME=platform_db
+
+# Redis
+REDIS_HOST=localhost
+REDIS_PORT=6379
+
+# Gemini API
+GEMINI_KEY=your_gemini_api_key_here
+
+# Environment
+NODE_ENV=development
+```
+
+### Development
+
+```bash
+# Start in development mode
+npm run dev
 
 # Build for production
 npm run build
+
+# Start production server
+npm start
 ```
 
-## Environment Variables
+## 🔧 How It Works
 
-- `DB_HOST` - Database host
-- `DB_PORT` - Database port
-- `DB_NAME` - Database name
-- `DB_USER` - Database user
-- `DB_PASSWORD` - Database password
-- `REDIS_HOST` - Redis host
-- `REDIS_PORT` - Redis port
+### 1. Message Queue Processing
 
-## Build Process
+The worker listens to the `bot_messages` Redis queue for incoming bot messages:
 
-1. **Job Reception**: Receives build jobs from Redis queue
-2. **Code Generation**: Uses EJS templates to generate React code
-3. **File Operations**: Creates application structure and files
-4. **Docker Build**: Builds Docker image for the application
-5. **Status Update**: Updates application status in database
+```typescript
+// Example message structure
+{
+  botId: "uuid",
+  userId: "uuid", 
+  message: "list my models",
+  instanceId?: "uuid"
+}
+```
 
-## Security
+### 2. Tool Detection & Execution
 
-- All file operations are sandboxed to safe directories
-- Docker builds run in isolated containers
-- Input validation on all user specifications
-- Rate limiting on build requests
+The worker detects tool calls in user messages and executes them:
+
+```typescript
+// Tool detection patterns
+- "list my models" → list_models operation
+- "show applications" → list_applications operation
+- "search for users" → search_platform operation
+```
+
+### 3. LLM Response Generation
+
+Uses Google Gemini to generate contextual responses:
+
+```typescript
+const response = await geminiService.generateResponse(
+  promptContext,
+  conversationHistory,
+  userMessage
+);
+```
+
+### 4. Result Publishing
+
+Publishes results back to Redis for real-time updates:
+
+```typescript
+await publishEvent('bot_responses', {
+  instanceId,
+  botId,
+  userId,
+  userMessage,
+  botResponse
+});
+```
+
+## 🛠️ Tool Types Supported
+
+### MCP Tools (Platform API SDK)
+- `list_models` - List user's data models
+- `list_applications` - List user's applications
+- `list_bots` - List user's bots
+- `list_prompts` - List user's prompts
+- `get_user_info` - Get user information
+- `search_platform` - Search across platform data
+
+### HTTP Tools
+- API requests to external services
+- REST API calls
+- Webhook notifications
+
+### Database Tools
+- SQL queries
+- Data operations
+- Schema management
+
+### Shell Tools
+- System commands
+- File operations
+- Process management
+
+### Custom Scripts
+- JavaScript execution
+- Data processing
+- Business logic
+
+## 📊 Monitoring
+
+### Logs
+The worker provides detailed logging:
+
+```
+🤖 Processing message for bot abc-123: "list my models"
+🔧 Tool detected: platform-api-sdk (mcp_tool)
+📝 Extracted params: {"operation":"list_models","userId":"user-456"}
+✅ Bot message processed successfully
+```
+
+### Health Checks
+Monitor worker health through Redis:
+
+```bash
+# Check worker status
+redis-cli GET bot_worker:status
+
+# Check queue length
+redis-cli LLEN bot_messages
+```
+
+## 🔄 Integration with API
+
+The main API server queues bot messages instead of processing them directly:
+
+```typescript
+// API routes queue messages
+await publishEvent('bot_messages', {
+  botId,
+  userId,
+  message,
+  instanceId
+});
+```
+
+## 🚨 Error Handling
+
+### Retry Logic
+- Failed tool executions are retried
+- LLM errors are handled gracefully
+- Database connection issues are recovered
+
+### Error Events
+Errors are published to Redis for monitoring:
+
+```typescript
+await publishEvent('bot_errors', {
+  botId,
+  userId,
+  instanceId,
+  error: error.message
+});
+```
+
+## 🔒 Security
+
+### Tool Execution Safety
+- Shell commands are whitelisted
+- File operations are restricted to safe directories
+- Database queries are validated
+- Custom scripts run in sandboxed environment
+
+### Authentication
+- User context is maintained throughout processing
+- Tool access is controlled by user permissions
+- API keys are securely managed
+
+## 🧪 Testing
+
+```bash
+# Run tests
+npm test
+
+# Run tests with coverage
+npm run test:coverage
+
+# Watch mode
+npm run test:watch
+```
+
+## 📈 Performance
+
+### Optimization Features
+- Connection pooling for database
+- Redis connection reuse
+- Efficient tool detection patterns
+- Token usage optimization
+
+### Scaling
+- Multiple worker instances can run simultaneously
+- Redis queue ensures load distribution
+- Stateless design for horizontal scaling
+
+## 🔮 Future Enhancements
+
+- **WebSocket Support**: Real-time communication
+- **Advanced Tool Types**: More sophisticated tool capabilities
+- **Plugin System**: Extensible tool architecture
+- **Analytics**: Detailed usage metrics
+- **A/B Testing**: Bot response optimization
+
+---
+
+**Meta Platform Bot Worker** - Making AI interactions asynchronous and scalable! 🤖✨

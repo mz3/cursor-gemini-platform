@@ -120,6 +120,29 @@
     "botId": "meta-platform-support"
   },
   {
+    "name": "application-builder-sdk",
+    "displayName": "Application Builder SDK",
+    "description": "Comprehensive SDK for building and deploying applications on the Meta Platform",
+    "type": "mcp_tool",
+    "config": {
+      "platformEndpoint": "http://api:4000/api",
+      "userId": "system",
+      "permissions": ["read", "write", "execute"],
+      "operations": [
+        "list_applications", "get_application", "create_application", "update_application", "delete_application",
+        "build_application", "deploy_application", "test_application", "monitor_application",
+        "list_models", "get_model", "create_model", "update_model", "delete_model",
+        "list_components", "get_component", "create_component", "update_component", "delete_component",
+        "list_features", "get_feature", "create_feature", "update_feature", "delete_feature",
+        "generate_code", "validate_schema", "create_dockerfile", "create_docker_compose",
+        "setup_ci_cd", "configure_environment", "manage_secrets", "scale_application"
+      ]
+    },
+    "isActive": true,
+    "requiresAuth": true,
+    "botId": "code-builder"
+  },
+  {
     "name": "docker-build",
     "displayName": "Docker Build",
     "description": "Builds Docker containers for connected repositories",

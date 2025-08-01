@@ -5,8 +5,7 @@ import { Bot } from '../entities/Bot.js';
 import { Prompt } from '../entities/Prompt.js';
 import { PromptVersion } from '../entities/PromptVersion.js';
 import { BotTool } from '../entities/BotTool.js';
-import { GeminiService } from './geminiService.js';
-import { ToolExecutionService } from './toolExecutionService.js';
+import { publishEvent } from '../config/redis.js';
 
 const botInstanceRepository = AppDataSource.getRepository(BotInstance);
 const chatMessageRepository = AppDataSource.getRepository(ChatMessage);
@@ -22,7 +21,6 @@ function isValidUUID(uuid: string): boolean {
 
 export class BotExecutionService {
   private static runningInstances = new Map<string, NodeJS.Timeout>();
-  private static geminiService = new GeminiService();
 
   /**
    * Start a bot instance
@@ -112,6 +110,7 @@ export class BotExecutionService {
       throw new Error('Invalid user ID format');
     }
 
+    // Check if instance exists
     const instance = await botInstanceRepository.findOne({
       where: { botId, userId }
     });
@@ -120,36 +119,24 @@ export class BotExecutionService {
       throw new Error('Bot instance not found');
     }
 
-    if (instance.status === BotInstanceStatus.STOPPED) {
-      throw new Error('Bot is already stopped');
-    }
+    // Update instance status
+    instance.status = BotInstanceStatus.STOPPED;
+    instance.lastStoppedAt = new Date();
 
-    instance.status = BotInstanceStatus.STOPPING;
     await botInstanceRepository.save(instance);
 
-    try {
-      // Clean up running instance
-      const healthCheckInterval = this.runningInstances.get(instance.id);
-      if (healthCheckInterval) {
-        clearInterval(healthCheckInterval);
-        this.runningInstances.delete(instance.id);
-      }
-
-      instance.status = BotInstanceStatus.STOPPED;
-      instance.lastStoppedAt = new Date();
-      await botInstanceRepository.save(instance);
-
-      return instance;
-    } catch (error) {
-      instance.status = BotInstanceStatus.ERROR;
-      instance.errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      await botInstanceRepository.save(instance);
-      throw error;
+    // Clear health check interval
+    const healthCheckInterval = this.runningInstances.get(instance.id);
+    if (healthCheckInterval) {
+      clearInterval(healthCheckInterval);
+      this.runningInstances.delete(instance.id);
     }
+
+    return instance;
   }
 
   /**
-   * Send a message to a bot and get response
+   * Send a message to a bot (queues for async processing)
    */
   static async sendMessage(
     botId: string,
@@ -164,42 +151,73 @@ export class BotExecutionService {
       throw new Error('Invalid user ID format');
     }
 
-    const instance = await botInstanceRepository.findOne({
-      where: { botId, userId },
-      relations: ['bot', 'bot.prompts']
+    // Check if bot exists and is active
+    const bot = await botRepository.findOne({
+      where: { id: botId, isActive: true },
+      relations: ['prompts']
+    });
+
+    if (!bot) {
+      throw new Error('Bot not found or not active');
+    }
+
+    // Check if user owns the bot
+    if (bot.userId !== userId) {
+      throw new Error('Unauthorized to use this bot');
+    }
+
+    // Get or create bot instance
+    let instance = await botInstanceRepository.findOne({
+      where: { botId, userId }
     });
 
     if (!instance) {
-      throw new Error('Bot instance not found');
+      // Create new instance
+      instance = botInstanceRepository.create({
+        botId,
+        userId,
+        status: BotInstanceStatus.RUNNING,
+        lastStartedAt: new Date()
+      });
+      await botInstanceRepository.save(instance);
     }
 
-    if (instance.status !== BotInstanceStatus.RUNNING) {
-      throw new Error('Bot is not running');
-    }
-
-    // Save user message
+    // Save user message immediately
     const userMessage = chatMessageRepository.create({
       botInstanceId: instance.id,
       userId,
       role: MessageRole.USER,
       content: message
     });
-
     await chatMessageRepository.save(userMessage);
 
-    // Process message and generate response
-    const startTime = Date.now();
-    const botResponse = await this.processMessage(instance, message);
-    const responseTime = Date.now() - startTime;
-
-    botResponse.responseTime = responseTime;
+    // Create a placeholder bot response (will be updated by worker)
+    const botResponse = chatMessageRepository.create({
+      botInstanceId: instance.id,
+      userId,
+      role: MessageRole.BOT,
+      content: 'Processing your message...',
+      tokensUsed: 0
+    });
     await chatMessageRepository.save(botResponse);
+
+    // Queue the message for async processing
+    await publishEvent('bot_messages', {
+      botId,
+      userId,
+      message,
+      instanceId: instance.id,
+      userMessageId: userMessage.id,
+      botResponseId: botResponse.id
+    });
+
+    console.log(`📨 Queued bot message for async processing: ${botId}`);
 
     return { userMessage, botResponse };
   }
 
   /**
-   * Get conversation history for a bot instance
+   * Get conversation history for a bot
    */
   static async getConversationHistory(botId: string, userId: string, limit = 50): Promise<ChatMessage[]> {
     // Validate UUIDs
@@ -210,17 +228,19 @@ export class BotExecutionService {
       throw new Error('Invalid user ID format');
     }
 
+    // Get bot instance
     const instance = await botInstanceRepository.findOne({
       where: { botId, userId }
     });
 
     if (!instance) {
-      throw new Error('Bot instance not found');
+      return [];
     }
 
-    return chatMessageRepository.find({
+    // Get conversation history
+    return await chatMessageRepository.find({
       where: { botInstanceId: instance.id },
-      order: { createdAt: 'ASC' },
+      order: { createdAt: 'DESC' },
       take: limit
     });
   }
@@ -237,336 +257,9 @@ export class BotExecutionService {
       throw new Error('Invalid user ID format');
     }
 
-    return botInstanceRepository.findOne({
+    return await botInstanceRepository.findOne({
       where: { botId, userId }
     });
-  }
-
-  /**
-   * Process a message and generate bot response
-   */
-  private static async processMessage(instance: BotInstance, message: string): Promise<ChatMessage> {
-    // Get the bot with prompts and tools
-    const bot = await botRepository.findOne({
-      where: { id: instance.botId },
-      relations: ['prompts', 'prompts.versions', 'tools']
-    });
-
-    if (!bot) {
-      throw new Error('Bot not found');
-    }
-
-    if (!bot.prompts.length) {
-      throw new Error('Bot has no prompts configured');
-    }
-
-    // Build context from prompts
-    const promptContext = this.buildPromptContext(bot);
-
-    // Check if message contains tool calls
-    const toolCalls = this.detectToolCalls(message, bot.tools, instance);
-
-    let toolResults = '';
-    if (toolCalls.length > 0) {
-      toolResults = await this.executeToolCalls(toolCalls, instance);
-    }
-
-    // Get conversation history
-    const conversationHistory = await this.getConversationHistoryForContext(instance.id);
-
-    // Generate response with tool results
-    const enhancedContext = toolResults
-      ? `${promptContext}\n\nTool Results:\n${toolResults}`
-      : promptContext;
-
-    try {
-      const geminiResult = await this.geminiService.generateResponse(
-        enhancedContext,
-        conversationHistory,
-        message
-      );
-
-      return chatMessageRepository.create({
-        botInstanceId: instance.id,
-        userId: instance.userId,
-        role: MessageRole.BOT,
-        content: geminiResult.response,
-        tokensUsed: geminiResult.tokensUsed
-      });
-    } catch (error) {
-      console.error('Failed to generate bot response:', error);
-      // Fallback response
-      const fallbackResponse = 'I apologize, but I encountered an error processing your request. Please try again.';
-      return chatMessageRepository.create({
-        botInstanceId: instance.id,
-        userId: instance.userId,
-        role: MessageRole.BOT,
-        content: fallbackResponse,
-        tokensUsed: this.estimateTokenCount(fallbackResponse)
-      });
-    }
-  }
-
-  /**
-   * Build prompt context from bot prompts
-   */
-  private static buildPromptContext(bot: Bot): string {
-    return bot.prompts
-      .map(prompt => {
-        const activeVersion = prompt.versions?.find(v => v.isActive);
-        return activeVersion ? activeVersion.content : '';
-      })
-      .filter(content => content.length > 0)
-      .join('\n\n');
-  }
-
-  /**
-   * Detect tool calls in user message
-   */
-  private static detectToolCalls(message: string, tools: BotTool[], instance: BotInstance): Array<{tool: BotTool, params: Record<string, any>}> {
-    const toolCalls = [];
-    const lowerMessage = message.toLowerCase();
-
-    for (const tool of tools) {
-      if (!tool.isActive) continue;
-
-      // More flexible pattern matching
-      const toolNamePattern = new RegExp(`\\b${tool.name}\\b`, 'i');
-      const toolTypePattern = new RegExp(`\\b${tool.type.replace('_', ' ')}\\b`, 'i');
-      const toolDisplayPattern = new RegExp(`\\b${tool.displayName.toLowerCase()}\\b`, 'i');
-
-      // Check for tool name, type, or display name
-      if (toolNamePattern.test(message) ||
-          toolTypePattern.test(message) ||
-          toolDisplayPattern.test(lowerMessage) ||
-          (tool.type === 'shell_command' && (lowerMessage.includes('shell') || lowerMessage.includes('command') || lowerMessage.includes('ping'))) ||
-          (tool.type === 'http_request' && (lowerMessage.includes('http') || lowerMessage.includes('api') || lowerMessage.includes('request'))) ||
-          (tool.type === 'file_operation' && (lowerMessage.includes('file') || lowerMessage.includes('read') || lowerMessage.includes('write'))) ||
-          (tool.type === 'mcp_tool' && (lowerMessage.includes('mcp') || lowerMessage.includes('platform') || lowerMessage.includes('meta') || lowerMessage.includes('create') || lowerMessage.includes('bot') || lowerMessage.includes('list') || lowerMessage.includes('get') || lowerMessage.includes('show') || lowerMessage.includes('find') || lowerMessage.includes('search')))) {
-
-        console.log(`Tool detected: ${tool.name} (${tool.type})`);
-        // Extract parameters from message
-        const params = this.extractToolParams(message, tool, instance.userId);
-        console.log(`Extracted params for ${tool.name}:`, JSON.stringify(params));
-        toolCalls.push({ tool, params });
-      }
-    }
-
-    return toolCalls;
-  }
-
-  /**
-   * Execute tool calls and return results
-   */
-  private static async executeToolCalls(
-    toolCalls: Array<{tool: BotTool, params: Record<string, any>}>,
-    instance: BotInstance
-  ): Promise<string> {
-    const results = [];
-
-    for (const { tool, params } of toolCalls) {
-      try {
-        const result = await ToolExecutionService.executeTool(tool, params);
-        results.push(`${tool.displayName}: ${JSON.stringify(result)}`);
-      } catch (error) {
-        results.push(`${tool.displayName}: Error - ${error instanceof Error ? error.message : 'Unknown error'}`);
-      }
-    }
-
-    return results.join('\n');
-  }
-
-  /**
-   * Extract tool parameters from user message
-   */
-  private static extractToolParams(message: string, tool: BotTool, userId?: string): Record<string, any> {
-    const params: Record<string, any> = {};
-
-    // Extract common patterns like URLs, file paths, etc.
-    const urlMatch = message.match(/https?:\/\/[^\s]+/);
-    if (urlMatch) params.url = urlMatch[0];
-
-    const fileMatch = message.match(/\/[\w\/.-]+/);
-    if (fileMatch) params.path = fileMatch[0];
-
-    // Extract quoted strings as parameters
-    const quotedMatches = message.match(/"([^"]+)"/g);
-    if (quotedMatches) {
-      quotedMatches.forEach((match, index) => {
-        params[`param${index + 1}`] = match.replace(/"/g, '');
-      });
-    }
-
-    // For shell commands, extract the command from the message
-    if (tool.type === 'shell_command') {
-      // Look for common shell commands in the message
-      const shellCommands = ['ping', 'ls', 'cat', 'echo', 'date', 'whoami', 'pwd'];
-      for (const cmd of shellCommands) {
-        if (message.toLowerCase().includes(cmd)) {
-          // Extract the full command or domain/host
-          const cmdMatch = message.match(new RegExp(`${cmd}\\s+([^\\s]+)`, 'i'));
-          if (cmdMatch) {
-            // For ping commands, extract host parameter
-            if (cmd === 'ping') {
-              params.host = cmdMatch[1];
-            } else {
-              params.command = `${cmd} ${cmdMatch[1]}`;
-            }
-          } else {
-            if (cmd === 'ping') {
-              // Default host for ping
-              params.host = 'localhost';
-            } else {
-              params.command = cmd;
-            }
-          }
-          break;
-        }
-      }
-    }
-
-        // For MCP tools, extract platform operations
-    if (tool.type === 'mcp_tool') {
-      const lowerMessage = message.toLowerCase();
-      console.log(`Processing MCP tool for message: "${message}"`);
-
-      // Detect common MCP operations
-      if (lowerMessage.includes('create') && lowerMessage.includes('bot')) {
-        console.log('Detected create_bot operation');
-        params.operation = 'create_bot';
-        // Extract bot name and description
-        const nameMatch = message.match(/create\s+(?:a\s+)?bot\s+(?:called\s+)?["']?([^"'\s]+(?:-[^"'\s]+)*)["']?/i);
-        console.log(`Regex test for name: "${message}" -> match:`, nameMatch);
-        if (nameMatch) {
-          params.name = nameMatch[1];
-          console.log(`Extracted name: ${params.name}`);
-        }
-
-        const descMatch = message.match(/description[:\s]+["']?([^"']+)["']?/i);
-        if (descMatch) {
-          params.description = descMatch[1];
-          console.log(`Extracted description: ${params.description}`);
-        }
-
-        // Set default displayName if not provided
-        if (params.name && !params.displayName) {
-          params.displayName = params.name.charAt(0).toUpperCase() + params.name.slice(1).replace(/-/g, ' ');
-          console.log(`Set default displayName: ${params.displayName}`);
-        }
-      } else if (lowerMessage.includes('list') && lowerMessage.includes('bot')) {
-        console.log('Detected list_bots operation');
-        params.operation = 'list_bots';
-      } else if (lowerMessage.includes('get') && lowerMessage.includes('bot')) {
-        console.log('Detected get_bot operation');
-        params.operation = 'get_bot';
-        const idMatch = message.match(/bot\s+(?:id\s+)?["']?([^"'\s]+)["']?/i);
-        if (idMatch) params.botId = idMatch[1];
-      } else if (lowerMessage.includes('update') && lowerMessage.includes('bot')) {
-        console.log('Detected update_bot operation');
-        params.operation = 'update_bot';
-        const idMatch = message.match(/bot\s+(?:id\s+)?["']?([^"'\s]+)["']?/i);
-        if (idMatch) params.botId = idMatch[1];
-      } else if (lowerMessage.includes('delete') && lowerMessage.includes('bot')) {
-        console.log('Detected delete_bot operation');
-        params.operation = 'delete_bot';
-        const idMatch = message.match(/bot\s+(?:id\s+)?["']?([^"'\s]+)["']?/i);
-        if (idMatch) params.botId = idMatch[1];
-      } else if (lowerMessage.includes('execute') && lowerMessage.includes('bot')) {
-        console.log('Detected execute_bot operation');
-        params.operation = 'execute_bot';
-        const idMatch = message.match(/bot\s+(?:id\s+)?["']?([^"'\s]+)["']?/i);
-        if (idMatch) params.botId = idMatch[1];
-
-        const msgMatch = message.match(/message[:\s]+["']?([^"']+)["']?/i);
-        if (msgMatch) params.message = msgMatch[1];
-      } else if (lowerMessage.includes('list') && lowerMessage.includes('model')) {
-        console.log('Detected list_models operation');
-        params.operation = 'list_models';
-        params.userId = userId; // Add user ID for filtering
-      } else if (lowerMessage.includes('list') && lowerMessage.includes('application')) {
-        console.log('Detected list_applications operation');
-        params.operation = 'list_applications';
-        params.userId = userId;
-      } else if (lowerMessage.includes('list') && lowerMessage.includes('prompt')) {
-        console.log('Detected list_prompts operation');
-        params.operation = 'list_prompts';
-        params.userId = userId;
-      } else if (lowerMessage.includes('list') && lowerMessage.includes('tool')) {
-        console.log('Detected list_tools operation');
-        params.operation = 'list_tools';
-        params.userId = userId;
-      } else if (lowerMessage.includes('list') && lowerMessage.includes('feature')) {
-        console.log('Detected list_features operation');
-        params.operation = 'list_features';
-        params.userId = userId;
-      } else if (lowerMessage.includes('list') && lowerMessage.includes('workflow')) {
-        console.log('Detected list_workflows operation');
-        params.operation = 'list_workflows';
-        params.userId = userId;
-      } else if (lowerMessage.includes('get') && lowerMessage.includes('user')) {
-        console.log('Detected get_user_info operation');
-        params.operation = 'get_user_info';
-        params.userId = userId;
-      } else if (lowerMessage.includes('list') && lowerMessage.includes('user') && lowerMessage.includes('data')) {
-        console.log('Detected list_user_data operation');
-        params.operation = 'list_user_data';
-        params.userId = userId;
-      } else if (lowerMessage.includes('search')) {
-        console.log('Detected search_platform operation');
-        params.operation = 'search_platform';
-        params.userId = userId;
-        // Extract search query
-        const queryMatch = message.match(/search\s+(?:for\s+)?["']?([^"']+)["']?/i);
-        if (queryMatch) params.query = queryMatch[1];
-      }
-    }
-
-    return params;
-  }
-
-  /**
-   * Get conversation history for context
-   */
-  private static async getConversationHistoryForContext(instanceId: string): Promise<string> {
-    const recentMessages = await chatMessageRepository.find({
-      where: { botInstanceId: instanceId },
-      order: { createdAt: 'DESC' },
-      take: 10
-    });
-
-    return recentMessages
-      .reverse()
-      .map(msg => `${msg.role}: ${msg.content}`)
-      .join('\n');
-  }
-
-  /**
-   * Generate bot response using prompt context
-   */
-  private static async generateBotResponse(
-    promptContext: string,
-    conversationHistory: string,
-    userMessage: string
-  ): Promise<string> {
-    try {
-      const result = await this.geminiService.generateResponse(
-        promptContext,
-        conversationHistory,
-        userMessage
-      );
-      return result.response;
-    } catch (error) {
-      console.error('Failed to generate bot response:', error);
-      return 'I apologize, but I encountered an error processing your request. Please try again.';
-    }
-  }
-
-  /**
-   * Estimate token count for response
-   */
-  private static estimateTokenCount(text: string): number {
-    // Simple estimation: ~4 characters per token
-    return Math.ceil(text.length / 4);
   }
 
   /**
