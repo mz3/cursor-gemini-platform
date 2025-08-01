@@ -19,8 +19,8 @@
         "continueOnError": true
       },
       {
-        "name": "Create .env file if not exists",
-        "command": "if [ ! -f docker/.env ]; then echo 'GEMINI_API_KEY=your-gemini-api-key-here' > docker/.env; fi"
+        "name": "Pass GEMINI_KEY to Docker Compose",
+        "command": "export GEMINI_API_KEY=${GEMINI_KEY}"
       },
       {
         "name": "Stop any existing containers",
@@ -29,7 +29,7 @@
       },
       {
         "name": "Build and start all services",
-        "command": "cd docker && docker-compose up -d --build"
+        "command": "cd docker && GEMINI_API_KEY=${GEMINI_KEY} docker-compose up -d --build"
       },
       {
         "name": "Wait for database to be ready",
@@ -51,7 +51,7 @@
     "commands": [
       {
         "name": "Start Docker Compose services",
-        "command": "cd docker && docker-compose up -d"
+        "command": "cd docker && GEMINI_API_KEY=${GEMINI_KEY} docker-compose up -d"
       },
       {
         "name": "Show service status",
@@ -83,7 +83,7 @@
     "status": "cd docker && docker-compose ps"
   },
   "environment": {
-    "GEMINI_API_KEY": "${GEMINI_API_KEY}",
+    "GEMINI_API_KEY": "${GEMINI_KEY}",
     "NODE_ENV": "development",
     "API_URL": "http://localhost:4000",
     "WEBAPP_URL": "http://localhost:3000"

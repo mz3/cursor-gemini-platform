@@ -50,8 +50,8 @@
         "command": "cd bot && npm install"
       },
       {
-        "name": "Create .env files",
-        "command": "echo 'DB_HOST=localhost\nDB_PORT=5432\nDB_USER=platform_user\nDB_PASSWORD=platform_password\nDB_NAME=platform_db\nREDIS_HOST=localhost\nREDIS_PORT=6379\nAPI_PORT=4000\nJWT_SECRET=your-super-secret-jwt-key-change-in-production\nGEMINI_API_KEY=your-gemini-api-key-here' > api/.env && cp api/.env bot/.env"
+        "name": "Create .env files with existing GEMINI_KEY",
+        "command": "echo 'DB_HOST=localhost\nDB_PORT=5432\nDB_USER=platform_user\nDB_PASSWORD=platform_password\nDB_NAME=platform_db\nREDIS_HOST=localhost\nREDIS_PORT=6379\nAPI_PORT=4000\nJWT_SECRET=your-super-secret-jwt-key-change-in-production\nGEMINI_API_KEY='${GEMINI_KEY} > api/.env && cp api/.env bot/.env"
       },
       {
         "name": "Run database migrations",
@@ -90,7 +90,8 @@
       "name": "API Server",
       "command": "cd api && npm run dev",
       "env": {
-        "NODE_ENV": "development"
+        "NODE_ENV": "development",
+        "GEMINI_API_KEY": "${GEMINI_KEY}"
       }
     },
     {
@@ -104,7 +105,8 @@
       "name": "Bot Worker",
       "command": "cd bot && npm run dev",
       "env": {
-        "NODE_ENV": "development"
+        "NODE_ENV": "development",
+        "GEMINI_API_KEY": "${GEMINI_KEY}"
       }
     }
   ],
@@ -121,7 +123,7 @@
     "lint:bot": "cd bot && npm run lint"
   },
   "environment": {
-    "GEMINI_API_KEY": "${GEMINI_API_KEY}",
+    "GEMINI_API_KEY": "${GEMINI_KEY}",
     "NODE_ENV": "development",
     "DB_HOST": "localhost",
     "DB_PORT": "5432",

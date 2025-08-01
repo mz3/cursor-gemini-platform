@@ -22,7 +22,7 @@ The recommended approach that uses Docker Compose to orchestrate all services.
 
 **Usage:**
 1. Ensure you have Docker and Docker Compose installed
-2. Set your `GEMINI_API_KEY` in `docker/.env`
+2. Your `GEMINI_KEY` from the environment will be automatically passed to the services
 3. The environment will automatically build and start all services
 
 ### 2. Native Environment (`environment-native.json`)
