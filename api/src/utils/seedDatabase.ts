@@ -10,6 +10,7 @@ import { Component } from '../entities/Component.js';
 import { Prompt } from '../entities/Prompt.js';
 import { Bot } from '../entities/Bot.js';
 import { BotTool } from '../entities/BotTool.js';
+import { PromptVersion } from '../entities/PromptVersion.js';
 import { Template } from '../entities/Template.js';
 import { Relationship } from '../entities/Relationship.js';
 import { UserSettings } from '../entities/UserSettings.js';
@@ -38,6 +39,7 @@ export const seedDatabase = async (): Promise<void> => {
     const promptRepository = AppDataSource.getRepository(Prompt);
     const botRepository = AppDataSource.getRepository(Bot);
     const botToolRepository = AppDataSource.getRepository(BotTool);
+    const promptVersionRepository = AppDataSource.getRepository(PromptVersion);
     const templateRepository = AppDataSource.getRepository(Template);
     const relationshipRepository = AppDataSource.getRepository(Relationship);
     const userSettingsRepository = AppDataSource.getRepository(UserSettings);
@@ -176,6 +178,31 @@ export const seedDatabase = async (): Promise<void> => {
       }
     }
 
+    console.log('Creating prompt versions...');
+    // Create prompt versions from fixtures
+    if (fixtures.promptVersions) {
+      for (const versionData of fixtures.promptVersions) {
+        try {
+          // Find the prompt by name
+          const prompt = await promptRepository.findOne({ 
+            where: { name: versionData.promptId } 
+          });
+          
+          if (prompt) {
+            const version = promptVersionRepository.create({
+              ...versionData,
+              promptId: prompt.id
+            });
+            await promptVersionRepository.save(version);
+          } else {
+            console.warn(`Prompt not found for version ${versionData.name}: ${versionData.promptId}`);
+          }
+        } catch (error) {
+          console.error('Error creating prompt version:', error);
+        }
+      }
+    }
+
     console.log('Creating bots...');
     // Create bots from fixtures
     if (fixtures.bots) {
@@ -189,6 +216,35 @@ export const seedDatabase = async (): Promise<void> => {
         } catch (error) {
           console.error('Error creating bot:', error);
         }
+      }
+    }
+
+    console.log('Linking bots to prompts...');
+    // Link bots to their appropriate prompts
+    const botPromptMappings = [
+      { botName: 'meta-platform-support', promptName: 'platform-support' },
+      { botName: 'code-builder', promptName: 'code-builder' },
+      { botName: 'sysadmin', promptName: 'sysadmin' },
+      { botName: 'code-generator', promptName: 'code-generation' },
+      { botName: 'model-assistant', promptName: 'model-creation' },
+      { botName: 'workflow-assistant', promptName: 'workflow-generation' },
+      { botName: 'deployment-bot', promptName: 'code-builder' }
+    ];
+
+    for (const mapping of botPromptMappings) {
+      try {
+        const bot = await botRepository.findOne({ where: { name: mapping.botName } });
+        const prompt = await promptRepository.findOne({ where: { name: mapping.promptName } });
+        
+        if (bot && prompt) {
+          // Add the prompt to the bot's prompts
+          bot.prompts = [prompt];
+          await botRepository.save(bot);
+        } else {
+          console.warn(`Bot or prompt not found for mapping: ${mapping.botName} -> ${mapping.promptName}`);
+        }
+      } catch (error) {
+        console.error('Error linking bot to prompt:', error);
       }
     }
 
