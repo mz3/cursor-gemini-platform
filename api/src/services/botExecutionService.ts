@@ -341,11 +341,13 @@ export class BotExecutionService {
           toolDisplayPattern.test(lowerMessage) ||
           (tool.type === 'shell_command' && (lowerMessage.includes('shell') || lowerMessage.includes('command') || lowerMessage.includes('ping'))) ||
           (tool.type === 'http_request' && (lowerMessage.includes('http') || lowerMessage.includes('api') || lowerMessage.includes('request'))) ||
-          (tool.type === 'file_operation' && (lowerMessage.includes('file') || lowerMessage.includes('read') || lowerMessage.includes('write')))) {
+          (tool.type === 'file_operation' && (lowerMessage.includes('file') || lowerMessage.includes('read') || lowerMessage.includes('write'))) ||
+          (tool.type === 'mcp_tool' && (lowerMessage.includes('mcp') || lowerMessage.includes('platform') || lowerMessage.includes('meta') || lowerMessage.includes('create') || lowerMessage.includes('bot')))) {
 
         console.log(`Tool detected: ${tool.name} (${tool.type})`);
         // Extract parameters from message
         const params = this.extractToolParams(message, tool);
+        console.log(`Extracted params for ${tool.name}:`, JSON.stringify(params));
         toolCalls.push({ tool, params });
       }
     }
@@ -420,6 +422,62 @@ export class BotExecutionService {
           }
           break;
         }
+      }
+    }
+
+        // For MCP tools, extract platform operations
+    if (tool.type === 'mcp_tool') {
+      const lowerMessage = message.toLowerCase();
+      console.log(`Processing MCP tool for message: "${message}"`);
+      
+      // Detect common MCP operations
+      if (lowerMessage.includes('create') && lowerMessage.includes('bot')) {
+        console.log('Detected create_bot operation');
+        params.operation = 'create_bot';
+        // Extract bot name and description
+        const nameMatch = message.match(/create\s+(?:a\s+)?bot\s+(?:called\s+)?["']?([^"'\s]+)["']?/i);
+        if (nameMatch) {
+          params.name = nameMatch[1];
+          console.log(`Extracted name: ${params.name}`);
+        }
+        
+        const descMatch = message.match(/description[:\s]+["']?([^"']+)["']?/i);
+        if (descMatch) {
+          params.description = descMatch[1];
+          console.log(`Extracted description: ${params.description}`);
+        }
+        
+        // Set default displayName if not provided
+        if (params.name && !params.displayName) {
+          params.displayName = params.name.charAt(0).toUpperCase() + params.name.slice(1).replace(/-/g, ' ');
+          console.log(`Set default displayName: ${params.displayName}`);
+        }
+      } else if (lowerMessage.includes('list') && lowerMessage.includes('bot')) {
+        console.log('Detected list_bots operation');
+        params.operation = 'list_bots';
+      } else if (lowerMessage.includes('get') && lowerMessage.includes('bot')) {
+        console.log('Detected get_bot operation');
+        params.operation = 'get_bot';
+        const idMatch = message.match(/bot\s+(?:id\s+)?["']?([^"'\s]+)["']?/i);
+        if (idMatch) params.botId = idMatch[1];
+      } else if (lowerMessage.includes('update') && lowerMessage.includes('bot')) {
+        console.log('Detected update_bot operation');
+        params.operation = 'update_bot';
+        const idMatch = message.match(/bot\s+(?:id\s+)?["']?([^"'\s]+)["']?/i);
+        if (idMatch) params.botId = idMatch[1];
+      } else if (lowerMessage.includes('delete') && lowerMessage.includes('bot')) {
+        console.log('Detected delete_bot operation');
+        params.operation = 'delete_bot';
+        const idMatch = message.match(/bot\s+(?:id\s+)?["']?([^"'\s]+)["']?/i);
+        if (idMatch) params.botId = idMatch[1];
+      } else if (lowerMessage.includes('execute') && lowerMessage.includes('bot')) {
+        console.log('Detected execute_bot operation');
+        params.operation = 'execute_bot';
+        const idMatch = message.match(/bot\s+(?:id\s+)?["']?([^"'\s]+)["']?/i);
+        if (idMatch) params.botId = idMatch[1];
+        
+        const msgMatch = message.match(/message[:\s]+["']?([^"']+)["']?/i);
+        if (msgMatch) params.message = msgMatch[1];
       }
     }
 

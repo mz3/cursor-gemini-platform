@@ -7,7 +7,8 @@ export enum ToolType {
   FILE_OPERATION = 'file_operation',
   SHELL_COMMAND = 'shell_command',
   CUSTOM_SCRIPT = 'custom_script',
-  WORKFLOW_ACTION = 'workflow_action'
+  WORKFLOW_ACTION = 'workflow_action',
+  MCP_TOOL = 'mcp_tool'
 }
 
 @Entity('bot_tools')

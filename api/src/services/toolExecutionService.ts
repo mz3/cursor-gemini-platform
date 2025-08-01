@@ -3,6 +3,7 @@ import axios from 'axios';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import { AppDataSource } from '../config/database.js';
+import { MCPToolService } from './mcpToolService.js';
 
 const execAsync = promisify(exec);
 
@@ -26,6 +27,9 @@ export class ToolExecutionService {
 
       case ToolType.WORKFLOW_ACTION:
         return await this.executeWorkflowAction(tool, params);
+
+      case ToolType.MCP_TOOL:
+        return await this.executeMCPTool(tool, params);
 
       default:
         throw new Error(`Unknown tool type: ${tool.type}`);
@@ -183,8 +187,12 @@ export class ToolExecutionService {
     };
   }
 
+  private static async executeMCPTool(tool: BotTool, params: Record<string, any>): Promise<any> {
+    return await MCPToolService.executeMCPTool(tool, params);
+  }
+
   private static interpolateParams(template: string, params: Record<string, any>): string {
-    return template.replace(/\{\{(\w+)\}\}/g, (match, key) => {
+    return template.replace(/\{\{(\w+)\}/g, (match, key) => {
       return params[key] || match;
     });
   }

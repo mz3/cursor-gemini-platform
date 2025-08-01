@@ -175,6 +175,8 @@ router.post('/bots/:botId/tools/:toolId/test', async (req, res) => {
       testParams.url = 'https://httpbin.org/get';
     } else if (tool.type === 'file_operation') {
       testParams.path = '/tmp/test.txt';
+    } else if (tool.type === 'mcp_tool') {
+      testParams.operation = 'list_bots';
     }
 
     // Import and execute tool
