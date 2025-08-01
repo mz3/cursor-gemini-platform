@@ -1,0 +1,165 @@
+{
+  "name": "Gemini Platform Development (Native)",
+  "description": "Sets up the Gemini Platform using native PostgreSQL, Redis, and Node.js installations",
+  "setup": {
+    "steps": [
+      {
+        "name": "Update package lists",
+        "command": "sudo apt-get update"
+      },
+      {
+        "name": "Install PostgreSQL",
+        "command": "sudo apt-get install -y postgresql postgresql-contrib",
+        "continueOnError": true
+      },
+      {
+        "name": "Install Redis",
+        "command": "sudo apt-get install -y redis-server",
+        "continueOnError": true
+      },
+      {
+        "name": "Install Node.js",
+        "command": "curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash - && sudo apt-get install -y nodejs",
+        "continueOnError": true
+      },
+      {
+        "name": "Start PostgreSQL",
+        "command": "sudo systemctl start postgresql && sudo systemctl enable postgresql",
+        "continueOnError": true
+      },
+      {
+        "name": "Start Redis",
+        "command": "sudo systemctl start redis-server && sudo systemctl enable redis-server",
+        "continueOnError": true
+      },
+      {
+        "name": "Create PostgreSQL user and database",
+        "command": "sudo -u postgres psql -c \"CREATE USER platform_user WITH PASSWORD 'platform_password';\" && sudo -u postgres psql -c \"CREATE DATABASE platform_db OWNER platform_user;\"",
+        "continueOnError": true
+      },
+      {
+        "name": "Install API dependencies",
+        "command": "cd api && npm install"
+      },
+      {
+        "name": "Install Webapp dependencies",
+        "command": "cd webapp && npm install"
+      },
+      {
+        "name": "Install Bot dependencies",
+        "command": "cd bot && npm install"
+      },
+      {
+        "name": "Create .env files with existing GEMINI_KEY",
+        "command": "echo 'DB_HOST=localhost\nDB_PORT=5432\nDB_USER=platform_user\nDB_PASSWORD=platform_password\nDB_NAME=platform_db\nREDIS_HOST=localhost\nREDIS_PORT=6379\nAPI_PORT=4000\nJWT_SECRET=your-super-secret-jwt-key-change-in-production\nGEMINI_API_KEY='${GEMINI_KEY} > api/.env && cp api/.env bot/.env"
+      },
+      {
+        "name": "Run database migrations",
+        "command": "cd api && npm run migration:run",
+        "continueOnError": true
+      },
+      {
+        "name": "Seed database (optional)",
+        "command": "cd api && npm run seed",
+        "continueOnError": true
+      }
+    ]
+  },
+  "startup": {
+    "commands": [
+      {
+        "name": "Ensure PostgreSQL is running",
+        "command": "sudo systemctl start postgresql"
+      },
+      {
+        "name": "Ensure Redis is running",
+        "command": "sudo systemctl start redis-server"
+      }
+    ]
+  },
+  "shutdown": {
+    "commands": [
+      {
+        "name": "Stop services gracefully",
+        "command": "echo 'Services will continue running in background. Use systemctl to stop PostgreSQL and Redis if needed.'"
+      }
+    ]
+  },
+  "terminals": [
+    {
+      "name": "API Server",
+      "command": "cd api && npm run dev",
+      "env": {
+        "NODE_ENV": "development",
+        "GEMINI_API_KEY": "${GEMINI_KEY}"
+      }
+    },
+    {
+      "name": "Webapp Server",
+      "command": "cd webapp && npm run dev",
+      "env": {
+        "VITE_API_URL": "http://localhost:4000"
+      }
+    },
+    {
+      "name": "Bot Worker",
+      "command": "cd bot && npm run dev",
+      "env": {
+        "NODE_ENV": "development",
+        "GEMINI_API_KEY": "${GEMINI_KEY}"
+      }
+    }
+  ],
+  "tasks": {
+    "db:migrate": "cd api && npm run migration:run",
+    "db:seed": "cd api && npm run seed",
+    "db:console": "psql -U platform_user -d platform_db -h localhost",
+    "redis:cli": "redis-cli",
+    "test:api": "cd api && npm test",
+    "test:webapp": "cd webapp && npm test",
+    "test:bot": "cd bot && npm test",
+    "lint:api": "cd api && npm run lint",
+    "lint:webapp": "cd webapp && npm run lint",
+    "lint:bot": "cd bot && npm run lint"
+  },
+  "environment": {
+    "GEMINI_API_KEY": "${GEMINI_KEY}",
+    "NODE_ENV": "development",
+    "DB_HOST": "localhost",
+    "DB_PORT": "5432",
+    "DB_USER": "platform_user",
+    "DB_PASSWORD": "platform_password",
+    "DB_NAME": "platform_db",
+    "REDIS_HOST": "localhost",
+    "REDIS_PORT": "6379",
+    "API_PORT": "4000",
+    "API_URL": "http://localhost:4000",
+    "WEBAPP_URL": "http://localhost:3000"
+  },
+  "ports": {
+    "postgres": 5432,
+    "redis": 6379,
+    "api": 4000,
+    "webapp": 3000
+  },
+  "healthChecks": [
+    {
+      "name": "PostgreSQL",
+      "command": "pg_isready -h localhost -p 5432 -U platform_user"
+    },
+    {
+      "name": "Redis",
+      "command": "redis-cli ping"
+    },
+    {
+      "name": "API",
+      "url": "http://localhost:4000/health",
+      "type": "http"
+    },
+    {
+      "name": "Webapp",
+      "url": "http://localhost:3000",
+      "type": "http"
+    }
+  ]
+}

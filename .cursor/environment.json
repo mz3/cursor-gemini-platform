@@ -1,14 +1,119 @@
 {
-  "install": "curl -fsSL https://deb.nodesource.com/setup_24.x | sudo -E bash - && sudo apt-get install -y nodejs postgresql postgresql-contrib redis-server && (sudo -u postgres /usr/lib/postgresql/17/bin/initdb -D /var/lib/postgresql/17/main --auth=trust 2>/dev/null || echo 'PostgreSQL already initialized') && (sudo -u postgres /usr/lib/postgresql/17/bin/pg_ctl -D /var/lib/postgresql/17/main -l /var/log/postgresql/postgresql-17-main.log start 2>/dev/null || echo 'PostgreSQL start failed, will retry in start command') && (sudo redis-server --daemonize yes 2>/dev/null || echo 'Redis start failed, will retry in start command') && (sudo -u postgres psql -c \"CREATE USER platform_user WITH PASSWORD 'platform_password';\" 2>/dev/null || echo 'User already exists') && (sudo -u postgres psql -c \"CREATE DATABASE platform_db OWNER platform_user;\" 2>/dev/null || echo 'Database already exists') && (cd /workspace/api && npm install 2>/dev/null || echo 'API npm install failed') && (cd /workspace/webapp && npm install 2>/dev/null || echo 'Webapp npm install failed') && (cd /workspace/bot && npm install 2>/dev/null || echo 'Bot npm install failed')",
-  "start": "(sudo -u postgres /usr/lib/postgresql/17/bin/pg_ctl -D /var/lib/postgresql/17/main -l /var/log/postgresql/postgresql-17-main.log start 2>/dev/null || echo 'PostgreSQL start failed') && (sudo redis-server --daemonize yes 2>/dev/null || echo 'Redis start failed')",
-  "terminals": [
+  "name": "Gemini Platform Development",
+  "description": "Sets up the complete Gemini Platform development environment with PostgreSQL, Redis, API, Webapp, and Bot Worker",
+  "setup": {
+    "steps": [
+      {
+        "name": "Check Docker Installation",
+        "command": "docker --version && docker-compose --version",
+        "continueOnError": true
+      },
+      {
+        "name": "Install Docker (if needed)",
+        "command": "if ! command -v docker &> /dev/null; then curl -fsSL https://get.docker.com | sh && sudo usermod -aG docker $USER; fi",
+        "continueOnError": true
+      },
+      {
+        "name": "Install Docker Compose (if needed)",
+        "command": "if ! command -v docker-compose &> /dev/null; then sudo curl -L \"https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)\" -o /usr/local/bin/docker-compose && sudo chmod +x /usr/local/bin/docker-compose; fi",
+        "continueOnError": true
+      },
+      {
+        "name": "Pass GEMINI_KEY to Docker Compose",
+        "command": "export GEMINI_API_KEY=${GEMINI_KEY}"
+      },
+      {
+        "name": "Stop any existing containers",
+        "command": "cd docker && docker-compose down",
+        "continueOnError": true
+      },
+      {
+        "name": "Build and start all services",
+        "command": "cd docker && GEMINI_API_KEY=${GEMINI_KEY} docker-compose up -d --build"
+      },
+      {
+        "name": "Wait for database to be ready",
+        "command": "sleep 10"
+      },
+      {
+        "name": "Run database migrations",
+        "command": "cd docker && docker exec -it api npm run migration:run",
+        "continueOnError": true
+      },
+      {
+        "name": "Seed database (optional)",
+        "command": "cd docker && docker exec -it api npm run seed",
+        "continueOnError": true
+      }
+    ]
+  },
+  "startup": {
+    "commands": [
+      {
+        "name": "Start Docker Compose services",
+        "command": "cd docker && GEMINI_API_KEY=${GEMINI_KEY} docker-compose up -d"
+      },
+      {
+        "name": "Show service status",
+        "command": "cd docker && docker-compose ps"
+      }
+    ]
+  },
+  "shutdown": {
+    "commands": [
+      {
+        "name": "Stop all services",
+        "command": "cd docker && docker-compose down"
+      }
+    ]
+  },
+  "tasks": {
+    "logs": "cd docker && docker-compose logs -f",
+    "logs:api": "cd docker && docker-compose logs -f api",
+    "logs:webapp": "cd docker && docker-compose logs -f webapp",
+    "logs:bot": "cd docker && docker-compose logs -f bot",
+    "restart": "cd docker && docker-compose restart",
+    "restart:api": "cd docker && docker-compose restart api",
+    "restart:webapp": "cd docker && docker-compose restart webapp",
+    "restart:bot": "cd docker && docker-compose restart bot",
+    "db:migrate": "cd docker && docker exec -it api npm run migration:run",
+    "db:seed": "cd docker && docker exec -it api npm run seed",
+    "db:console": "cd docker && docker exec -it platform-postgres psql -U platform_user -d platform_db",
+    "redis:cli": "cd docker && docker exec -it platform-redis redis-cli",
+    "status": "cd docker && docker-compose ps"
+  },
+  "environment": {
+    "GEMINI_API_KEY": "${GEMINI_KEY}",
+    "NODE_ENV": "development",
+    "API_URL": "http://localhost:4000",
+    "WEBAPP_URL": "http://localhost:3000"
+  },
+  "ports": {
+    "postgres": 5433,
+    "redis": 6379,
+    "api": 4000,
+    "webapp": 3000
+  },
+  "healthChecks": [
     {
-      "name": "API Development",
-      "command": "cd /workspace/api && npm run dev"
+      "name": "PostgreSQL",
+      "url": "localhost:5433",
+      "type": "tcp"
     },
     {
-      "name": "Webapp Development",
-      "command": "cd /workspace/webapp && npm run dev"
+      "name": "Redis",
+      "url": "localhost:6379",
+      "type": "tcp"
+    },
+    {
+      "name": "API",
+      "url": "http://localhost:4000/health",
+      "type": "http"
+    },
+    {
+      "name": "Webapp",
+      "url": "http://localhost:3000",
+      "type": "http"
     }
   ]
 }
