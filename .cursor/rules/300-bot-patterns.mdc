@@ -1,3 +1,8 @@
+---
+globs: bot/src/**/*.ts
+alwaysApply: false
+---
+
 # Bot Service Development Patterns
 
 ## Service Architecture
@@ -643,7 +648,3 @@ describe('BotService', () => {
   });
 });
 ```
-description:
-globs:
-alwaysApply: false
----

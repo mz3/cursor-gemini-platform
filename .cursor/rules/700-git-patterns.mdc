@@ -1,0 +1,10 @@
+---
+description: using git, writing commit messages, git
+alwaysApply: false
+---
+
+- Keep commit messages short and two the point
+- Write a one liner with a semver tag
+- Include feature name in parentheses if applicable
+- Example: feature (auth): implement oauth2 login
+- Commit often rather than doing all the work at once and committing at the end

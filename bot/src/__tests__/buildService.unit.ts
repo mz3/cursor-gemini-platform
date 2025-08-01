@@ -7,7 +7,15 @@ import * as fs from 'fs-extra';
 import * as path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 
-describe('Build Service Integration Tests', () => {
+// Mock the exec function to avoid Docker builds in unit tests
+jest.mock('child_process', () => ({
+  exec: jest.fn().mockImplementation((cmd, callback) => {
+    // Simulate successful Docker build
+    callback(null, { stdout: 'Docker build successful', stderr: '' });
+  })
+}));
+
+describe('Build Service Unit Tests', () => {
   let testUser: User;
   let testModel: Model;
   let testApplication: Application;
@@ -41,14 +49,19 @@ describe('Build Service Integration Tests', () => {
   });
 
   afterAll(async () => {
-    // Clean up test data in correct order
+    // Clean up test data in correct order (applications first, then models, then users)
     const applicationRepository = AppDataSource.getRepository(Application);
     const modelRepository = AppDataSource.getRepository(Model);
     const userRepository = AppDataSource.getRepository(User);
 
-    if (testApplication) {
-      await applicationRepository.remove(testApplication);
+    // Clean up all applications for this test user
+    const applications = await applicationRepository.find({
+      where: { userId: testUser.id }
+    });
+    for (const app of applications) {
+      await applicationRepository.remove(app);
     }
+
     if (testModel) {
       await modelRepository.remove(testModel);
     }
@@ -56,6 +69,7 @@ describe('Build Service Integration Tests', () => {
       await userRepository.remove(testUser);
     }
 
+    // Close database connection
     await AppDataSource.destroy();
   });
 
@@ -120,7 +134,7 @@ describe('Build Service Integration Tests', () => {
     const appJs = await fs.readFile(path.join(appDir, 'src/App.js'), 'utf-8');
     expect(appJs).toContain(testApplication.displayName);
     expect(appJs).toContain(testApplication.description);
-  }, 30000); // 30 second timeout for build process
+  });
 
   it('should handle build failures gracefully', async () => {
     // Create an application with invalid data to trigger a build failure
@@ -149,7 +163,7 @@ describe('Build Service Integration Tests', () => {
 
     // Clean up
     await applicationRepository.remove(invalidApplication);
-  }, 30000);
+  });
 
   it('should update application status during build process', async () => {
     // Start the build process
@@ -176,5 +190,5 @@ describe('Build Service Integration Tests', () => {
 
     expect(finalApplication).toBeDefined();
     expect(finalApplication!.status).toBe('built');
-  }, 30000);
+  });
 });

@@ -24,6 +24,11 @@ export const buildApplication = async (applicationId: string): Promise<void> => 
       throw new Error(`Application not found: ${applicationId}`);
     }
 
+    // Validate application name
+    if (!application.name || application.name.trim() === '') {
+      throw new Error(`Application name is required: ${applicationId}`);
+    }
+
     // Update status to building
     application.status = 'building';
     await applicationRepository.save(application);
@@ -197,7 +202,7 @@ const buildDockerImage = async (application: Application, appDir: string): Promi
 WORKDIR /app
 
 COPY package*.json ./
-RUN npm ci --only=production
+RUN npm install
 
 COPY . .
 
@@ -209,7 +214,7 @@ CMD ["npm", "start"]`;
 
   // Build Docker image
   const imageName = `platform-app-${application.name}:latest`;
-  const { stdout, stderr } = await execAsync(`docker build -t ${imageName} ${appDir}`);
+  const { stdout, stderr } = await execAsync(`docker build -t ${imageName} "${appDir}"`);
 
   console.log('Docker build output:', stdout);
   if (stderr) {

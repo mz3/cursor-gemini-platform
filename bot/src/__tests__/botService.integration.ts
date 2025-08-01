@@ -1,20 +1,25 @@
 import { AppDataSource } from '../config/database';
+import { initializeRedis, publishEvent, redisClient } from '../config/redis';
 import { Application } from '../entities/Application';
 import { User } from '../entities/User';
 import { Model } from '../entities/Model';
-import { buildApplication } from '../services/buildService';
+import { startBot } from '../services/botService';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 
-describe('Build Service Integration Tests', () => {
+describe('Bot Service Integration Tests', () => {
   let testUser: User;
   let testModel: Model;
   let testApplication: Application;
+  let botProcess: NodeJS.Timeout;
 
   beforeAll(async () => {
     // Initialize database connection
     await AppDataSource.initialize();
+
+    // Initialize Redis connection
+    await initializeRedis();
 
     // Create test user with unique email
     const userRepository = AppDataSource.getRepository(User);
@@ -38,17 +43,25 @@ describe('Build Service Integration Tests', () => {
       userId: testUser.id
     });
     await modelRepository.save(testModel);
+
+    // Start the bot service
+    await startBot();
   });
 
   afterAll(async () => {
-    // Clean up test data in correct order
+    // Clean up test data in correct order (applications first, then models, then users)
     const applicationRepository = AppDataSource.getRepository(Application);
     const modelRepository = AppDataSource.getRepository(Model);
     const userRepository = AppDataSource.getRepository(User);
 
-    if (testApplication) {
-      await applicationRepository.remove(testApplication);
+    // Clean up all applications for this test user
+    const applications = await applicationRepository.find({
+      where: { userId: testUser.id }
+    });
+    for (const app of applications) {
+      await applicationRepository.remove(app);
     }
+
     if (testModel) {
       await modelRepository.remove(testModel);
     }
@@ -56,6 +69,10 @@ describe('Build Service Integration Tests', () => {
       await userRepository.remove(testUser);
     }
 
+    // Close Redis connection
+    await redisClient.quit();
+
+    // Close database connection
     await AppDataSource.destroy();
   });
 
@@ -84,9 +101,15 @@ describe('Build Service Integration Tests', () => {
     }
   });
 
-  it('should build an application successfully', async () => {
-    // Build the application
-    await buildApplication(testApplication.id);
+  it('should process build job from Redis queue and build application successfully', async () => {
+    // Publish a build job to Redis queue
+    await publishEvent('app_builds', {
+      application_id: testApplication.id,
+      action: 'build'
+    });
+
+    // Wait longer for the bot to process the job and complete the build
+    await new Promise(resolve => setTimeout(resolve, 15000));
 
     // Verify the application status was updated
     const applicationRepository = AppDataSource.getRepository(Application);
@@ -120,9 +143,68 @@ describe('Build Service Integration Tests', () => {
     const appJs = await fs.readFile(path.join(appDir, 'src/App.js'), 'utf-8');
     expect(appJs).toContain(testApplication.displayName);
     expect(appJs).toContain(testApplication.description);
-  }, 30000); // 30 second timeout for build process
+  }, 60000); // 60 second timeout for build process
 
-  it('should handle build failures gracefully', async () => {
+  it('should handle multiple build jobs in sequence', async () => {
+    // Create a second test application
+    const applicationRepository = AppDataSource.getRepository(Application);
+    const secondApplication = applicationRepository.create({
+      name: 'test-app-2',
+      displayName: 'Test Application 2',
+      description: 'A second test application',
+      config: { theme: 'dark' },
+      status: 'draft',
+      userId: testUser.id,
+      modelId: testModel.id
+    });
+    await applicationRepository.save(secondApplication);
+
+    try {
+      // Publish first build job
+      await publishEvent('app_builds', {
+        application_id: testApplication.id,
+        action: 'build'
+      });
+
+      // Publish second build job
+      await publishEvent('app_builds', {
+        application_id: secondApplication.id,
+        action: 'build'
+      });
+
+      // Wait longer for both jobs to be processed
+      await new Promise(resolve => setTimeout(resolve, 20000));
+
+      // Verify both applications were built
+      const firstApp = await applicationRepository.findOne({
+        where: { id: testApplication.id }
+      });
+      const secondApp = await applicationRepository.findOne({
+        where: { id: secondApplication.id }
+      });
+
+      expect(firstApp).toBeDefined();
+      expect(firstApp!.status).toBe('built');
+      expect(secondApp).toBeDefined();
+      expect(secondApp!.status).toBe('built');
+
+      // Verify both generated directories exist
+      const firstAppDir = path.join('/app/generated-apps', testApplication.name);
+      const secondAppDir = path.join('/app/generated-apps', secondApplication.name);
+
+      expect(await fs.pathExists(firstAppDir)).toBe(true);
+      expect(await fs.pathExists(secondAppDir)).toBe(true);
+    } finally {
+      // Clean up second application
+      await applicationRepository.remove(secondApplication);
+      const secondAppDir = path.join('/app/generated-apps', secondApplication.name);
+      if (await fs.pathExists(secondAppDir)) {
+        await fs.remove(secondAppDir);
+      }
+    }
+  }, 90000); // 90 second timeout for multiple builds
+
+  it('should handle build failures gracefully through Redis queue', async () => {
     // Create an application with invalid data to trigger a build failure
     const applicationRepository = AppDataSource.getRepository(Application);
     const invalidApplication = applicationRepository.create({
@@ -136,45 +218,46 @@ describe('Build Service Integration Tests', () => {
     });
     await applicationRepository.save(invalidApplication);
 
-    // Try to build the invalid application
-    await buildApplication(invalidApplication.id);
+    try {
+      // Publish build job for invalid application
+      await publishEvent('app_builds', {
+        application_id: invalidApplication.id,
+        action: 'build'
+      });
 
-    // Verify the application status was updated to failed
+      // Wait for the bot to process the job
+      await new Promise(resolve => setTimeout(resolve, 10000));
+
+      // Verify the application status was updated to failed
+      const updatedApplication = await applicationRepository.findOne({
+        where: { id: invalidApplication.id }
+      });
+
+      expect(updatedApplication).toBeDefined();
+      expect(updatedApplication!.status).toBe('failed');
+    } finally {
+      // Clean up
+      await applicationRepository.remove(invalidApplication);
+    }
+  }, 60000);
+
+  it('should ignore jobs with invalid action', async () => {
+    // Publish a job with invalid action
+    await publishEvent('app_builds', {
+      application_id: testApplication.id,
+      action: 'invalid_action'
+    });
+
+    // Wait for the bot to process the job
+    await new Promise(resolve => setTimeout(resolve, 5000));
+
+    // Verify the application status remains unchanged
+    const applicationRepository = AppDataSource.getRepository(Application);
     const updatedApplication = await applicationRepository.findOne({
-      where: { id: invalidApplication.id }
+      where: { id: testApplication.id }
     });
 
     expect(updatedApplication).toBeDefined();
-    expect(updatedApplication!.status).toBe('failed');
-
-    // Clean up
-    await applicationRepository.remove(invalidApplication);
-  }, 30000);
-
-  it('should update application status during build process', async () => {
-    // Start the build process
-    const buildPromise = buildApplication(testApplication.id);
-
-    // Check status during build (should be 'building')
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
-    const applicationRepository = AppDataSource.getRepository(Application);
-    const buildingApplication = await applicationRepository.findOne({
-      where: { id: testApplication.id }
-    });
-
-    expect(buildingApplication).toBeDefined();
-    expect(['building', 'built']).toContain(buildingApplication!.status);
-
-    // Wait for build to complete
-    await buildPromise;
-
-    // Verify final status
-    const finalApplication = await applicationRepository.findOne({
-      where: { id: testApplication.id }
-    });
-
-    expect(finalApplication).toBeDefined();
-    expect(finalApplication!.status).toBe('built');
+    expect(updatedApplication!.status).toBe('draft'); // Should remain unchanged
   }, 30000);
 });
