@@ -1,7 +1,11 @@
 {
-  "install": "curl -fsSL https://deb.nodesource.com/setup_24.x | sudo -E bash - && sudo apt-get install -y nodejs postgresql postgresql-contrib redis-server && (sudo -u postgres /usr/lib/postgresql/17/bin/initdb -D /var/lib/postgresql/17/main --auth=trust 2>/dev/null || echo 'PostgreSQL already initialized') && (sudo -u postgres /usr/lib/postgresql/17/bin/pg_ctl -D /var/lib/postgresql/17/main -l /var/log/postgresql/postgresql-17-main.log start 2>/dev/null || echo 'PostgreSQL start failed, will retry in start command') && (sudo redis-server --daemonize yes 2>/dev/null || echo 'Redis start failed, will retry in start command') && (sudo -u postgres psql -c \"CREATE USER platform_user WITH PASSWORD 'platform_password';\" 2>/dev/null || echo 'User already exists') && (sudo -u postgres psql -c \"CREATE DATABASE platform_db OWNER platform_user;\" 2>/dev/null || echo 'Database already exists') && (cd /workspace/api && npm install 2>/dev/null || echo 'API npm install failed') && (cd /workspace/webapp && npm install 2>/dev/null || echo 'Webapp npm install failed') && (cd /workspace/bot && npm install 2>/dev/null || echo 'Bot npm install failed')",
-  "start": "(sudo -u postgres /usr/lib/postgresql/17/bin/pg_ctl -D /var/lib/postgresql/17/main -l /var/log/postgresql/postgresql-17-main.log start 2>/dev/null || echo 'PostgreSQL start failed') && (sudo redis-server --daemonize yes 2>/dev/null || echo 'Redis start failed')",
+  "install": "curl -fsSL https://deb.nodesource.com/setup_24.x | sudo -E bash - && sudo apt-get install -y nodejs docker.io docker-compose && (cd /workspace/api && npm install 2>/dev/null || echo 'API npm install failed') && (cd /workspace/webapp && npm install 2>/dev/null || echo 'Webapp npm install failed') && (cd /workspace/bot && npm install 2>/dev/null || echo 'Bot npm install failed')",
+  "start": "cd /workspace/docker && docker-compose up -d postgres redis && sleep 10 && docker-compose exec -T postgres pg_isready -U platform_user -d platform_db && docker-compose exec -T redis redis-cli ping",
   "terminals": [
+    {
+      "name": "Docker Services",
+      "command": "cd /workspace/docker && docker-compose up -d"
+    },
     {
       "name": "API Development",
       "command": "cd /workspace/api && npm run dev"
@@ -9,6 +13,10 @@
     {
       "name": "Webapp Development",
       "command": "cd /workspace/webapp && npm run dev"
+    },
+    {
+      "name": "Database Management",
+      "command": "cd /workspace/docker && docker-compose exec postgres psql -U platform_user -d platform_db"
     }
   ]
 }

@@ -1,7 +1,7 @@
 import { GeminiService } from '../services/geminiService';
 
 // Mock config module
-jest.mock('../config/environment', () => ({
+jest.mock('../config/environment.js', () => ({
   default: {
     GEMINI_KEY: 'test-api-key',
     get GEMINI_API_KEY() {
@@ -29,6 +29,13 @@ describe('GeminiService', () => {
     jest.clearAllMocks();
     mockGenerateContent.mockClear();
     mockGetGenerativeModel.mockClear();
+
+    // Set environment variable for tests
+    process.env.GEMINI_KEY = 'test-api-key';
+  });
+
+  afterEach(() => {
+    delete process.env.GEMINI_KEY;
   });
 
   describe('constructor', () => {
@@ -36,28 +43,21 @@ describe('GeminiService', () => {
       expect(() => {
         geminiService = new GeminiService();
       }).not.toThrow();
-      
+
       expect(mockGetGenerativeModel).toHaveBeenCalledWith({ model: 'gemini-2.5-flash' });
     });
 
     it('should throw error if API key is not configured', () => {
-      // We need to test this in isolation
-      jest.isolateModules(() => {
-        jest.doMock('../config/environment', () => ({
-          default: {
-            GEMINI_KEY: '',
-            get GEMINI_API_KEY() {
-              return this.GEMINI_KEY;
-            }
-          }
-        }));
-        
-        const { GeminiService: GeminiServiceNoKey } = require('../services/geminiService');
-        
-        expect(() => {
-          new GeminiServiceNoKey();
-        }).toThrow('Gemini API key not configured (GEMINI_KEY)');
-      });
+      // Temporarily clear the environment variable
+      const originalKey = process.env.GEMINI_KEY;
+      delete process.env.GEMINI_KEY;
+
+      expect(() => {
+        new GeminiService();
+      }).toThrow('Gemini API key not configured (GEMINI_KEY)');
+
+      // Restore the environment variable
+      process.env.GEMINI_KEY = originalKey;
     });
   });
 
@@ -84,7 +84,7 @@ describe('GeminiService', () => {
       expect(result.response).toBe('This is a helpful response from Gemini.');
       expect(result.tokensUsed).toBeGreaterThan(0);
       expect(mockGenerateContent).toHaveBeenCalledTimes(1);
-      
+
       // Check the prompt structure
       const calledPrompt = mockGenerateContent.mock.calls[0][0];
       expect(calledPrompt).toContain('You are a helpful assistant.');
