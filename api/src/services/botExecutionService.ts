@@ -429,24 +429,25 @@ export class BotExecutionService {
     if (tool.type === 'mcp_tool') {
       const lowerMessage = message.toLowerCase();
       console.log(`Processing MCP tool for message: "${message}"`);
-      
+
       // Detect common MCP operations
       if (lowerMessage.includes('create') && lowerMessage.includes('bot')) {
         console.log('Detected create_bot operation');
         params.operation = 'create_bot';
         // Extract bot name and description
-        const nameMatch = message.match(/create\s+(?:a\s+)?bot\s+(?:called\s+)?["']?([^"'\s]+)["']?/i);
+        const nameMatch = message.match(/create\s+(?:a\s+)?bot\s+(?:called\s+)?["']?([^"'\s]+(?:-[^"'\s]+)*)["']?/i);
+        console.log(`Regex test for name: "${message}" -> match:`, nameMatch);
         if (nameMatch) {
           params.name = nameMatch[1];
           console.log(`Extracted name: ${params.name}`);
         }
-        
+
         const descMatch = message.match(/description[:\s]+["']?([^"']+)["']?/i);
         if (descMatch) {
           params.description = descMatch[1];
           console.log(`Extracted description: ${params.description}`);
         }
-        
+
         // Set default displayName if not provided
         if (params.name && !params.displayName) {
           params.displayName = params.name.charAt(0).toUpperCase() + params.name.slice(1).replace(/-/g, ' ');
@@ -475,7 +476,7 @@ export class BotExecutionService {
         params.operation = 'execute_bot';
         const idMatch = message.match(/bot\s+(?:id\s+)?["']?([^"'\s]+)["']?/i);
         if (idMatch) params.botId = idMatch[1];
-        
+
         const msgMatch = message.match(/message[:\s]+["']?([^"']+)["']?/i);
         if (msgMatch) params.message = msgMatch[1];
       }
