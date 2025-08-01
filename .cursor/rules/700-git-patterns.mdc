@@ -3,6 +3,7 @@ description: using git, writing commit messages, git
 alwaysApply: false
 ---
 
+- When adding files before committing, only add files related to the current work
 - Keep commit messages short and two the point
 - Write a one liner with a semver tag
 - Include feature name in parentheses if applicable

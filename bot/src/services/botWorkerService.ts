@@ -51,7 +51,7 @@ const processBotMessage = async (
     console.log(`🤖 Processing message for bot ${botId}: "${message}"`);
 
     // Get or create bot instance
-    let instance: BotInstance;
+    let instance: BotInstance | null = null;
     if (instanceId) {
       instance = await botInstanceRepository.findOne({
         where: { id: instanceId }
