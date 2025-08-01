@@ -54,17 +54,18 @@ export const Tools: React.FC<ToolsProps> = ({ botId, showSystemTools = false }) 
   const [testingTool, setTestingTool] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<string>('all');
+  const [viewMode, setViewMode] = useState<'all' | 'system' | 'custom'>('all');
 
   useEffect(() => {
     fetchTools();
-  }, [botId, showSystemTools]);
+  }, [botId, showSystemTools, viewMode]);
 
   const fetchTools = async () => {
     try {
       let endpoint = '/bot-tools/tools';
       if (botId) {
         endpoint = `/bot-tools/bots/${botId}/tools?userId=${user?.id}`;
-      } else if (showSystemTools) {
+      } else if (showSystemTools || viewMode === 'system') {
         endpoint = '/bot-tools/system-tools';
       }
       
@@ -179,6 +180,42 @@ export const Tools: React.FC<ToolsProps> = ({ botId, showSystemTools = false }) 
           Add Tool
         </button>
       </div>
+
+      {/* View Mode Selector */}
+      {!botId && (
+        <div className="flex space-x-2">
+          <button
+            onClick={() => setViewMode('all')}
+            className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
+              viewMode === 'all'
+                ? 'bg-primary-100 text-primary-700 dark:bg-primary-900 dark:text-primary-300'
+                : 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+            }`}
+          >
+            All Tools
+          </button>
+          <button
+            onClick={() => setViewMode('system')}
+            className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
+              viewMode === 'system'
+                ? 'bg-primary-100 text-primary-700 dark:bg-primary-900 dark:text-primary-300'
+                : 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+            }`}
+          >
+            System Tools
+          </button>
+          <button
+            onClick={() => setViewMode('custom')}
+            className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
+              viewMode === 'custom'
+                ? 'bg-primary-100 text-primary-700 dark:bg-primary-900 dark:text-primary-300'
+                : 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+            }`}
+          >
+            Custom Tools
+          </button>
+        </div>
+      )}
 
       {/* Filters */}
       <div className="flex gap-4 items-center">
@@ -309,7 +346,7 @@ export const Tools: React.FC<ToolsProps> = ({ botId, showSystemTools = false }) 
       {/* Add/Edit Tool Form */}
       {(showAddForm || editingTool) && (
         <ToolForm
-          tool={editingTool}
+          tool={editingTool || undefined}
           onSubmit={editingTool ? (data) => updateTool(editingTool.id, data) : addTool}
           onCancel={() => {
             setShowAddForm(false);
