@@ -11,6 +11,12 @@ const chatMessageRepository = AppDataSource.getRepository(ChatMessage);
 const botRepository = AppDataSource.getRepository(Bot);
 const promptRepository = AppDataSource.getRepository(Prompt);
 
+// UUID validation helper
+function isValidUUID(uuid: string): boolean {
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  return uuidRegex.test(uuid);
+}
+
 export class BotExecutionService {
   private static runningInstances = new Map<string, NodeJS.Timeout>();
   private static geminiService = new GeminiService();
@@ -19,6 +25,14 @@ export class BotExecutionService {
    * Start a bot instance
    */
   static async startBotInstance(botId: string, userId: string): Promise<BotInstance> {
+    // Validate UUIDs
+    if (!isValidUUID(botId)) {
+      throw new Error('Invalid bot ID format');
+    }
+    if (!isValidUUID(userId)) {
+      throw new Error('Invalid user ID format');
+    }
+
     // Check if bot exists and is active
     const bot = await botRepository.findOne({
       where: { id: botId, isActive: true },
@@ -63,7 +77,7 @@ export class BotExecutionService {
     try {
       // Simulate bot startup process
       await this.simulateBotStartup(instance.id);
-      
+
       instance.status = BotInstanceStatus.RUNNING;
       await botInstanceRepository.save(instance);
 
@@ -87,6 +101,14 @@ export class BotExecutionService {
    * Stop a bot instance
    */
   static async stopBotInstance(botId: string, userId: string): Promise<BotInstance> {
+    // Validate UUIDs
+    if (!isValidUUID(botId)) {
+      throw new Error('Invalid bot ID format');
+    }
+    if (!isValidUUID(userId)) {
+      throw new Error('Invalid user ID format');
+    }
+
     const instance = await botInstanceRepository.findOne({
       where: { botId, userId }
     });
@@ -127,10 +149,18 @@ export class BotExecutionService {
    * Send a message to a bot and get response
    */
   static async sendMessage(
-    botId: string, 
-    userId: string, 
+    botId: string,
+    userId: string,
     message: string
   ): Promise<{ userMessage: ChatMessage; botResponse: ChatMessage }> {
+    // Validate UUIDs
+    if (!isValidUUID(botId)) {
+      throw new Error('Invalid bot ID format');
+    }
+    if (!isValidUUID(userId)) {
+      throw new Error('Invalid user ID format');
+    }
+
     const instance = await botInstanceRepository.findOne({
       where: { botId, userId },
       relations: ['bot', 'bot.prompts']
@@ -169,6 +199,14 @@ export class BotExecutionService {
    * Get conversation history for a bot instance
    */
   static async getConversationHistory(botId: string, userId: string, limit = 50): Promise<ChatMessage[]> {
+    // Validate UUIDs
+    if (!isValidUUID(botId)) {
+      throw new Error('Invalid bot ID format');
+    }
+    if (!isValidUUID(userId)) {
+      throw new Error('Invalid user ID format');
+    }
+
     const instance = await botInstanceRepository.findOne({
       where: { botId, userId }
     });
@@ -177,7 +215,7 @@ export class BotExecutionService {
       throw new Error('Bot instance not found');
     }
 
-    return await chatMessageRepository.find({
+    return chatMessageRepository.find({
       where: { botInstanceId: instance.id },
       order: { createdAt: 'ASC' },
       take: limit
@@ -188,9 +226,16 @@ export class BotExecutionService {
    * Get bot instance status
    */
   static async getBotInstanceStatus(botId: string, userId: string): Promise<BotInstance | null> {
-    return await botInstanceRepository.findOne({
-      where: { botId, userId },
-      relations: ['bot']
+    // Validate UUIDs
+    if (!isValidUUID(botId)) {
+      throw new Error('Invalid bot ID format');
+    }
+    if (!isValidUUID(userId)) {
+      throw new Error('Invalid user ID format');
+    }
+
+    return botInstanceRepository.findOne({
+      where: { botId, userId }
     });
   }
 
@@ -262,8 +307,8 @@ export class BotExecutionService {
    * Generate bot response using prompt context
    */
   private static async generateBotResponse(
-    promptContext: string, 
-    conversationHistory: string, 
+    promptContext: string,
+    conversationHistory: string,
     userMessage: string
   ): Promise<string> {
     try {
@@ -311,4 +356,4 @@ export class BotExecutionService {
       }
     }
   }
-} 
+}

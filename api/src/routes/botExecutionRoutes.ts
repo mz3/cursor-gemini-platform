@@ -1,4 +1,5 @@
 import { Router, Request, Response, NextFunction } from 'express';
+import { BotExecutionService } from '../services/botExecutionService.js';
 
 const router = Router();
 
@@ -11,15 +12,12 @@ router.post('/:botId/start', async (req: Request, res: Response, next: NextFunct
     if (!userId) {
       return res.status(400).json({ error: 'userId is required' });
     }
+    if (!botId) {
+      return res.status(400).json({ error: 'botId is required' });
+    }
 
-    // Simple response for now
-    return res.json({ 
-      id: 'test-instance-id',
-      botId,
-      userId,
-      status: 'running',
-      lastStartedAt: new Date().toISOString()
-    });
+    const instance = await BotExecutionService.startBotInstance(botId, userId);
+    return res.json(instance);
   } catch (error) {
     return next(error);
   }
@@ -35,14 +33,12 @@ router.post('/:botId/stop', async (req: Request, res: Response, next: NextFuncti
       return res.status(400).json({ error: 'userId is required' });
     }
 
-    // Simple response for now
-    return res.json({ 
-      id: 'test-instance-id',
-      botId,
-      userId,
-      status: 'stopped',
-      lastStoppedAt: new Date().toISOString()
-    });
+    if (!botId) {
+      return res.status(400).json({ error: 'botId is required' });
+    }
+
+    const instance = await BotExecutionService.stopBotInstance(botId, userId);
+    return res.json(instance);
   } catch (error) {
     return next(error);
   }
@@ -58,13 +54,12 @@ router.get('/:botId/status', async (req: Request, res: Response, next: NextFunct
       return res.status(400).json({ error: 'userId is required' });
     }
 
-    // Simple response for now
-    return res.json({ 
-      id: 'test-instance-id',
-      botId,
-      userId,
-      status: 'running'
-    });
+    if (!botId) {
+      return res.status(400).json({ error: 'botId is required' });
+    }
+
+    const instance = await BotExecutionService.getBotInstanceStatus(botId, userId as string);
+    return res.json(instance);
   } catch (error) {
     return next(error);
   }
@@ -76,25 +71,18 @@ router.post('/:botId/chat', async (req: Request, res: Response, next: NextFuncti
     const { botId } = req.params;
     const { userId, message } = req.body;
 
-    if (!userId || !message) {
-      return res.status(400).json({ error: 'userId and message are required' });
+    if (!userId) {
+      return res.status(400).json({ error: 'userId is required' });
+    }
+    if (!message) {
+      return res.status(400).json({ error: 'message is required' });
+    }
+    if (!botId) {
+      return res.status(400).json({ error: 'botId is required' });
     }
 
-    // Simple response for now
-    return res.json({
-      userMessage: {
-        id: 'user-msg-id',
-        role: 'user',
-        content: message,
-        createdAt: new Date().toISOString()
-      },
-      botResponse: {
-        id: 'bot-msg-id',
-        role: 'bot',
-        content: `I received your message: "${message}". This is a test response.`,
-        createdAt: new Date().toISOString()
-      }
-    });
+    const result = await BotExecutionService.sendMessage(botId, userId, message);
+    return res.json(result);
   } catch (error) {
     return next(error);
   }
@@ -110,11 +98,16 @@ router.get('/:botId/chat', async (req: Request, res: Response, next: NextFunctio
       return res.status(400).json({ error: 'userId is required' });
     }
 
-    // Simple response for now
-    return res.json([]);
+    if (!botId) {
+      return res.status(400).json({ error: 'botId is required' });
+    }
+
+    const limitNum = limit ? parseInt(limit as string) : 50;
+    const messages = await BotExecutionService.getConversationHistory(botId, userId as string, limitNum);
+    return res.json(messages);
   } catch (error) {
     return next(error);
   }
 });
 
-export { router as botExecutionRoutes }; 
+export default router;

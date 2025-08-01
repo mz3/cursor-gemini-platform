@@ -16,6 +16,7 @@ describe('Prompt API Integration Tests', () => {
     const res = await request(API_BASE_URL)
       .post('/api/users/login')
       .send({ email: 'admin@platform.com', password: 'admin123' });
+
     token = res.body.token;
     userId = res.body.user.id;
   });
