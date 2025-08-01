@@ -1,17 +1,84 @@
 [
   {
-    "name": "platform-support-chat",
-    "displayName": "Platform Support Chat",
-    "description": "Handles customer support conversations and ticket management",
+    "name": "platform-api-sdk",
+    "displayName": "Platform API SDK",
+    "description": "Comprehensive API SDK for accessing all platform features - models, applications, bots, prompts, tools, etc.",
     "type": "mcp_tool",
     "config": {
       "platformEndpoint": "http://api:4000/api",
       "userId": "system",
-      "permissions": ["read", "write"],
-      "operations": ["create_ticket", "update_ticket", "list_tickets", "get_ticket", "resolve_ticket"]
+      "permissions": ["read", "write", "execute"],
+      "operations": [
+        "list_models", "get_model", "create_model", "update_model", "delete_model",
+        "list_applications", "get_application", "create_application", "update_application", "delete_application",
+        "list_bots", "get_bot", "create_bot", "update_bot", "delete_bot",
+        "list_prompts", "get_prompt", "create_prompt", "update_prompt", "delete_prompt",
+        "list_tools", "get_tool", "create_tool", "update_tool", "delete_tool",
+        "list_features", "get_feature", "create_feature", "update_feature", "delete_feature",
+        "list_workflows", "get_workflow", "create_workflow", "update_workflow", "delete_workflow",
+        "execute_bot", "start_bot_instance", "stop_bot_instance", "get_bot_instance",
+        "get_user_info", "list_user_data", "search_platform"
+      ]
     },
     "isActive": true,
-    "requiresAuth": false,
+    "requiresAuth": true,
+    "botId": "meta-platform-support"
+  },
+  {
+    "name": "list-user-models",
+    "displayName": "List User Models",
+    "description": "Lists all data models created by a user",
+    "type": "http_request",
+    "config": {
+      "url": "http://api:4000/api/models",
+      "method": "GET",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "params": {
+        "userId": "${userId}"
+      }
+    },
+    "isActive": true,
+    "requiresAuth": true,
+    "botId": "meta-platform-support"
+  },
+  {
+    "name": "list-user-applications",
+    "displayName": "List User Applications",
+    "description": "Lists all applications created by a user",
+    "type": "http_request",
+    "config": {
+      "url": "http://api:4000/api/applications",
+      "method": "GET",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "params": {
+        "userId": "${userId}"
+      }
+    },
+    "isActive": true,
+    "requiresAuth": true,
+    "botId": "meta-platform-support"
+  },
+  {
+    "name": "list-user-bots",
+    "displayName": "List User Bots",
+    "description": "Lists all bots created by a user",
+    "type": "http_request",
+    "config": {
+      "url": "http://api:4000/api/bots",
+      "method": "GET",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "params": {
+        "userId": "${userId}"
+      }
+    },
+    "isActive": true,
+    "requiresAuth": true,
     "botId": "meta-platform-support"
   },
   {

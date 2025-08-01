@@ -264,7 +264,7 @@ export class BotExecutionService {
     const promptContext = this.buildPromptContext(bot);
 
     // Check if message contains tool calls
-    const toolCalls = this.detectToolCalls(message, bot.tools);
+    const toolCalls = this.detectToolCalls(message, bot.tools, instance);
 
     let toolResults = '';
     if (toolCalls.length > 0) {
@@ -323,7 +323,7 @@ export class BotExecutionService {
   /**
    * Detect tool calls in user message
    */
-  private static detectToolCalls(message: string, tools: BotTool[]): Array<{tool: BotTool, params: Record<string, any>}> {
+  private static detectToolCalls(message: string, tools: BotTool[], instance: BotInstance): Array<{tool: BotTool, params: Record<string, any>}> {
     const toolCalls = [];
     const lowerMessage = message.toLowerCase();
 
@@ -342,11 +342,11 @@ export class BotExecutionService {
           (tool.type === 'shell_command' && (lowerMessage.includes('shell') || lowerMessage.includes('command') || lowerMessage.includes('ping'))) ||
           (tool.type === 'http_request' && (lowerMessage.includes('http') || lowerMessage.includes('api') || lowerMessage.includes('request'))) ||
           (tool.type === 'file_operation' && (lowerMessage.includes('file') || lowerMessage.includes('read') || lowerMessage.includes('write'))) ||
-          (tool.type === 'mcp_tool' && (lowerMessage.includes('mcp') || lowerMessage.includes('platform') || lowerMessage.includes('meta') || lowerMessage.includes('create') || lowerMessage.includes('bot')))) {
+          (tool.type === 'mcp_tool' && (lowerMessage.includes('mcp') || lowerMessage.includes('platform') || lowerMessage.includes('meta') || lowerMessage.includes('create') || lowerMessage.includes('bot') || lowerMessage.includes('list') || lowerMessage.includes('get') || lowerMessage.includes('show') || lowerMessage.includes('find') || lowerMessage.includes('search')))) {
 
         console.log(`Tool detected: ${tool.name} (${tool.type})`);
         // Extract parameters from message
-        const params = this.extractToolParams(message, tool);
+        const params = this.extractToolParams(message, tool, instance.userId);
         console.log(`Extracted params for ${tool.name}:`, JSON.stringify(params));
         toolCalls.push({ tool, params });
       }
@@ -379,7 +379,7 @@ export class BotExecutionService {
   /**
    * Extract tool parameters from user message
    */
-  private static extractToolParams(message: string, tool: BotTool): Record<string, any> {
+  private static extractToolParams(message: string, tool: BotTool, userId?: string): Record<string, any> {
     const params: Record<string, any> = {};
 
     // Extract common patterns like URLs, file paths, etc.
@@ -479,6 +479,45 @@ export class BotExecutionService {
 
         const msgMatch = message.match(/message[:\s]+["']?([^"']+)["']?/i);
         if (msgMatch) params.message = msgMatch[1];
+      } else if (lowerMessage.includes('list') && lowerMessage.includes('model')) {
+        console.log('Detected list_models operation');
+        params.operation = 'list_models';
+        params.userId = userId; // Add user ID for filtering
+      } else if (lowerMessage.includes('list') && lowerMessage.includes('application')) {
+        console.log('Detected list_applications operation');
+        params.operation = 'list_applications';
+        params.userId = userId;
+      } else if (lowerMessage.includes('list') && lowerMessage.includes('prompt')) {
+        console.log('Detected list_prompts operation');
+        params.operation = 'list_prompts';
+        params.userId = userId;
+      } else if (lowerMessage.includes('list') && lowerMessage.includes('tool')) {
+        console.log('Detected list_tools operation');
+        params.operation = 'list_tools';
+        params.userId = userId;
+      } else if (lowerMessage.includes('list') && lowerMessage.includes('feature')) {
+        console.log('Detected list_features operation');
+        params.operation = 'list_features';
+        params.userId = userId;
+      } else if (lowerMessage.includes('list') && lowerMessage.includes('workflow')) {
+        console.log('Detected list_workflows operation');
+        params.operation = 'list_workflows';
+        params.userId = userId;
+      } else if (lowerMessage.includes('get') && lowerMessage.includes('user')) {
+        console.log('Detected get_user_info operation');
+        params.operation = 'get_user_info';
+        params.userId = userId;
+      } else if (lowerMessage.includes('list') && lowerMessage.includes('user') && lowerMessage.includes('data')) {
+        console.log('Detected list_user_data operation');
+        params.operation = 'list_user_data';
+        params.userId = userId;
+      } else if (lowerMessage.includes('search')) {
+        console.log('Detected search_platform operation');
+        params.operation = 'search_platform';
+        params.userId = userId;
+        // Extract search query
+        const queryMatch = message.match(/search\s+(?:for\s+)?["']?([^"']+)["']?/i);
+        if (queryMatch) params.query = queryMatch[1];
       }
     }
 
