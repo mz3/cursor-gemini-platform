@@ -43,6 +43,7 @@ export class FixtureLoader {
       'models',
       'prompts',
       'bots',
+      'botTools',
       'workflows',
       'workflowActions',
       'templates',

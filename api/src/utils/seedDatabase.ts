@@ -9,6 +9,7 @@ import { Feature } from '../entities/Feature.js';
 import { Component } from '../entities/Component.js';
 import { Prompt } from '../entities/Prompt.js';
 import { Bot } from '../entities/Bot.js';
+import { BotTool } from '../entities/BotTool.js';
 import { Template } from '../entities/Template.js';
 import { Relationship } from '../entities/Relationship.js';
 import { UserSettings } from '../entities/UserSettings.js';
@@ -36,6 +37,7 @@ export const seedDatabase = async (): Promise<void> => {
     const componentRepository = AppDataSource.getRepository(Component);
     const promptRepository = AppDataSource.getRepository(Prompt);
     const botRepository = AppDataSource.getRepository(Bot);
+    const botToolRepository = AppDataSource.getRepository(BotTool);
     const templateRepository = AppDataSource.getRepository(Template);
     const relationshipRepository = AppDataSource.getRepository(Relationship);
     const userSettingsRepository = AppDataSource.getRepository(UserSettings);
@@ -76,13 +78,10 @@ export const seedDatabase = async (): Promise<void> => {
       const defaultUser = userRepository.create({
         ...userData,
         password: hashedPassword
-      });
-      const savedUsers = await userRepository.save(defaultUser);
-      const newUser = Array.isArray(savedUsers) ? savedUsers[0] : savedUsers;
-      if (!newUser) {
-        throw new Error('Failed to save user');
-      }
-      savedUser = newUser;
+      } as any);
+      await userRepository.save(defaultUser);
+      // Fetch the user again after creation
+      savedUser = await userRepository.findOne({ where: { email: userData.email } });
     }
 
     if (!savedUser) {
@@ -189,6 +188,31 @@ export const seedDatabase = async (): Promise<void> => {
           await botRepository.save(bot);
         } catch (error) {
           console.error('Error creating bot:', error);
+        }
+      }
+    }
+
+    console.log('Creating bot tools...');
+    // Create bot tools from fixtures
+    if (fixtures.botTools) {
+      for (const toolData of fixtures.botTools) {
+        try {
+          // Find the bot by name for system bots
+          const bot = await botRepository.findOne({ 
+            where: { name: toolData.botId } 
+          });
+          
+          if (bot) {
+            const tool = botToolRepository.create({
+              ...toolData,
+              botId: bot.id
+            });
+            await botToolRepository.save(tool);
+          } else {
+            console.warn(`Bot not found for tool ${toolData.name}: ${toolData.botId}`);
+          }
+        } catch (error) {
+          console.error('Error creating bot tool:', error);
         }
       }
     }
