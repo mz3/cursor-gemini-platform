@@ -15,6 +15,7 @@ import { PromptVersion } from '../entities/PromptVersion.js';
 import { UserSettings } from '../entities/UserSettings.js';
 import { Bot } from '../entities/Bot.js';
 import { BotInstance } from '../entities/BotInstance.js';
+import { BotTool } from '../entities/BotTool.js';
 import { ChatMessage } from '../entities/ChatMessage.js';
 import { Feature } from '../entities/Feature.js';
 
@@ -46,6 +47,7 @@ export const AppDataSource = new DataSource({
     PromptVersion,
     Bot,
     BotInstance,
+    BotTool,
     ChatMessage,
     Feature
   ],

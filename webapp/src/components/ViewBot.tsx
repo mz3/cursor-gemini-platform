@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Edit, Bot, MessageSquare, Calendar, User, MessageCircle } from 'lucide-react';
+import { ArrowLeft, Edit, Bot, MessageSquare, Calendar, User, MessageCircle, Settings } from 'lucide-react';
 import api from '../utils/api';
 import { BotChat } from './BotChat';
+import { BotTools } from './BotTools';
 import { useAuth } from '../contexts/AuthContext';
 
 interface Bot {
@@ -23,7 +24,7 @@ const ViewBot: React.FC = () => {
   const [bot, setBot] = useState<Bot | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [activeTab, setActiveTab] = useState<'details' | 'chat'>('details');
+  const [activeTab, setActiveTab] = useState<'details' | 'chat' | 'tools'>('details');
 
   useEffect(() => {
     fetchBot();
@@ -117,6 +118,17 @@ const ViewBot: React.FC = () => {
               <MessageCircle className="w-4 h-4 inline mr-2" />
               Chat
             </button>
+            <button
+              onClick={() => setActiveTab('tools')}
+              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'tools'
+                  ? 'border-primary-500 text-primary-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              <Settings className="w-4 h-4 inline mr-2" />
+              Tools
+            </button>
           </nav>
         </div>
       </div>
@@ -200,7 +212,7 @@ const ViewBot: React.FC = () => {
           </div>
         </div>
       </div>
-      ) : (
+      ) : activeTab === 'chat' ? (
         <div className="h-[600px]">
           {user ? (
             <BotChat
@@ -216,6 +228,10 @@ const ViewBot: React.FC = () => {
               </div>
             </div>
           )}
+        </div>
+      ) : (
+        <div className="bg-white shadow rounded-lg p-6">
+          <BotTools botId={bot.id} />
         </div>
       )}
     </div>

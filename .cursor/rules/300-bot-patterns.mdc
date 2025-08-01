@@ -361,9 +361,9 @@ export class BotService {
 
   private async callAIService(promptContent: string, input: any): Promise<any> {
     // Implementation for calling AI service (e.g., Gemini API)
-    const apiKey = process.env.GEMINI_API_KEY;
+    const apiKey = process.env.GEMINI_KEY;
     if (!apiKey) {
-      throw new Error('GEMINI_API_KEY not configured');
+      throw new Error('GEMINI_KEY not configured');
     }
 
     // Prepare the prompt with input
@@ -576,7 +576,7 @@ export const getConfig = (): BotConfig => ({
     port: parseInt(process.env.REDIS_PORT || '6379'),
   },
   ai: {
-    apiKey: process.env.GEMINI_API_KEY || '',
+    apiKey: process.env.GEMINI_KEY || '',
     model: 'gemini-pro',
     maxTokens: 1000,
   },

@@ -1,6 +1,7 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, ManyToMany, JoinTable, Relation } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, ManyToMany, OneToMany, JoinTable, Relation } from 'typeorm';
 import { User } from './User.js';
 import { Prompt } from './Prompt.js';
+import { BotTool } from './BotTool.js';
 
 @Entity('bots')
 export class Bot {
@@ -41,6 +42,9 @@ export class Bot {
     }
   })
   prompts!: Relation<Prompt>[];
+
+  @OneToMany(() => BotTool, (tool: BotTool) => tool.bot)
+  tools!: Relation<BotTool>[];
 
   @CreateDateColumn()
   createdAt!: Date;

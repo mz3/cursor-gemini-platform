@@ -4,12 +4,15 @@ import { ChatMessage, MessageRole } from '../entities/ChatMessage.js';
 import { Bot } from '../entities/Bot.js';
 import { Prompt } from '../entities/Prompt.js';
 import { PromptVersion } from '../entities/PromptVersion.js';
+import { BotTool } from '../entities/BotTool.js';
 import { GeminiService } from './geminiService.js';
+import { ToolExecutionService } from './toolExecutionService.js';
 
 const botInstanceRepository = AppDataSource.getRepository(BotInstance);
 const chatMessageRepository = AppDataSource.getRepository(ChatMessage);
 const botRepository = AppDataSource.getRepository(Bot);
 const promptRepository = AppDataSource.getRepository(Prompt);
+const botToolRepository = AppDataSource.getRepository(BotTool);
 
 // UUID validation helper
 function isValidUUID(uuid: string): boolean {
@@ -243,41 +246,42 @@ export class BotExecutionService {
    * Process a message and generate bot response
    */
   private static async processMessage(instance: BotInstance, message: string): Promise<ChatMessage> {
-    // Get the bot's prompts
+    // Get the bot with prompts and tools
     const bot = await botRepository.findOne({
       where: { id: instance.botId },
-      relations: ['prompts', 'prompts.versions']
+      relations: ['prompts', 'prompts.versions', 'tools']
     });
 
-    if (!bot || !bot.prompts.length) {
+    if (!bot) {
+      throw new Error('Bot not found');
+    }
+
+    if (!bot.prompts.length) {
       throw new Error('Bot has no prompts configured');
     }
 
     // Build context from prompts
-    const promptContext = bot.prompts
-      .map(prompt => {
-        const activeVersion = prompt.versions?.find(v => v.isActive);
-        return activeVersion ? activeVersion.content : '';
-      })
-      .filter(content => content.length > 0)
-      .join('\n\n');
+    const promptContext = this.buildPromptContext(bot);
 
-    // Get recent conversation history for context
-    const recentMessages = await chatMessageRepository.find({
-      where: { botInstanceId: instance.id },
-      order: { createdAt: 'DESC' },
-      take: 10
-    });
+    // Check if message contains tool calls
+    const toolCalls = this.detectToolCalls(message, bot.tools);
 
-    const conversationHistory = recentMessages
-      .reverse()
-      .map(msg => `${msg.role}: ${msg.content}`)
-      .join('\n');
+    let toolResults = '';
+    if (toolCalls.length > 0) {
+      toolResults = await this.executeToolCalls(toolCalls, instance);
+    }
 
-    // Generate response using prompt context and conversation history
+    // Get conversation history
+    const conversationHistory = await this.getConversationHistoryForContext(instance.id);
+
+    // Generate response with tool results
+    const enhancedContext = toolResults
+      ? `${promptContext}\n\nTool Results:\n${toolResults}`
+      : promptContext;
+
     try {
       const geminiResult = await this.geminiService.generateResponse(
-        promptContext,
+        enhancedContext,
         conversationHistory,
         message
       );
@@ -301,6 +305,141 @@ export class BotExecutionService {
         tokensUsed: this.estimateTokenCount(fallbackResponse)
       });
     }
+  }
+
+  /**
+   * Build prompt context from bot prompts
+   */
+  private static buildPromptContext(bot: Bot): string {
+    return bot.prompts
+      .map(prompt => {
+        const activeVersion = prompt.versions?.find(v => v.isActive);
+        return activeVersion ? activeVersion.content : '';
+      })
+      .filter(content => content.length > 0)
+      .join('\n\n');
+  }
+
+  /**
+   * Detect tool calls in user message
+   */
+  private static detectToolCalls(message: string, tools: BotTool[]): Array<{tool: BotTool, params: Record<string, any>}> {
+    const toolCalls = [];
+    const lowerMessage = message.toLowerCase();
+
+    for (const tool of tools) {
+      if (!tool.isActive) continue;
+
+      // More flexible pattern matching
+      const toolNamePattern = new RegExp(`\\b${tool.name}\\b`, 'i');
+      const toolTypePattern = new RegExp(`\\b${tool.type.replace('_', ' ')}\\b`, 'i');
+      const toolDisplayPattern = new RegExp(`\\b${tool.displayName.toLowerCase()}\\b`, 'i');
+
+      // Check for tool name, type, or display name
+      if (toolNamePattern.test(message) ||
+          toolTypePattern.test(message) ||
+          toolDisplayPattern.test(lowerMessage) ||
+          (tool.type === 'shell_command' && (lowerMessage.includes('shell') || lowerMessage.includes('command') || lowerMessage.includes('ping'))) ||
+          (tool.type === 'http_request' && (lowerMessage.includes('http') || lowerMessage.includes('api') || lowerMessage.includes('request'))) ||
+          (tool.type === 'file_operation' && (lowerMessage.includes('file') || lowerMessage.includes('read') || lowerMessage.includes('write')))) {
+
+        console.log(`Tool detected: ${tool.name} (${tool.type})`);
+        // Extract parameters from message
+        const params = this.extractToolParams(message, tool);
+        toolCalls.push({ tool, params });
+      }
+    }
+
+    return toolCalls;
+  }
+
+  /**
+   * Execute tool calls and return results
+   */
+  private static async executeToolCalls(
+    toolCalls: Array<{tool: BotTool, params: Record<string, any>}>,
+    instance: BotInstance
+  ): Promise<string> {
+    const results = [];
+
+    for (const { tool, params } of toolCalls) {
+      try {
+        const result = await ToolExecutionService.executeTool(tool, params);
+        results.push(`${tool.displayName}: ${JSON.stringify(result)}`);
+      } catch (error) {
+        results.push(`${tool.displayName}: Error - ${error instanceof Error ? error.message : 'Unknown error'}`);
+      }
+    }
+
+    return results.join('\n');
+  }
+
+  /**
+   * Extract tool parameters from user message
+   */
+  private static extractToolParams(message: string, tool: BotTool): Record<string, any> {
+    const params: Record<string, any> = {};
+
+    // Extract common patterns like URLs, file paths, etc.
+    const urlMatch = message.match(/https?:\/\/[^\s]+/);
+    if (urlMatch) params.url = urlMatch[0];
+
+    const fileMatch = message.match(/\/[\w\/.-]+/);
+    if (fileMatch) params.path = fileMatch[0];
+
+    // Extract quoted strings as parameters
+    const quotedMatches = message.match(/"([^"]+)"/g);
+    if (quotedMatches) {
+      quotedMatches.forEach((match, index) => {
+        params[`param${index + 1}`] = match.replace(/"/g, '');
+      });
+    }
+
+    // For shell commands, extract the command from the message
+    if (tool.type === 'shell_command') {
+      // Look for common shell commands in the message
+      const shellCommands = ['ping', 'ls', 'cat', 'echo', 'date', 'whoami', 'pwd'];
+      for (const cmd of shellCommands) {
+        if (message.toLowerCase().includes(cmd)) {
+          // Extract the full command or domain/host
+          const cmdMatch = message.match(new RegExp(`${cmd}\\s+([^\\s]+)`, 'i'));
+          if (cmdMatch) {
+            // For ping commands, extract host parameter
+            if (cmd === 'ping') {
+              params.host = cmdMatch[1];
+            } else {
+              params.command = `${cmd} ${cmdMatch[1]}`;
+            }
+          } else {
+            if (cmd === 'ping') {
+              // Default host for ping
+              params.host = 'localhost';
+            } else {
+              params.command = cmd;
+            }
+          }
+          break;
+        }
+      }
+    }
+
+    return params;
+  }
+
+  /**
+   * Get conversation history for context
+   */
+  private static async getConversationHistoryForContext(instanceId: string): Promise<string> {
+    const recentMessages = await chatMessageRepository.find({
+      where: { botInstanceId: instanceId },
+      order: { createdAt: 'DESC' },
+      take: 10
+    });
+
+    return recentMessages
+      .reverse()
+      .map(msg => `${msg.role}: ${msg.content}`)
+      .join('\n');
   }
 
   /**
