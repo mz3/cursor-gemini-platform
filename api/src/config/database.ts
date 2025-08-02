@@ -21,8 +21,10 @@ import { Feature } from '../entities/Feature.js';
 import { Entity } from '../entities/Entity.js';
 
 // Helper to determine if running from dist (production build), ESM compatible
-const filename = fileURLToPath(import.meta.url);
-const isDist = filename.includes('/dist/') || filename.includes('\\dist\\');
+// Use a different approach for test environment to avoid import.meta issues
+const isDist = process.env.NODE_ENV === 'production' || 
+               (typeof __filename !== 'undefined' && __filename.includes('/dist/')) ||
+               (typeof __filename !== 'undefined' && __filename.includes('\\dist\\'));
 
 export const AppDataSource = new DataSource({
   type: 'postgres',
