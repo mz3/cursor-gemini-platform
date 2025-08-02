@@ -1,9 +1,20 @@
-import base from './jest.config.js';
+import baseConfig from './jest.config.js';
 
 export default {
-  ...base,
-  testMatch: [
-    "<rootDir>/src/**/*.test.ts",
-    "<rootDir>/src/**/*.integration.ts"
-  ],
+  ...baseConfig,
+  testMatch: ['**/__tests__/**/*.integration.ts'],
+  setupFilesAfterEnv: ['<rootDir>/src/__tests__/setup.integration.ts'],
+  testEnvironment: 'node',
+  testTimeout: 30000,
+  // Ensure proper ESM handling
+  extensionsToTreatAsEsm: ['.ts'],
+  moduleNameMapper: {
+    '^(\\\\.{1,2}/.*)\\\\.js$': '$1',
+  },
+  transform: {
+    '^.+\\\\.ts$': ['ts-jest', {
+      useESM: true,
+      tsconfig: 'tsconfig.test.json'
+    }],
+  },
 };
