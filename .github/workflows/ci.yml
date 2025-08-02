@@ -164,6 +164,7 @@ jobs:
           REDIS_PORT: 6379
           JWT_SECRET: test-jwt-secret-key
           API_PORT: 4000
+          GEMINI_KEY: ${{ secrets.GEMINI_KEY }}
 
       - name: Start UI server with nginx
         env:
@@ -221,6 +222,7 @@ jobs:
           REDIS_PORT: 6379
           JWT_SECRET: test-jwt-secret-key
           API_PORT: 4000
+          GEMINI_KEY: ${{ secrets.GEMINI_KEY }}
 
       - name: Test API login with test credentials
         run: |

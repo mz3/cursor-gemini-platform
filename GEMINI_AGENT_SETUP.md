@@ -4,7 +4,7 @@
 Replace mock bot responses with real Google Gemini 2.5 Flash API integration using native development environment.
 
 ## ✅ **Prerequisites (Already Done)**
-- ✅ Gemini API key configured as `GEMINI_API_KEY` environment variable
+- ✅ Gemini API key configured as `GEMINI_KEY` environment variable
 - ✅ Usage-based billing enabled
 - ✅ Environment configuration created (`api/src/config/environment.ts`)
 - ✅ Native development environment configured (PostgreSQL and Redis installed directly)
@@ -30,7 +30,7 @@ export class GeminiService {
   private model: any;
 
   constructor() {
-    this.genAI = new GoogleGenerativeAI(config.GEMINI_API_KEY);
+    this.genAI = new GoogleGenerativeAI(config.GEMINI_KEY);
     this.model = this.genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
   }
 
@@ -181,7 +181,7 @@ async generateResponse(
   conversationHistory: string,
   userMessage: string
 ): Promise<{ response: string; tokensUsed: number }> {
-  if (!config.GEMINI_API_KEY) {
+  if (!config.GEMINI_KEY) {
     throw new Error('Gemini API key not configured');
   }
 
@@ -254,8 +254,8 @@ describe('GeminiService', () => {
 
     it('should handle API errors gracefully', async () => {
       // Test with invalid API key scenario
-      const originalKey = process.env.GEMINI_API_KEY;
-      process.env.GEMINI_API_KEY = 'invalid-key';
+      const originalKey = process.env.GEMINI_KEY;
+      process.env.GEMINI_KEY = 'invalid-key';
 
       try {
         await geminiService.generateResponse('', '', 'test');
@@ -263,7 +263,7 @@ describe('GeminiService', () => {
       } catch (error) {
         expect(error).toBeInstanceOf(Error);
       } finally {
-        process.env.GEMINI_API_KEY = originalKey;
+        process.env.GEMINI_KEY = originalKey;
       }
     });
   });
@@ -348,7 +348,7 @@ curl -X POST http://localhost:4000/api/bot-execution/chat \
 ### **Common Issues:**
 
 1. **"Invalid API Key"**
-   - Verify `GEMINI_API_KEY` is set in environment
+   - Verify `GEMINI_KEY` is set in environment
    - Check environment variables in your shell
    - Restart services after adding env vars
 

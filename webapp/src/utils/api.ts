@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Configure axios with the correct base URL for the environment
 const api = axios.create({
-  baseURL: process.env.NODE_ENV === 'test'
+  baseURL: import.meta.env.MODE === 'test'
     ? 'http://localhost:4000/api'
     : import.meta.env.PROD
     ? 'https://cursor-gemini-api.fly.dev/api'

@@ -1,9 +1,34 @@
 [
   {
+    "name": "meta-platform-support",
+    "displayName": "Meta Platform Customer Support Bot",
+    "description": "Handles customer support, ticket management, and platform assistance",
+    "isActive": true,
+    "model": "gemini-2.5-flash",
+    "userId": "system"
+  },
+  {
+    "name": "code-builder",
+    "displayName": "Code Builder Bot",
+    "description": "Builds Docker containers and manages application deployment for connected repositories",
+    "isActive": true,
+    "model": "gemini-2.5-flash",
+    "userId": "system"
+  },
+  {
+    "name": "sysadmin",
+    "displayName": "Sysadmin Bot",
+    "description": "Manages servers, databases, and infrastructure using bash and SSH",
+    "isActive": true,
+    "model": "gemini-2.5-flash",
+    "userId": "system"
+  },
+  {
     "name": "code-generator",
     "displayName": "Code Generator Bot",
     "description": "Generates application code from models and specifications",
     "isActive": true,
+    "model": "gemini-2.5-flash",
     "userId": "system"
   },
   {
@@ -11,6 +36,7 @@
     "displayName": "Deployment Bot",
     "description": "Handles application deployment and infrastructure",
     "isActive": true,
+    "model": "gemini-2.5-flash",
     "userId": "system"
   },
   {
@@ -18,6 +44,7 @@
     "displayName": "Model Assistant Bot",
     "description": "Assists with data model creation and optimization",
     "isActive": true,
+    "model": "gemini-2.5-flash",
     "userId": "system"
   },
   {
@@ -25,6 +52,7 @@
     "displayName": "Workflow Assistant Bot",
     "description": "Helps create and optimize workflow automation",
     "isActive": true,
+    "model": "gemini-2.5-flash",
     "userId": "system"
   }
 ]

@@ -1,4 +1,4 @@
-import { MigrationInterface, QueryRunner } from "typeorm";
+import type { MigrationInterface, QueryRunner } from "typeorm";
 
 export class AddBotTable1753434011982 implements MigrationInterface {
     name = 'AddBotTable1753434011982'

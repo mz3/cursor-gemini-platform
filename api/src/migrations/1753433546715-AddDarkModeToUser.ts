@@ -1,4 +1,4 @@
-import { MigrationInterface, QueryRunner } from "typeorm";
+import type { MigrationInterface, QueryRunner } from "typeorm";
 
 export class AddDarkModeToUser1753433546715 implements MigrationInterface {
     name = 'AddDarkModeToUser1753433546715'

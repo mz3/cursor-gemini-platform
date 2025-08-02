@@ -23,5 +23,20 @@
     "name": "api-documentation",
     "description": "Generate API documentation from models",
     "userId": "system"
+  },
+  {
+    "name": "platform-support",
+    "description": "Customer support and platform assistance",
+    "userId": "system"
+  },
+  {
+    "name": "code-builder",
+    "description": "Docker container building and deployment",
+    "userId": "system"
+  },
+  {
+    "name": "sysadmin",
+    "description": "System administration and server management",
+    "userId": "system"
   }
 ]
