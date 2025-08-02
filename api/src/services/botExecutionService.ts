@@ -6,6 +6,8 @@ import { Prompt } from '../entities/Prompt.js';
 import { PromptVersion } from '../entities/PromptVersion.js';
 import { BotTool } from '../entities/BotTool.js';
 import { publishEvent } from '../config/redis.js';
+import MessageHandler from '../websocket/messageHandler.js';
+import { BotStatusUpdate, ChatMessage as WSChatMessage } from '../websocket/types.js';
 
 const botInstanceRepository = AppDataSource.getRepository(BotInstance);
 const chatMessageRepository = AppDataSource.getRepository(ChatMessage);
@@ -211,6 +213,14 @@ export class BotExecutionService {
       botResponseId: botResponse.id
     });
 
+    // Broadcast user message via WebSocket
+    const messageHandler = MessageHandler.getInstance();
+    const wsMessage: WSChatMessage = {
+      ...userMessage,
+      createdAt: userMessage.createdAt instanceof Date ? userMessage.createdAt.toISOString() : userMessage.createdAt
+    };
+    await messageHandler.handleBotMessage(botId, wsMessage);
+
     console.log(`📨 Queued bot message for async processing: ${botId}`);
 
     return { userMessage, botResponse };
@@ -289,6 +299,54 @@ export class BotExecutionService {
   private static async simulateBotStartup(instanceId: string): Promise<void> {
     // Simulate startup delay
     await new Promise(resolve => setTimeout(resolve, 1000));
+  }
+
+  /**
+   * Update bot message and broadcast via WebSocket
+   */
+  static async updateBotMessage(messageId: string, content: string, tokensUsed?: number): Promise<void> {
+    const message = await chatMessageRepository.findOne({
+      where: { id: messageId }
+    });
+
+    if (!message) {
+      throw new Error('Message not found');
+    }
+
+    // Update message
+    message.content = content;
+    if (tokensUsed !== undefined) {
+      message.tokensUsed = tokensUsed;
+    }
+    await chatMessageRepository.save(message);
+
+    // Get bot instance to find botId
+    const instance = await botInstanceRepository.findOne({
+      where: { id: message.botInstanceId }
+    });
+
+    if (instance) {
+      // Broadcast updated message via WebSocket
+      const messageHandler = MessageHandler.getInstance();
+      const wsMessage: WSChatMessage = {
+        ...message,
+        createdAt: message.createdAt instanceof Date ? message.createdAt.toISOString() : message.createdAt
+      };
+      await messageHandler.handleBotMessage(instance.botId, wsMessage);
+    }
+  }
+
+  /**
+   * Broadcast bot status update via WebSocket
+   */
+  static async broadcastBotStatus(botId: string, status: BotInstance): Promise<void> {
+    const messageHandler = MessageHandler.getInstance();
+    const wsStatus: BotStatusUpdate = {
+      ...status,
+      lastStartedAt: status.lastStartedAt instanceof Date ? status.lastStartedAt.toISOString() : status.lastStartedAt,
+      lastStoppedAt: status.lastStoppedAt instanceof Date ? status.lastStoppedAt.toISOString() : status.lastStoppedAt
+    };
+    await messageHandler.handleBotStatusUpdate(botId, wsStatus);
   }
 
   /**

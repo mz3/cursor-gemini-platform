@@ -1,7 +1,7 @@
 /// <reference types="vite/client" />
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, Link, useLocation } from 'react-router-dom';
-import { Home, Database, AppWindow, Settings as SettingsIcon, Plus, LogOut, User, MessageSquare, Bot, Zap, Wrench } from 'lucide-react';
+import { Home, Database, AppWindow, Settings as SettingsIcon, Plus, LogOut, User, MessageSquare, Bot, Zap, Wrench, Layers } from 'lucide-react';
 import Login from './components/Login';
 import Dashboard from './components/Dashboard';
 import Models from './components/Models';
@@ -26,6 +26,7 @@ import EditFeature from './components/EditFeature';
 import ViewFeature from './components/ViewFeature';
 import Settings from './components/Settings';
 import Tools from './components/Tools';
+import { Entities } from './components/Entities';
 import ChatSidebar from './components/ChatSidebar';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { cn } from './utils/cn';
@@ -66,6 +67,7 @@ const AppContent: React.FC = () => {
     { name: 'Features', href: '/features', icon: Zap },
     { name: 'Prompts', href: '/prompts', icon: MessageSquare },
     { name: 'Bots', href: '/bots', icon: Bot },
+    { name: 'Entities', href: '/entity-manager', icon: Layers },
     { name: 'Tools', href: '/tools', icon: Wrench },
     { name: 'Settings', href: '/settings', icon: SettingsIcon },
   ];
@@ -173,6 +175,7 @@ const AppContent: React.FC = () => {
             <Route path="/bots/:id/edit" element={<EditBot />} />
             <Route path="/tools" element={<Tools />} />
             <Route path="/settings" element={<Settings />} />
+            <Route path="/entity-manager" element={<Entities />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </div>

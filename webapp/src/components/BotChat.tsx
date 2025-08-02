@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import api from '../utils/api';
+import { useWebSocket } from '../hooks/useWebSocket';
+import { useAuth } from '../contexts/AuthContext';
 
 interface BotChatProps {
   botId: string;
@@ -26,15 +28,65 @@ interface BotInstance {
 }
 
 export const BotChat: React.FC<BotChatProps> = ({ botId, userId, botName }) => {
+  const { user } = useAuth();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [botInstance, setBotInstance] = useState<BotInstance | null>(null);
   const [isStarting, setIsStarting] = useState(false);
   const [isStopping, setIsStopping] = useState(false);
-  const [pollingInterval, setPollingInterval] = useState<NodeJS.Timeout | null>(null);
-  const [lastMessageId, setLastMessageId] = useState<string | null>(null);
+  const [typingUsers, setTypingUsers] = useState<Set<string>>(new Set());
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // WebSocket connection
+  const {
+    isConnected,
+    isConnecting,
+    connectionError,
+    connect,
+    disconnect,
+    sendMessage: wsSendMessage,
+    startTyping,
+    stopTyping,
+    startBot: wsStartBot,
+    stopBot: wsStopBot,
+    joinBot,
+  } = useWebSocket({
+    botId,
+    userId,
+    token: localStorage.getItem('token') || undefined,
+    autoConnect: true,
+    onMessage: (message) => {
+      setMessages(prev => {
+        // Check if message already exists
+        const exists = prev.find(m => m.id === message.id);
+        if (exists) {
+          // Update existing message
+          return prev.map(m => m.id === message.id ? message : m);
+        } else {
+          // Add new message
+          return [...prev, message];
+        }
+      });
+    },
+    onStatusUpdate: (status) => {
+      setBotInstance(status);
+    },
+    onTypingIndicator: (indicator) => {
+      if (indicator.isTyping) {
+        setTypingUsers(prev => new Set(prev).add(indicator.userId));
+      } else {
+        setTypingUsers(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(indicator.userId);
+          return newSet;
+        });
+      }
+    },
+    onError: (error) => {
+      console.error('WebSocket error:', error);
+    },
+  });
 
   // Load conversation history and bot status on mount
   useEffect(() => {
@@ -47,50 +99,20 @@ export const BotChat: React.FC<BotChatProps> = ({ botId, userId, botName }) => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Start polling when bot is running
+  // Join bot room when connected
   useEffect(() => {
-    if (botInstance?.status === 'running') {
-      startPolling();
-    } else {
-      stopPolling();
+    if (isConnected && botId) {
+      joinBot(botId);
     }
-
-    return () => {
-      stopPolling();
-    };
-  }, [botInstance?.status, botId, userId]);
-
-  const startPolling = () => {
-    // Clear any existing interval
-    stopPolling();
-    
-    // Start new polling interval
-    const interval = setInterval(async () => {
-      await loadConversationHistory();
-    }, 2000); // Poll every 2 seconds
-    
-    setPollingInterval(interval);
-  };
-
-  const stopPolling = () => {
-    if (pollingInterval) {
-      clearInterval(pollingInterval);
-      setPollingInterval(null);
-    }
-  };
+  }, [isConnected, botId, joinBot]);
 
   const loadConversationHistory = async () => {
     try {
       const response = await api.get(`/bot-execution/${botId}/chat?userId=${userId}&limit=50`);
       const newMessages = response.data;
       
-      // Check if we have new messages
       if (newMessages.length > 0) {
-        const latestMessage = newMessages[0];
-        if (latestMessage.id !== lastMessageId) {
-          setMessages(newMessages);
-          setLastMessageId(latestMessage.id);
-        }
+        setMessages(newMessages);
       }
     } catch (error) {
       console.error('Failed to load conversation history:', error);
@@ -109,8 +131,13 @@ export const BotChat: React.FC<BotChatProps> = ({ botId, userId, botName }) => {
   const startBot = async () => {
     setIsStarting(true);
     try {
-      await api.post(`/bot-execution/${botId}/start`, { userId });
-      await loadBotStatus();
+      if (isConnected) {
+        wsStartBot(botId);
+      } else {
+        // Fallback to REST API if WebSocket not connected
+        await api.post(`/bot-execution/${botId}/start`, { userId });
+        await loadBotStatus();
+      }
     } catch (error) {
       console.error('Failed to start bot:', error);
     } finally {
@@ -121,8 +148,13 @@ export const BotChat: React.FC<BotChatProps> = ({ botId, userId, botName }) => {
   const stopBot = async () => {
     setIsStopping(true);
     try {
-      await api.post(`/bot-execution/${botId}/stop`, { userId });
-      await loadBotStatus();
+      if (isConnected) {
+        wsStopBot(botId);
+      } else {
+        // Fallback to REST API if WebSocket not connected
+        await api.post(`/bot-execution/${botId}/stop`, { userId });
+        await loadBotStatus();
+      }
     } catch (error) {
       console.error('Failed to stop bot:', error);
     } finally {
@@ -136,17 +168,24 @@ export const BotChat: React.FC<BotChatProps> = ({ botId, userId, botName }) => {
 
     setIsLoading(true);
     try {
-      const response = await api.post(`/bot-execution/${botId}/chat`, {
-        userId,
-        message: newMessage
-      });
+      if (isConnected) {
+        // Use WebSocket for real-time messaging
+        wsSendMessage(newMessage);
+        setNewMessage('');
+      } else {
+        // Fallback to REST API
+        const response = await api.post(`/bot-execution/${botId}/chat`, {
+          userId,
+          message: newMessage
+        });
 
-      // Add user message immediately
-      setMessages(prev => [...prev, response.data.userMessage]);
-      setNewMessage('');
-      
-      // Force immediate load of conversation to get the processing message
-      await loadConversationHistory();
+        // Add user message immediately
+        setMessages(prev => [...prev, response.data.userMessage]);
+        setNewMessage('');
+        
+        // Force immediate load of conversation to get the processing message
+        await loadConversationHistory();
+      }
     } catch (error) {
       console.error('Failed to send message:', error);
     } finally {
@@ -222,8 +261,11 @@ export const BotChat: React.FC<BotChatProps> = ({ botId, userId, botName }) => {
             {botInstance?.errorMessage && (
               <span className="text-sm text-red-600">({botInstance.errorMessage})</span>
             )}
-            {pollingInterval && (
+            {isConnected && (
               <span className="text-xs text-green-600">● Live</span>
+            )}
+            {connectionError && (
+              <span className="text-xs text-red-600">● Connection Error</span>
             )}
           </div>
         </div>
@@ -303,6 +345,25 @@ export const BotChat: React.FC<BotChatProps> = ({ botId, userId, botName }) => {
             </div>
           ))
         )}
+        
+        {/* Typing indicators */}
+        {typingUsers.size > 0 && (
+          <div className="flex justify-start">
+            <div className="bg-gray-100 text-gray-600 px-4 py-2 rounded-lg">
+              <div className="flex items-center space-x-2">
+                <div className="flex space-x-1">
+                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                </div>
+                <span className="text-xs">
+                  {Array.from(typingUsers).length} user{Array.from(typingUsers).length > 1 ? 's' : ''} typing...
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
+        
         <div ref={messagesEndRef} />
       </div>
 

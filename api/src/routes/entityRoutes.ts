@@ -1,17 +1,34 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { EntityService } from '../services/entityService.js';
+import jwt from 'jsonwebtoken';
 
 const router = Router();
+
+// Helper function to extract user from JWT token
+const extractUserFromToken = (req: Request): any => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return null;
+  }
+
+  const token = authHeader.substring(7);
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret') as any;
+    return decoded;
+  } catch (error) {
+    return null;
+  }
+};
 
 // GET /api/entities - Get all entities for the authenticated user
 router.get('/', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const userId = (req as any).user?.id;
-    if (!userId) {
+    const user = extractUserFromToken(req);
+    if (!user) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    const entities = await EntityService.getEntitiesByUser(userId);
+    const entities = await EntityService.getEntitiesByUser(user.userId);
     return res.json(entities);
   } catch (error) {
     return next(error);
@@ -22,9 +39,9 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
 router.get('/model/:modelId', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { modelId } = req.params;
-    const userId = (req as any).user?.id;
+    const user = extractUserFromToken(req);
     
-    if (!userId) {
+    if (!user) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
@@ -32,7 +49,7 @@ router.get('/model/:modelId', async (req: Request, res: Response, next: NextFunc
       return res.status(400).json({ error: 'Model ID is required' });
     }
 
-    const entities = await EntityService.getEntitiesByModel(modelId, userId);
+    const entities = await EntityService.getEntitiesByModel(modelId, user.userId);
     return res.json(entities);
   } catch (error) {
     return next(error);
@@ -43,9 +60,9 @@ router.get('/model/:modelId', async (req: Request, res: Response, next: NextFunc
 router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
-    const userId = (req as any).user?.id;
+    const user = extractUserFromToken(req);
     
-    if (!userId) {
+    if (!user) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
@@ -53,7 +70,7 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
       return res.status(400).json({ error: 'Entity ID is required' });
     }
 
-    const entity = await EntityService.getEntityById(id, userId);
+    const entity = await EntityService.getEntityById(id, user.userId);
     if (!entity) {
       return res.status(404).json({ error: 'Entity not found' });
     }
@@ -68,9 +85,9 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
 router.post('/', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { name, displayName, data, modelId } = req.body;
-    const userId = (req as any).user?.id;
+    const user = extractUserFromToken(req);
     
-    if (!userId) {
+    if (!user) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
@@ -85,7 +102,7 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
       displayName,
       data,
       modelId,
-      userId
+      userId: user.userId
     });
 
     return res.status(201).json(entity);
@@ -99,9 +116,9 @@ router.put('/:id', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
     const { data } = req.body;
-    const userId = (req as any).user?.id;
+    const user = extractUserFromToken(req);
     
-    if (!userId) {
+    if (!user) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
@@ -113,7 +130,7 @@ router.put('/:id', async (req: Request, res: Response, next: NextFunction) => {
       return res.status(400).json({ error: 'Missing required field: data' });
     }
 
-    const entity = await EntityService.updateEntity(id, userId, data);
+    const entity = await EntityService.updateEntity(id, user.userId, data);
     return res.json(entity);
   } catch (error) {
     return next(error);
@@ -124,9 +141,9 @@ router.put('/:id', async (req: Request, res: Response, next: NextFunction) => {
 router.delete('/:id', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
-    const userId = (req as any).user?.id;
+    const user = extractUserFromToken(req);
     
-    if (!userId) {
+    if (!user) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
@@ -134,7 +151,7 @@ router.delete('/:id', async (req: Request, res: Response, next: NextFunction) =>
       return res.status(400).json({ error: 'Entity ID is required' });
     }
 
-    await EntityService.deleteEntity(id, userId);
+    await EntityService.deleteEntity(id, user.userId);
     return res.status(204).send();
   } catch (error) {
     return next(error);

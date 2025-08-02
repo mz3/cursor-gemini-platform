@@ -32,3 +32,31 @@ export const publishEvent = async (queue: string, payload: any): Promise<void> =
     throw error;
   }
 };
+
+export const subscribeToEvent = async (queue: string, callback: (payload: any) => Promise<void>): Promise<void> => {
+  try {
+    console.log(`🔴 Subscribing to Redis queue: ${queue}`);
+    
+    // Start listening for messages
+    const pollMessages = async () => {
+      try {
+        const message = await redisClient.rPop(queue);
+        if (message) {
+          const payload = JSON.parse(message);
+          await callback(payload);
+        }
+      } catch (error) {
+        console.error(`Error processing message from queue ${queue}:`, error);
+      }
+      
+      // Continue polling
+      setTimeout(pollMessages, 100);
+    };
+    
+    pollMessages();
+    console.log(`✅ Successfully subscribed to Redis queue: ${queue}`);
+  } catch (error) {
+    console.error(`❌ Error subscribing to Redis queue ${queue}:`, error);
+    throw error;
+  }
+};

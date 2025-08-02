@@ -18,6 +18,7 @@ import { BotInstance } from '../entities/BotInstance.js';
 import { BotTool } from '../entities/BotTool.js';
 import { ChatMessage } from '../entities/ChatMessage.js';
 import { Feature } from '../entities/Feature.js';
+import { Entity } from '../entities/Entity.js';
 
 // Helper to determine if running from dist (production build), ESM compatible
 const filename = fileURLToPath(import.meta.url);
@@ -49,7 +50,8 @@ export const AppDataSource = new DataSource({
     BotInstance,
     BotTool,
     ChatMessage,
-    Feature
+    Feature,
+    Entity
   ],
   migrations: [
     isDist ? 'dist/migrations/*.js' : 'src/migrations/*.ts'

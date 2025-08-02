@@ -1,5 +1,5 @@
 ---
-description: anything docker-related
+description: docker, docker-compose, build, container
 alwaysApply: false
 ---
 # Docker Development Patterns
@@ -35,17 +35,17 @@ docker exec api npm run migration:show
 
 ### Logging and Debugging
 ```bash
-# View logs for specific service
-docker-compose logs -f api
+# View recent logs for specific service
+docker compose logs api
 
-# View logs for all services
-docker-compose logs -f
+# View recent logs for all services
+docker compose logs
 
 # Execute commands in container
 docker exec -it api sh
 
 # Check container health
-docker-compose ps
+docker compose ps
 ```
 
 ## Production Patterns

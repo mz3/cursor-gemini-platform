@@ -4,6 +4,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
+import { createServer } from 'http';
 import { initializeDatabase } from './config/database.js';
 import { initializeRedis } from './config/redis.js';
 import { modelRoutes } from './routes/modelRoutes.js';
@@ -19,6 +20,9 @@ import { featureRoutes } from './routes/featureRoutes.js';
 import entityRoutes from './routes/entityRoutes.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { seedDatabase } from './utils/seedDatabase.js';
+import ChatWebSocketServer from './websocket/chatServer.js';
+import MessageHandler from './websocket/messageHandler.js';
+import BotResponseService from './services/botResponseService.js';
 
 console.log('🚀 Starting Platform API...');
 console.log('📅 Current time:', new Date().toISOString());
@@ -38,6 +42,7 @@ console.log('🔴 REDIS_HOST:', process.env.REDIS_HOST || 'localhost (default)')
 console.log('🔴 REDIS_PORT:', process.env.REDIS_PORT || '6379 (default)');
 
 const app = express();
+const server = createServer(app);
 const PORT = parseInt(process.env.API_PORT || '4000', 10);
 console.log('🔧 Final PORT value:', PORT);
 console.log('🔧 Final PORT type:', typeof PORT);
@@ -99,11 +104,28 @@ async function startServer() {
     console.log('✅ Database seeded successfully');
 
     console.log(`🚀 Starting HTTP server on port ${PORT}...`);
+    
+    // Initialize WebSocket server
+    const wsServer = new ChatWebSocketServer(server);
+    const messageHandler = MessageHandler.getInstance();
+    messageHandler.setWebSocketServer(wsServer);
+    
+    console.log('🔌 WebSocket server initialized');
+    
+    // Start bot response listener
+    console.log('🤖 Initializing bot response service...');
+    const botResponseService = BotResponseService.getInstance();
+    console.log('🤖 Bot response service instance created');
+    await botResponseService.startListening();
+    
+    console.log('🤖 Bot response listener started');
+    
     // Start server
-    app.listen(PORT, () => {
+    server.listen(PORT, () => {
       console.log(`🎉 Platform API server running on port ${PORT}`);
       console.log(`🌐 Health check available at: http://localhost:${PORT}/health`);
       console.log(`📊 API endpoints available at: http://localhost:${PORT}/api/*`);
+      console.log(`🔌 WebSocket server available at: ws://localhost:${PORT}`);
     });
   } catch (error) {
     console.error('💥 Failed to start server:', error);
