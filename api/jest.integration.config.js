@@ -10,6 +10,7 @@ export default {
   moduleNameMapper: {
     '^(\\\\.{1,2}/.*)\\\\.js$': '$1',
     '^../config/database\\.js$': '<rootDir>/src/config/database.ts',
+    '^../entities/(.*)\\.js$': '<rootDir>/src/entities/$1.ts',
   },
   transform: {
     '^.+\\\\.ts$': ['ts-jest', {
