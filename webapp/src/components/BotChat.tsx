@@ -14,6 +14,7 @@ interface ChatMessage {
   createdAt: string;
   responseTime?: number;
   tokensUsed?: number;
+  status?: 'processing' | 'thinking' | 'executing' | 'completed' | 'error';
 }
 
 interface BotInstance {
@@ -31,6 +32,8 @@ export const BotChat: React.FC<BotChatProps> = ({ botId, userId, botName }) => {
   const [botInstance, setBotInstance] = useState<BotInstance | null>(null);
   const [isStarting, setIsStarting] = useState(false);
   const [isStopping, setIsStopping] = useState(false);
+  const [pollingInterval, setPollingInterval] = useState<NodeJS.Timeout | null>(null);
+  const [lastMessageId, setLastMessageId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Load conversation history and bot status on mount
@@ -44,10 +47,51 @@ export const BotChat: React.FC<BotChatProps> = ({ botId, userId, botName }) => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  // Start polling when bot is running
+  useEffect(() => {
+    if (botInstance?.status === 'running') {
+      startPolling();
+    } else {
+      stopPolling();
+    }
+
+    return () => {
+      stopPolling();
+    };
+  }, [botInstance?.status, botId, userId]);
+
+  const startPolling = () => {
+    // Clear any existing interval
+    stopPolling();
+    
+    // Start new polling interval
+    const interval = setInterval(async () => {
+      await loadConversationHistory();
+    }, 2000); // Poll every 2 seconds
+    
+    setPollingInterval(interval);
+  };
+
+  const stopPolling = () => {
+    if (pollingInterval) {
+      clearInterval(pollingInterval);
+      setPollingInterval(null);
+    }
+  };
+
   const loadConversationHistory = async () => {
     try {
-      const response = await api.get(`/bot-execution/${botId}/chat?userId=${userId}`);
-      setMessages(response.data);
+      const response = await api.get(`/bot-execution/${botId}/chat?userId=${userId}&limit=50`);
+      const newMessages = response.data;
+      
+      // Check if we have new messages
+      if (newMessages.length > 0) {
+        const latestMessage = newMessages[0];
+        if (latestMessage.id !== lastMessageId) {
+          setMessages(newMessages);
+          setLastMessageId(latestMessage.id);
+        }
+      }
     } catch (error) {
       console.error('Failed to load conversation history:', error);
     }
@@ -97,14 +141,61 @@ export const BotChat: React.FC<BotChatProps> = ({ botId, userId, botName }) => {
         message: newMessage
       });
 
-      // Add both user message and bot response to the conversation
-      setMessages(prev => [...prev, response.data.userMessage, response.data.botResponse]);
+      // Add user message immediately
+      setMessages(prev => [...prev, response.data.userMessage]);
       setNewMessage('');
+      
+      // Force immediate load of conversation to get the processing message
+      await loadConversationHistory();
     } catch (error) {
       console.error('Failed to send message:', error);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const getMessageStatusIcon = (message: ChatMessage) => {
+    if (message.role !== 'bot') return null;
+    
+    const content = message.content.toLowerCase();
+    
+    if (content.includes('processing your message')) {
+      return (
+        <div className="flex items-center space-x-2 text-blue-600">
+          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+          <span className="text-xs">Processing...</span>
+        </div>
+      );
+    }
+    
+    if (content.includes('thinking') || content.includes('detecting')) {
+      return (
+        <div className="flex items-center space-x-2 text-yellow-600">
+          <div className="animate-pulse">🤔</div>
+          <span className="text-xs">Thinking...</span>
+        </div>
+      );
+    }
+    
+    if (content.includes('executing') || content.includes('tool')) {
+      return (
+        <div className="flex items-center space-x-2 text-green-600">
+          <div className="animate-pulse">🔧</div>
+          <span className="text-xs">Executing tool...</span>
+        </div>
+      );
+    }
+    
+    return null;
+  };
+
+  const formatMessageContent = (content: string) => {
+    // Split content into paragraphs for better readability
+    return content.split('\n').map((line, index) => (
+      <p key={index} className={index > 0 ? 'mt-2' : ''}>
+        {line}
+      </p>
+    ));
   };
 
   const isBotRunning = botInstance?.status === 'running';
@@ -130,6 +221,9 @@ export const BotChat: React.FC<BotChatProps> = ({ botId, userId, botName }) => {
             </span>
             {botInstance?.errorMessage && (
               <span className="text-sm text-red-600">({botInstance.errorMessage})</span>
+            )}
+            {pollingInterval && (
+              <span className="text-xs text-green-600">● Live</span>
             )}
           </div>
         </div>
@@ -173,15 +267,38 @@ export const BotChat: React.FC<BotChatProps> = ({ botId, userId, botName }) => {
                 className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
                   message.role === 'user'
                     ? 'bg-blue-600 text-white'
+                    : message.content.toLowerCase().includes('processing your message')
+                    ? 'bg-blue-100 text-blue-800 border border-blue-200'
+                    : message.content.toLowerCase().includes('thinking') || message.content.toLowerCase().includes('detecting')
+                    ? 'bg-yellow-100 text-yellow-800 border border-yellow-200'
+                    : message.content.toLowerCase().includes('executing') || message.content.toLowerCase().includes('tool')
+                    ? 'bg-green-100 text-green-800 border border-green-200'
                     : 'bg-gray-200 text-gray-900'
                 }`}
               >
-                <p className="text-sm">{message.content}</p>
-                {message.responseTime && (
-                  <p className="text-xs opacity-75 mt-1">
-                    Response time: {message.responseTime}ms
-                  </p>
-                )}
+                <div className="text-sm">
+                  {formatMessageContent(message.content)}
+                </div>
+                
+                {/* Status indicator */}
+                {getMessageStatusIcon(message)}
+                
+                {/* Message metadata */}
+                <div className="flex items-center justify-between mt-2 text-xs opacity-75">
+                  <span>
+                    {new Date(message.createdAt).toLocaleTimeString()}
+                  </span>
+                  {message.responseTime && (
+                    <span>
+                      {message.responseTime}ms
+                    </span>
+                  )}
+                  {message.tokensUsed && (
+                    <span>
+                      {message.tokensUsed} tokens
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
           ))

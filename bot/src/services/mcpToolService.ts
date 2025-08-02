@@ -9,6 +9,7 @@ import { Workflow } from '../entities/Workflow';
 import { BotInstance, BotInstanceStatus } from '../entities/BotInstance';
 import { AppDataSource } from '../config/database';
 import axios from 'axios';
+import { Entity } from '../entities/Entity';
 
 const botRepository = AppDataSource.getRepository(Bot);
 const userRepository = AppDataSource.getRepository(User);
@@ -18,6 +19,7 @@ const promptRepository = AppDataSource.getRepository(Prompt);
 const featureRepository = AppDataSource.getRepository(Feature);
 const workflowRepository = AppDataSource.getRepository(Workflow);
 const botInstanceRepository = AppDataSource.getRepository(BotInstance);
+const entityRepository = AppDataSource.getRepository(Entity);
 
 export interface MCPToolConfig {
   platformEndpoint: string;
@@ -59,7 +61,7 @@ export class MCPToolService {
       case 'get':
         return await this.getEntity(entity, config, params);
       case 'create':
-        return await this.createEntity(entity, config, params);
+        return await this.createEntity(params, params.userId || config.userId);
       case 'update':
         return await this.updateEntity(entity, config, params);
       case 'delete':
@@ -176,83 +178,234 @@ export class MCPToolService {
   }
 
   /**
-   * Generic method to create entities
+   * Create a new entity (model or entity instance)
    */
-  private static async createEntity(entityType: string, config: MCPToolConfig, params: Record<string, any>): Promise<any> {
-    const userId = params.userId || config.userId;
-
-    let repository: any;
-    let entity: any;
+  static async createEntity(params: any, userId: string): Promise<any> {
+    console.log('🔧 MCP Tool Service: Creating entity with params:', params);
     
-    switch (entityType) {
-      case 'model':
-        repository = modelRepository;
-        entity = new Model();
-        
-        // For models, we need to handle the schema field specially
-        if (params.fields && Array.isArray(params.fields)) {
-          // Convert fields array to schema format
-          entity.schema = {
-            fields: params.fields.map((field: any) => ({
-              name: field.name,
-              type: field.type,
-              required: field.required !== false,
-              description: field.description || `${field.name} field`,
-              ...(field.enumValues && { options: field.enumValues })
-            }))
-          };
-        } else {
-          // Default empty schema if no fields provided
-          entity.schema = { fields: [] };
-        }
-        break;
-      case 'application':
-        repository = applicationRepository;
-        entity = new Application();
-        break;
-      case 'bot':
-        repository = botRepository;
-        entity = new Bot();
-        break;
-      case 'prompt':
-        repository = promptRepository;
-        entity = new Prompt();
-        break;
-      case 'feature':
-        repository = featureRepository;
-        entity = new Feature();
-        break;
-      case 'workflow':
-        repository = workflowRepository;
-        entity = new Workflow();
-        break;
-      default:
-        throw new Error(`Unknown entity type: ${entityType}`);
-    }
-
-    // Set common fields, but preserve schema for models
-    if (entityType === 'model') {
-      // For models, we need to be careful not to overwrite the schema
-      const { schema, fields, ...otherParams } = params;
-      
-      // Ensure displayName is set (default to name if not provided)
-      if (!otherParams.displayName && otherParams.name) {
-        otherParams.displayName = otherParams.name;
-      }
-      
-      Object.assign(entity, otherParams);
-      // Schema is already set above, don't overwrite it
+    const { operation, name, displayName, fields, modelId, data } = params;
+    
+    if (operation === 'create_model') {
+      return await this.createModel(params, userId);
+    } else if (operation === 'create_entity') {
+      return await this.createEntityInstance(params, userId);
     } else {
-      Object.assign(entity, params);
+      throw new Error(`Unknown operation: ${operation}`);
     }
-    entity.userId = userId;
+  }
 
-    const savedEntity = await repository.save(entity);
+  /**
+   * Create a new model
+   */
+  private static async createModel(params: any, userId: string): Promise<any> {
+    const { name, displayName, fields } = params;
+    
+    if (!name || !displayName) {
+      throw new Error('Model name and displayName are required');
+    }
+
+    // Check if model already exists
+    const existingModel = await modelRepository.findOne({
+      where: { name, userId }
+    });
+
+    if (existingModel) {
+      throw new Error(`Model with name '${name}' already exists`);
+    }
+
+    // Create the model
+    const model = modelRepository.create({
+      name,
+      displayName,
+      schema: {
+        fields: fields || []
+      },
+      userId,
+      isSystem: false
+    });
+
+    const savedModel = await modelRepository.save(model);
+    console.log('✅ Model created successfully:', savedModel.id);
+
+    // Create a sample entity for the model if fields are provided
+    if (fields && fields.length > 0) {
+      try {
+        const sampleData: Record<string, any> = {};
+        for (const field of fields) {
+          // Generate sample data based on field type
+          switch (field.type.toLowerCase()) {
+            case 'string':
+              sampleData[field.name] = `Sample ${field.name}`;
+              break;
+            case 'number':
+              sampleData[field.name] = 42;
+              break;
+            case 'boolean':
+              sampleData[field.name] = true;
+              break;
+            default:
+              sampleData[field.name] = `Sample ${field.name}`;
+          }
+        }
+
+        const entity = entityRepository.create({
+          name: `${name}_sample`,
+          displayName: `Sample ${displayName}`,
+          data: sampleData,
+          modelId: savedModel.id,
+          userId,
+          isSystem: false
+        });
+
+        const savedEntity = await entityRepository.save(entity);
+        console.log('✅ Sample entity created successfully:', savedEntity.id);
+      } catch (error) {
+        console.warn('⚠️ Failed to create sample entity:', error);
+        // Don't fail the model creation if sample entity fails
+      }
+    }
 
     return {
-      success: true,
-      [entityType]: savedEntity
+      ...savedModel,
+      message: `Model '${displayName}' created successfully with ${fields?.length || 0} fields`
     };
+  }
+
+  /**
+   * Create a new entity instance
+   */
+  private static async createEntityInstance(params: any, userId: string): Promise<any> {
+    const { name, displayName, data, modelId } = params;
+    
+    if (!name || !displayName || !data || !modelId) {
+      throw new Error('Entity name, displayName, data, and modelId are required');
+    }
+
+    // Verify the model exists
+    const model = await modelRepository.findOne({
+      where: { id: modelId, userId }
+    });
+
+    if (!model) {
+      throw new Error(`Model with ID '${modelId}' not found`);
+    }
+
+    // Validate data against model schema
+    const validation = this.validateEntityData(data, model.schema);
+    if (!validation.isValid) {
+      throw new Error(`Entity validation failed: ${validation.errors.join(', ')}`);
+    }
+
+    // Create the entity
+    const entity = entityRepository.create({
+      name,
+      displayName,
+      data: validation.validatedData,
+      modelId,
+      userId,
+      isSystem: false
+    });
+
+    const savedEntity = await entityRepository.save(entity);
+    console.log('✅ Entity created successfully:', savedEntity.id);
+
+    return {
+      ...savedEntity,
+      message: `Entity '${displayName}' created successfully`
+    };
+  }
+
+  /**
+   * Validate entity data against model schema
+   */
+  private static validateEntityData(data: Record<string, any>, schema: any): { isValid: boolean; errors: string[]; validatedData: Record<string, any> } {
+    const errors: string[] = [];
+    const validatedData: Record<string, any> = {};
+
+    if (!schema || !schema.fields) {
+      errors.push('Invalid schema: missing fields');
+      return { isValid: false, errors, validatedData };
+    }
+
+    // Validate each field in the schema
+    for (const field of schema.fields) {
+      const fieldName = field.name;
+      const fieldType = field.type;
+      const isRequired = field.required !== false; // Default to required if not specified
+      const value = data[fieldName];
+
+      // Check if required field is missing
+      if (isRequired && (value === undefined || value === null || value === '')) {
+        errors.push(`Required field '${fieldName}' is missing`);
+        continue;
+      }
+
+      // Skip validation for optional fields that are not provided
+      if (!isRequired && (value === undefined || value === null)) {
+        continue;
+      }
+
+      // Type validation
+      if (value !== undefined && value !== null) {
+        const typeError = this.validateFieldType(fieldName, value, fieldType);
+        if (typeError) {
+          errors.push(typeError);
+          continue;
+        }
+      }
+
+      // Add validated value to result
+      validatedData[fieldName] = value;
+    }
+
+    return {
+      isValid: errors.length === 0,
+      errors,
+      validatedData
+    };
+  }
+
+  /**
+   * Validate a single field's type
+   */
+  private static validateFieldType(fieldName: string, value: any, expectedType: string): string | null {
+    switch (expectedType.toLowerCase()) {
+      case 'string':
+        if (typeof value !== 'string') {
+          return `Field '${fieldName}' must be a string, got ${typeof value}`;
+        }
+        break;
+      case 'number':
+        if (typeof value !== 'number' || isNaN(value)) {
+          return `Field '${fieldName}' must be a number, got ${typeof value}`;
+        }
+        break;
+      case 'boolean':
+        if (typeof value !== 'boolean') {
+          return `Field '${fieldName}' must be a boolean, got ${typeof value}`;
+        }
+        break;
+      case 'date':
+        const date = new Date(value);
+        if (isNaN(date.getTime())) {
+          return `Field '${fieldName}' must be a valid date`;
+        }
+        break;
+      case 'array':
+        if (!Array.isArray(value)) {
+          return `Field '${fieldName}' must be an array, got ${typeof value}`;
+        }
+        break;
+      case 'object':
+        if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+          return `Field '${fieldName}' must be an object, got ${typeof value}`;
+        }
+        break;
+      default:
+        return `Unknown field type '${expectedType}' for field '${fieldName}'`;
+    }
+
+    return null;
   }
 
   /**

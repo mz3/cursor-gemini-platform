@@ -16,6 +16,7 @@ import { botRoutes } from './routes/botRoutes.js';
 import botExecutionRoutes from './routes/botExecutionRoutes.js';
 import botToolRoutes from './routes/botToolRoutes.js';
 import { featureRoutes } from './routes/featureRoutes.js';
+import entityRoutes from './routes/entityRoutes.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { seedDatabase } from './utils/seedDatabase.js';
 
@@ -72,6 +73,7 @@ app.use('/api/bots', botRoutes);
 app.use('/api/bot-execution', botExecutionRoutes);
 app.use('/api/bot-tools', botToolRoutes);
 app.use('/api/features', featureRoutes);
+app.use('/api/entities', entityRoutes);
 console.log('✅ API routes configured');
 
 // Error handling

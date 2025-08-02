@@ -107,9 +107,8 @@ describe('Meta Platform Support Bot E2E Test', () => {
   });
 
   it('should handle bot conversation and model creation with different parameters', () => {
-    const timestamp = Date.now();
-    const modelName = `ProductModel${timestamp}`;
-    const displayName = `Product Model ${timestamp}`;
+    const modelName = `ProductModel${Date.now()}`;
+    const displayName = `Product Model ${Date.now()}`;
 
     // Navigate to bots and start chat
     cy.contains('Bots').click();
@@ -131,11 +130,20 @@ describe('Meta Platform Support Bot E2E Test', () => {
       `Create a model called "${modelName}" with display name "${displayName}". The model should have these fields: productName should be string type, price should be number type, description should be string type, and inStock should be boolean type.`
     );
     cy.contains('Send').click();
-    cy.wait(5000);
 
-    // Verify the bot responded
+    // Wait for any initial response and then for the final response
+    cy.wait(3000);
+    cy.get('.bg-gray-200, .bg-white').should('exist'); // Check for any bot response bubble
+    
+    // Wait for intermediate status messages and final response
+    cy.wait(15000); // Increased wait time for the new messaging system
+    
+    // Verify the bot responded with a final response (not just intermediate status)
     cy.get('body').should('contain', 'model'); // Check if any response contains 'model'
     cy.get('.bg-gray-200, .bg-white').should('exist'); // Check for bot response bubble
+    
+    // Look for the final response that contains the model details
+    cy.get('body').should('contain', 'successfully created');
 
     // Verify the model was created by checking the API
     cy.request({

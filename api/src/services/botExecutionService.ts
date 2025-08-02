@@ -237,11 +237,32 @@ export class BotExecutionService {
       return [];
     }
 
-    // Get conversation history
-    return await chatMessageRepository.find({
+    // Get conversation history in chronological order (oldest first)
+    const messages = await chatMessageRepository.find({
       where: { botInstanceId: instance.id },
-      order: { createdAt: 'DESC' },
+      order: { createdAt: 'ASC' },
       take: limit
+    });
+
+    // Filter out intermediate status messages that are older than 30 seconds
+    const now = new Date();
+    const thirtySecondsAgo = new Date(now.getTime() - 30 * 1000);
+    
+    return messages.filter(message => {
+      // Keep all user messages
+      if (message.role === MessageRole.USER) {
+        return true;
+      }
+      
+      // Keep bot messages that are either:
+      // 1. Recent (less than 30 seconds old)
+      // 2. Not intermediate status messages (don't contain thinking/detecting/executing)
+      const isRecent = new Date(message.createdAt) > thirtySecondsAgo;
+      const isIntermediateStatus = message.content.includes('🤔 Thinking...') || 
+                                  message.content.includes('🔍 Detecting tools...') || 
+                                  message.content.includes('🔧 Executing tools...');
+      
+      return isRecent || !isIntermediateStatus;
     });
   }
 

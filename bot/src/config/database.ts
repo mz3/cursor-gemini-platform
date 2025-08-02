@@ -1,12 +1,4 @@
 import { DataSource } from 'typeorm';
-import { User } from '../entities/User';
-import { Model } from '../entities/Model';
-import { Application } from '../entities/Application';
-import { Component } from '../entities/Component';
-import { Template } from '../entities/Template';
-import { Workflow } from '../entities/Workflow';
-import { WorkflowAction } from '../entities/WorkflowAction';
-import { CodeTemplate } from '../entities/CodeTemplate';
 import { Bot } from '../entities/Bot';
 import { BotInstance } from '../entities/BotInstance';
 import { ChatMessage } from '../entities/ChatMessage';
@@ -14,6 +6,7 @@ import { BotTool } from '../entities/BotTool';
 import { Feature } from '../entities/Feature';
 import { Prompt } from '../entities/Prompt';
 import { PromptVersion } from '../entities/PromptVersion';
+import { Entity } from '../entities/Entity';
 
 export const AppDataSource = new DataSource({
   type: 'postgres',
@@ -23,24 +16,19 @@ export const AppDataSource = new DataSource({
   password: process.env.DB_PASSWORD || 'platform_password',
   database: process.env.DB_NAME || 'platform_db',
   synchronize: false,
-  logging: false,
+  logging: process.env.NODE_ENV === 'development',
   entities: [
-    User, 
-    Model, 
-    Application, 
-    Component, 
-    Template, 
-    Workflow, 
-    WorkflowAction, 
-    CodeTemplate,
     Bot,
     BotInstance,
     ChatMessage,
     BotTool,
     Feature,
     Prompt,
-    PromptVersion
+    PromptVersion,
+    Entity
   ],
+  migrations: [],
+  subscribers: [],
 });
 
 export const initializeDatabase = async (): Promise<void> => {
