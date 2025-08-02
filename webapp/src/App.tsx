@@ -172,6 +172,9 @@ const AppContent: React.FC = () => {
             <Route path="/bots" element={<Bots />} />
             <Route path="/bots/create" element={<CreateBot />} />
             <Route path="/bots/:id" element={<ViewBot />} />
+            <Route path="/bots/:id/details" element={<ViewBot />} />
+            <Route path="/bots/:id/chat" element={<ViewBot />} />
+            <Route path="/bots/:id/tools" element={<ViewBot />} />
             <Route path="/bots/:id/edit" element={<EditBot />} />
             <Route path="/tools" element={<Tools />} />
             <Route path="/settings" element={<Settings />} />

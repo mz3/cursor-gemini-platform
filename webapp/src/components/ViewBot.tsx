@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation, Link } from 'react-router-dom';
 import { ArrowLeft, Edit, Bot, MessageSquare, Calendar, User, MessageCircle, Settings } from 'lucide-react';
 import api from '../utils/api';
 import { BotChat } from './BotChat';
@@ -24,7 +24,7 @@ const ViewBot: React.FC = () => {
   const [bot, setBot] = useState<Bot | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [activeTab, setActiveTab] = useState<'details' | 'chat' | 'tools'>('details');
+  const location = useLocation();
 
   useEffect(() => {
     fetchBot();
@@ -96,123 +96,123 @@ const ViewBot: React.FC = () => {
       <div className="mb-6">
         <div className="border-b border-gray-200">
           <nav className="-mb-px flex space-x-8">
-            <button
-              onClick={() => setActiveTab('details')}
+            <Link
+              to={`/bots/${bot.id}`}
               className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                activeTab === 'details'
+                location.pathname === `/bots/${bot.id}`
                   ? 'border-primary-500 text-primary-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
               <Bot className="w-4 h-4 inline mr-2" />
               Details
-            </button>
-            <button
-              onClick={() => setActiveTab('chat')}
+            </Link>
+            <Link
+              to={`/bots/${bot.id}/chat`}
               className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                activeTab === 'chat'
+                location.pathname === `/bots/${bot.id}/chat`
                   ? 'border-primary-500 text-primary-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
               <MessageCircle className="w-4 h-4 inline mr-2" />
               Chat
-            </button>
-            <button
-              onClick={() => setActiveTab('tools')}
+            </Link>
+            <Link
+              to={`/bots/${bot.id}/tools`}
               className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                activeTab === 'tools'
+                location.pathname === `/bots/${bot.id}/tools`
                   ? 'border-primary-500 text-primary-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
               <Settings className="w-4 h-4 inline mr-2" />
               Tools
-            </button>
+            </Link>
           </nav>
         </div>
       </div>
 
-      {activeTab === 'details' ? (
+      {location.pathname === `/bots/${bot.id}` ? (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Bot Details */}
           <div className="lg:col-span-2 space-y-6">
             <div className="bg-white shadow rounded-lg p-6">
               <h2 className="text-lg font-semibold text-gray-900 mb-4">Bot Details</h2>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Name</label>
-                <p className="mt-1 text-sm text-gray-900 font-mono">{bot.name}</p>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Name</label>
+                  <p className="mt-1 text-sm text-gray-900 font-mono">{bot.name}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Display Name</label>
+                  <p className="mt-1 text-sm text-gray-900">{bot.displayName}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Description</label>
+                  <p className="mt-1 text-sm text-gray-900">{bot.description || 'No description provided'}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Status</label>
+                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium mt-1 ${
+                    bot.isActive
+                      ? 'bg-green-100 text-green-800'
+                      : 'bg-gray-100 text-gray-800'
+                  }`}>
+                    {bot.isActive ? 'Active' : 'Inactive'}
+                  </span>
+                </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Display Name</label>
-                <p className="mt-1 text-sm text-gray-900">{bot.displayName}</p>
+            </div>
+
+            {/* Associated Prompts */}
+            <div className="bg-white shadow rounded-lg p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold text-gray-900">Associated Prompts</h2>
+                <div className="flex items-center text-sm text-gray-500">
+                  <MessageSquare className="w-4 h-4 mr-1" />
+                  {bot.prompts.length} prompt{bot.prompts.length !== 1 ? 's' : ''}
+                </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Description</label>
-                <p className="mt-1 text-sm text-gray-900">{bot.description || 'No description provided'}</p>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Status</label>
-                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium mt-1 ${
-                  bot.isActive
-                    ? 'bg-green-100 text-green-800'
-                    : 'bg-gray-100 text-gray-800'
-                }`}>
-                  {bot.isActive ? 'Active' : 'Inactive'}
-                </span>
-              </div>
+              {bot.prompts.length > 0 ? (
+                <div className="space-y-3">
+                  {bot.prompts.map((prompt) => (
+                    <div key={prompt.id} className="border border-gray-200 rounded-lg p-4">
+                      <h3 className="font-medium text-gray-900">{prompt.name}</h3>
+                      {prompt.description && (
+                        <p className="text-sm text-gray-600 mt-1">{prompt.description}</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-gray-500 text-sm">No prompts associated with this bot.</p>
+              )}
             </div>
           </div>
 
-          {/* Associated Prompts */}
-          <div className="bg-white shadow rounded-lg p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-900">Associated Prompts</h2>
-              <div className="flex items-center text-sm text-gray-500">
-                <MessageSquare className="w-4 h-4 mr-1" />
-                {bot.prompts.length} prompt{bot.prompts.length !== 1 ? 's' : ''}
-              </div>
-            </div>
-            {bot.prompts.length > 0 ? (
-              <div className="space-y-3">
-                {bot.prompts.map((prompt) => (
-                  <div key={prompt.id} className="border border-gray-200 rounded-lg p-4">
-                    <h3 className="font-medium text-gray-900">{prompt.name}</h3>
-                    {prompt.description && (
-                      <p className="text-sm text-gray-600 mt-1">{prompt.description}</p>
-                    )}
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-gray-500 text-sm">No prompts associated with this bot.</p>
-            )}
-          </div>
-        </div>
-
-        {/* Sidebar */}
-        <div className="space-y-6">
-          <div className="bg-white shadow rounded-lg p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Bot Information</h3>
-            <div className="space-y-4">
-              <div className="flex items-center text-sm text-gray-600">
-                <Bot className="w-4 h-4 mr-2" />
-                <span>Bot ID: {bot.id}</span>
-              </div>
-              <div className="flex items-center text-sm text-gray-600">
-                <Calendar className="w-4 h-4 mr-2" />
-                <span>Created: {new Date(bot.createdAt).toLocaleDateString()}</span>
-              </div>
-              <div className="flex items-center text-sm text-gray-600">
-                <Calendar className="w-4 h-4 mr-2" />
-                <span>Updated: {new Date(bot.updatedAt).toLocaleDateString()}</span>
+          {/* Sidebar */}
+          <div className="space-y-6">
+            <div className="bg-white shadow rounded-lg p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Bot Information</h3>
+              <div className="space-y-4">
+                <div className="flex items-center text-sm text-gray-600">
+                  <Bot className="w-4 h-4 mr-2" />
+                  <span>Bot ID: {bot.id}</span>
+                </div>
+                <div className="flex items-center text-sm text-gray-600">
+                  <Calendar className="w-4 h-4 mr-2" />
+                  <span>Created: {new Date(bot.createdAt).toLocaleDateString()}</span>
+                </div>
+                <div className="flex items-center text-sm text-gray-600">
+                  <Calendar className="w-4 h-4 mr-2" />
+                  <span>Updated: {new Date(bot.updatedAt).toLocaleDateString()}</span>
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
-      ) : activeTab === 'chat' ? (
+      ) : location.pathname === `/bots/${bot.id}/chat` ? (
         <div className="h-[600px]">
           {user ? (
             <BotChat

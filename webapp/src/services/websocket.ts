@@ -1,4 +1,5 @@
-import { io, Socket } from 'socket.io-client';
+import { io } from 'socket.io-client';
+import type { Socket } from 'socket.io-client';
 
 export interface ChatMessage {
   id: string;
@@ -11,6 +12,7 @@ export interface ChatMessage {
 }
 
 export interface BotStatusUpdate {
+  id: string;
   status: 'running' | 'stopped' | 'error' | 'starting' | 'stopping';
   lastStartedAt?: string;
   lastStoppedAt?: string;
@@ -27,7 +29,7 @@ export interface WebSocketEventHandlers {
   onMessage?: (message: ChatMessage) => void;
   onStatusUpdate?: (status: BotStatusUpdate) => void;
   onTypingIndicator?: (indicator: TypingIndicator) => void;
-  onError?: (error: any) => void;
+  onError?: (error: Error) => void;
   onConnect?: () => void;
   onDisconnect?: () => void;
   onReconnect?: () => void;
@@ -53,7 +55,7 @@ class WebSocketService {
         this.eventHandlers.onConnect?.();
       });
 
-      this.socket.on('disconnect', (reason) => {
+      this.socket.on('disconnect', (reason: string) => {
         console.log('🔌 WebSocket disconnected:', reason);
         this.eventHandlers.onDisconnect?.();
         
@@ -63,7 +65,7 @@ class WebSocketService {
         }
       });
 
-      this.socket.on('connect_error', (error) => {
+      this.socket.on('connect_error', (error: Error) => {
         console.error('🔌 WebSocket connection error:', error);
         this.eventHandlers.onError?.(error);
         
@@ -92,7 +94,7 @@ class WebSocketService {
         this.eventHandlers.onTypingIndicator?.(indicator);
       });
 
-      this.socket.on('error', (error: any) => {
+      this.socket.on('error', (error: Error) => {
         console.error('🔌 WebSocket error:', error);
         this.eventHandlers.onError?.(error);
       });
@@ -126,7 +128,7 @@ class WebSocketService {
           resolve();
         });
 
-        this.socket.on('connect_error', (error) => {
+        this.socket.on('connect_error', (error: Error) => {
           this.isConnecting = false;
           reject(error);
         });
