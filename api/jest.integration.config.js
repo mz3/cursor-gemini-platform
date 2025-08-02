@@ -16,4 +16,7 @@ export default {
       tsconfig: 'tsconfig.test.json'
     }],
   },
+  // Add module resolution settings
+  moduleDirectories: ['node_modules', 'src'],
+  moduleFileExtensions: ['ts', 'js', 'json'],
 };
