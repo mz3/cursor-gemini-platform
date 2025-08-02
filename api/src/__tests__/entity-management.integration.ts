@@ -1,5 +1,5 @@
 import request from 'supertest';
-import { AppDataSource } from '../config/database.js';
+import { AppDataSource } from '../config/database.ts';
 import { User } from '../entities/User.js';
 import { Model } from '../entities/Model.js';
 import { Entity } from '../entities/Entity.js';
