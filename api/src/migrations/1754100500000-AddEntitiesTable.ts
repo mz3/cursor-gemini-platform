@@ -1,4 +1,5 @@
-import { MigrationInterface, QueryRunner, Table } from 'typeorm';
+import type { MigrationInterface, QueryRunner } from 'typeorm';
+import { Table } from 'typeorm';
 
 export class AddEntitiesTable1754100500000 implements MigrationInterface {
   name = 'AddEntitiesTable1754100500000';

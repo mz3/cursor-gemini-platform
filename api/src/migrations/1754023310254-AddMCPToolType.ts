@@ -1,4 +1,4 @@
-import { MigrationInterface, QueryRunner } from "typeorm";
+import type { MigrationInterface, QueryRunner } from "typeorm";
 
 export class AddMCPToolType1754023310254 implements MigrationInterface {
     name = 'AddMCPToolType1754023310254'
