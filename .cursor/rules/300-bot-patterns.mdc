@@ -8,4 +8,5 @@ alwaysApply: false
 ## Service Architecture
 
 ### Bot Service Overview
+
 The bot service is a background worker that processes jobs from Redis queues and handles application generation, deployment, and file system operations.
