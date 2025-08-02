@@ -188,6 +188,23 @@ export class MCPToolService {
       case 'model':
         repository = modelRepository;
         entity = new Model();
+        
+        // For models, we need to handle the schema field specially
+        if (params.fields && Array.isArray(params.fields)) {
+          // Convert fields array to schema format
+          entity.schema = {
+            fields: params.fields.map((field: any) => ({
+              name: field.name,
+              type: field.type,
+              required: field.required !== false,
+              description: field.description || `${field.name} field`,
+              ...(field.enumValues && { options: field.enumValues })
+            }))
+          };
+        } else {
+          // Default empty schema if no fields provided
+          entity.schema = { fields: [] };
+        }
         break;
       case 'application':
         repository = applicationRepository;
@@ -213,8 +230,21 @@ export class MCPToolService {
         throw new Error(`Unknown entity type: ${entityType}`);
     }
 
-    // Set common fields
-    Object.assign(entity, params);
+    // Set common fields, but preserve schema for models
+    if (entityType === 'model') {
+      // For models, we need to be careful not to overwrite the schema
+      const { schema, fields, ...otherParams } = params;
+      
+      // Ensure displayName is set (default to name if not provided)
+      if (!otherParams.displayName && otherParams.name) {
+        otherParams.displayName = otherParams.name;
+      }
+      
+      Object.assign(entity, otherParams);
+      // Schema is already set above, don't overwrite it
+    } else {
+      Object.assign(entity, params);
+    }
     entity.userId = userId;
 
     const savedEntity = await repository.save(entity);

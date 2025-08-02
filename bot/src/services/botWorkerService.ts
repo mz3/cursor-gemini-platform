@@ -6,6 +6,7 @@ import { Bot } from '../entities/Bot';
 import { BotTool } from '../entities/BotTool';
 import { GeminiService } from './geminiService';
 import { ToolExecutionService } from './toolExecutionService';
+import { IntentDetectionService } from './intentDetectionService';
 
 const botInstanceRepository = AppDataSource.getRepository(BotInstance);
 const chatMessageRepository = AppDataSource.getRepository(ChatMessage);
@@ -126,15 +127,29 @@ const processMessage = async (
   message: string, 
   bot: Bot
 ): Promise<ChatMessage> => {
+  console.log(`🤔 Processing message: "${message}"`);
+  
   // Build context from prompts
   const promptContext = buildPromptContext(bot);
 
   // Check if message contains tool calls
-  const toolCalls = detectToolCalls(message, bot.tools, instance);
+  const toolCalls = await detectToolCalls(message, bot.tools, instance);
 
   let toolResults = '';
+  let thoughts = '';
+  
   if (toolCalls.length > 0) {
+    console.log(`🔧 Found ${toolCalls.length} tool calls to execute`);
+    thoughts += `I detected ${toolCalls.length} tool(s) that I can use to help you:\n`;
+    
+    for (const { tool, params } of toolCalls) {
+      thoughts += `- ${tool.displayName}: ${tool.description}\n`;
+    }
+    
     toolResults = await executeToolCalls(toolCalls, instance);
+    thoughts += `\nTool execution results:\n${toolResults}\n`;
+  } else {
+    thoughts += "I'll respond based on my knowledge and the conversation context.\n";
   }
 
   // Get conversation history
@@ -153,17 +168,20 @@ const processMessage = async (
       message
     );
 
+    // Combine thoughts with the response
+    const fullResponse = thoughts + '\n' + geminiResult.response;
+
     return chatMessageRepository.create({
       botInstanceId: instance.id,
       userId: instance.userId,
       role: MessageRole.BOT,
-      content: geminiResult.response,
+      content: fullResponse,
       tokensUsed: geminiResult.tokensUsed
     });
   } catch (error) {
     console.error('Failed to generate bot response:', error);
     // Fallback response
-    const fallbackResponse = 'I apologize, but I encountered an error processing your request. Please try again.';
+    const fallbackResponse = thoughts + '\nI apologize, but I encountered an error processing your request. Please try again.';
     return chatMessageRepository.create({
       botInstanceId: instance.id,
       userId: instance.userId,
@@ -184,40 +202,27 @@ const buildPromptContext = (bot: Bot): string => {
     .join('\n\n');
 };
 
-const detectToolCalls = (
+const detectToolCalls = async (
   message: string, 
   tools: BotTool[], 
   instance: BotInstance
-): Array<{tool: BotTool, params: Record<string, any>}> => {
-  const toolCalls = [];
-  const lowerMessage = message.toLowerCase();
-
-  for (const tool of tools) {
-    if (!tool.isActive) continue;
-
-    // More flexible pattern matching
-    const toolNamePattern = new RegExp(`\\b${tool.name}\\b`, 'i');
-    const toolTypePattern = new RegExp(`\\b${tool.type.replace('_', ' ')}\\b`, 'i');
-    const toolDisplayPattern = new RegExp(`\\b${tool.displayName.toLowerCase()}\\b`, 'i');
-
-    // Check for tool name, type, or display name
-    if (toolNamePattern.test(message) ||
-        toolTypePattern.test(message) ||
-        toolDisplayPattern.test(lowerMessage) ||
-        (tool.type === 'shell_command' && (lowerMessage.includes('shell') || lowerMessage.includes('command') || lowerMessage.includes('ping'))) ||
-        (tool.type === 'http_request' && (lowerMessage.includes('http') || lowerMessage.includes('api') || lowerMessage.includes('request'))) ||
-        (tool.type === 'file_operation' && (lowerMessage.includes('file') || lowerMessage.includes('read') || lowerMessage.includes('write'))) ||
-        (tool.type === 'mcp_tool' && (lowerMessage.includes('mcp') || lowerMessage.includes('platform') || lowerMessage.includes('meta') || lowerMessage.includes('create') || lowerMessage.includes('bot') || lowerMessage.includes('list') || lowerMessage.includes('get') || lowerMessage.includes('show') || lowerMessage.includes('find') || lowerMessage.includes('search')))) {
-
-      console.log(`🔧 Tool detected: ${tool.name} (${tool.type})`);
-      // Extract parameters from message
-      const params = extractToolParams(message, tool, instance.userId);
-      console.log(`📝 Extracted params for ${tool.name}:`, JSON.stringify(params));
-      toolCalls.push({ tool, params });
+): Promise<Array<{tool: BotTool, params: Record<string, any>}>> => {
+  const intentDetectionService = new IntentDetectionService();
+  
+  try {
+    console.log(`🔍 Using LLM to detect intent for message: "${message}"`);
+    const toolCalls = await intentDetectionService.detectToolCalls(message, tools, instance.userId);
+    
+    console.log(`🔧 LLM detected ${toolCalls.length} tool call(s)`);
+    for (const toolCall of toolCalls) {
+      console.log(`📝 Tool: ${toolCall.tool.name}, Operation: ${toolCall.params.operation}, Params:`, JSON.stringify(toolCall.params));
     }
+    
+    return toolCalls;
+  } catch (error) {
+    console.error('❌ Error detecting tool calls with LLM:', error);
+    return [];
   }
-
-  return toolCalls;
 };
 
 const executeToolCalls = async (
@@ -228,84 +233,35 @@ const executeToolCalls = async (
 
   for (const { tool, params } of toolCalls) {
     try {
+      console.log(`🔧 Executing tool: ${tool.displayName} with params:`, JSON.stringify(params));
       const result = await ToolExecutionService.executeTool(tool, params);
-      results.push(`${tool.displayName}: ${JSON.stringify(result)}`);
+      
+      if (result && typeof result === 'object' && result.success !== undefined) {
+        if (result.success) {
+          results.push(`✅ ${tool.displayName}: Successfully executed`);
+          if (result.message) {
+            results.push(`   Message: ${result.message}`);
+          }
+          const dataKey = Object.keys(result).find(key => key !== 'success' && key !== 'message');
+          if (dataKey && result[dataKey]) {
+            results.push(`   Data: ${JSON.stringify(result[dataKey])}`);
+          }
+        } else {
+          results.push(`❌ ${tool.displayName}: Failed - ${result.message || 'Unknown error'}`);
+        }
+      } else {
+        results.push(`✅ ${tool.displayName}: ${JSON.stringify(result)}`);
+      }
     } catch (error) {
-      results.push(`${tool.displayName}: Error - ${error instanceof Error ? error.message : 'Unknown error'}`);
+      console.error(`❌ Error executing tool ${tool.displayName}:`, error);
+      results.push(`❌ ${tool.displayName}: Error - ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
   return results.join('\n');
 };
 
-const extractToolParams = (message: string, tool: BotTool, userId?: string): Record<string, any> => {
-  const params: Record<string, any> = {};
 
-  // Extract common patterns like URLs, file paths, etc.
-  const urlMatch = message.match(/https?:\/\/[^\s]+/);
-  if (urlMatch) params.url = urlMatch[0];
-
-  const fileMatch = message.match(/\/[\w\/.-]+/);
-  if (fileMatch) params.path = fileMatch[0];
-
-  // Extract quoted strings as parameters
-  const quotedMatches = message.match(/"([^"]+)"/g);
-  if (quotedMatches) {
-    quotedMatches.forEach((match, index) => {
-      params[`param${index + 1}`] = match.replace(/"/g, '');
-    });
-  }
-
-  // For MCP tools, extract platform operations
-  if (tool.type === 'mcp_tool') {
-    const lowerMessage = message.toLowerCase();
-    console.log(`🔍 Processing MCP tool for message: "${message}"`);
-
-    // Detect common MCP operations
-    if (lowerMessage.includes('list') && lowerMessage.includes('model')) {
-      console.log('📋 Detected list_models operation');
-      params.operation = 'list_models';
-      params.userId = userId;
-    } else if (lowerMessage.includes('list') && lowerMessage.includes('application')) {
-      console.log('📋 Detected list_applications operation');
-      params.operation = 'list_applications';
-      params.userId = userId;
-    } else if (lowerMessage.includes('list') && lowerMessage.includes('prompt')) {
-      console.log('📋 Detected list_prompts operation');
-      params.operation = 'list_prompts';
-      params.userId = userId;
-    } else if (lowerMessage.includes('list') && lowerMessage.includes('tool')) {
-      console.log('📋 Detected list_tools operation');
-      params.operation = 'list_tools';
-      params.userId = userId;
-    } else if (lowerMessage.includes('list') && lowerMessage.includes('feature')) {
-      console.log('📋 Detected list_features operation');
-      params.operation = 'list_features';
-      params.userId = userId;
-    } else if (lowerMessage.includes('list') && lowerMessage.includes('workflow')) {
-      console.log('📋 Detected list_workflows operation');
-      params.operation = 'list_workflows';
-      params.userId = userId;
-    } else if (lowerMessage.includes('get') && lowerMessage.includes('user')) {
-      console.log('📋 Detected get_user_info operation');
-      params.operation = 'get_user_info';
-      params.userId = userId;
-    } else if (lowerMessage.includes('list') && lowerMessage.includes('user') && lowerMessage.includes('data')) {
-      console.log('📋 Detected list_user_data operation');
-      params.operation = 'list_user_data';
-      params.userId = userId;
-    } else if (lowerMessage.includes('search')) {
-      console.log('📋 Detected search_platform operation');
-      params.operation = 'search_platform';
-      params.userId = userId;
-      // Extract search query
-      const queryMatch = message.match(/search\s+(?:for\s+)?["']?([^"']+)["']?/i);
-      if (queryMatch) params.query = queryMatch[1];
-    }
-  }
-
-  return params;
-};
 
 const getConversationHistoryForContext = async (instanceId: string): Promise<string> => {
   const recentMessages = await chatMessageRepository.find({
