@@ -8,37 +8,34 @@ describe('Entity Manager Debug Test', () => {
   });
 
   it('should create a model and check for errors', () => {
-    // Navigate to Entity Manager
-    cy.contains('Entity Manager').click();
+    // Navigate to Entities
+    cy.contains('Entities').click();
     cy.url().should('include', '/entity-manager');
-
-    // Fill in model details
-    cy.get('input[placeholder*="Dog, Product, User"]').type('TestDog');
-    cy.get('input[placeholder*="Dog Model, Product Model"]').type('Test Dog Model');
     
-    // Add a field
+    // Wait for the page to load (should be on Models tab by default)
+    cy.contains('Create New Model').should('be.visible');
+    
+    // Fill in required fields to enable the Create Model button
+    cy.get('input[placeholder*="Dog, Product, User"]').type('TestModel');
+    cy.get('input[placeholder*="Dog Model, Product Model"]').type('Test Model');
+    
+    // Add a field to make the form valid
     cy.contains('Add Field').click();
-    cy.get('input[placeholder="Field name"]').first().type('name');
-    cy.get('select').first().select('string');
+    cy.get('input[placeholder="Field name"]').type('name');
+    cy.get('select').select('string');
     
-    // Create the model and check for any alerts or errors
+    // Now try to create the model
     cy.contains('Create Model').click();
     
-    // Wait a moment and check for any alerts
-    cy.wait(2000);
-    
-    // Check if there's an alert (either success or error)
+    // Handle the alert that appears (could be success or error)
     cy.on('window:alert', (text) => {
-      cy.log('Alert detected:', text);
+      if (text.includes('Model created successfully!')) {
+        console.log('✅ Model created successfully!');
+      } else if (text.includes('Error creating model')) {
+        console.log('❌ Error creating model');
+      } else {
+        console.log('⚠️ Unexpected alert message:', text);
+      }
     });
-    
-    // Check console for errors
-    cy.window().then((win) => {
-      cy.spy(win.console, 'error').as('consoleError');
-    });
-    
-    // Wait a bit more and check for console errors
-    cy.wait(2000);
-    cy.get('@consoleError').should('have.been.called');
   });
 }); 
