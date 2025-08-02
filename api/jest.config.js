@@ -13,4 +13,16 @@ export default {
       tsconfig: 'tsconfig.test.json'
     }],
   },
+  testMatch: [
+    '**/__tests__/**/*.ts',
+    '**/?(*.)+(spec|test).ts'
+  ],
+  testPathIgnorePatterns: [
+    '/node_modules/',
+    '/dist/',
+    '/src/__tests__/setup.ts',
+    '/src/__tests__/mocks/'
+  ],
+  testTimeout: 30000,
+  setupFilesAfterEnv: ['<rootDir>/src/__tests__/setup.ts'],
 };
