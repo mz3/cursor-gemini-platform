@@ -55,9 +55,7 @@ export const AppDataSource = new DataSource({
     Feature,
     Entity
   ],
-  migrations: [
-    isDist ? 'dist/migrations/*.js' : 'src/migrations/*.ts'
-  ],
+  migrations: isDist ? [] : ['src/migrations/*.ts'], // Only include migrations in development
   subscribers: [
     isDist ? 'dist/subscribers/*.js' : 'src/subscribers/*.ts'
   ],
