@@ -1,5 +1,4 @@
-import { io } from 'socket.io-client';
-import type { Socket } from 'socket.io-client';
+import { io, Socket } from 'socket.io-client';
 
 export interface ChatMessage {
   id: string;
