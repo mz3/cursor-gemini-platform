@@ -9,6 +9,7 @@ export default {
   extensionsToTreatAsEsm: ['.ts'],
   moduleNameMapper: {
     '^(\\\\.{1,2}/.*)\\\\.js$': '$1',
+    '^../config/database\\.js$': '<rootDir>/src/config/database.ts',
   },
   transform: {
     '^.+\\\\.ts$': ['ts-jest', {
