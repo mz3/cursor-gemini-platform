@@ -25,10 +25,5 @@ export default {
   ],
   testTimeout: 30000,
   setupFilesAfterEnv: ['<rootDir>/src/__tests__/setup.ts'],
-  globals: {
-    'ts-jest': {
-      useESM: true,
-    },
-  },
   injectGlobals: true,
 };
