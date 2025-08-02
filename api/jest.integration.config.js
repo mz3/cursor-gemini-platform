@@ -9,6 +9,7 @@ export default {
   extensionsToTreatAsEsm: ['.ts'],
   moduleNameMapper: {
     '^(\\\\.{1,2}/.*)\\\\.js$': '$1',
+    '^../services/botExecutionService\\.js$': '<rootDir>/src/__tests__/mocks/botExecutionService.ts',
   },
   transform: {
     '^.+\\\\.ts$': ['ts-jest', {
@@ -19,4 +20,6 @@ export default {
   // Add module resolution settings
   moduleDirectories: ['node_modules', 'src'],
   moduleFileExtensions: ['ts', 'js', 'json'],
+  // Set NODE_ENV to test to ensure services use mock responses
+  setupFilesAfterEnv: ['<rootDir>/src/__tests__/setup.ts'],
 };
