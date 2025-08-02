@@ -3,7 +3,6 @@ import baseConfig from './jest.config.js';
 export default {
   ...baseConfig,
   testMatch: ['**/__tests__/**/*.integration.ts'],
-  setupFilesAfterEnv: ['<rootDir>/src/__tests__/setup.integration.ts'],
   testEnvironment: 'node',
   testTimeout: 30000,
   // Ensure proper ESM handling
