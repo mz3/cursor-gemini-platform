@@ -3,12 +3,18 @@ process.env.NODE_ENV = 'test';
 
 console.log('🔧 Test setup: NODE_ENV =', process.env.NODE_ENV);
 
+// Import Jest functions for ESM compatibility
+import { jest } from '@jest/globals';
+
+// Make jest available globally for test files
+(global as any).jest = jest;
+
 // Disable console.log during tests to reduce noise
 const originalConsoleLog = console.log;
 console.log = (...args: any[]) => {
   // Only log if it's not a test-related log
   const message = args.join(' ');
-  if (!message.includes('Found code-builder bot') && 
+  if (!message.includes('Found code-builder bot') &&
       !message.includes('Stopped existing bot instance') &&
       !message.includes('Started bot:') &&
       !message.includes('Stopped bot:') &&
@@ -18,19 +24,11 @@ console.log = (...args: any[]) => {
       !message.includes('Started code-builder bot') &&
       !message.includes('Skipping bot chat') &&
       !message.includes('Build triggered:') &&
-      !message.includes('Build triggered successfully') &&
-      !message.includes('No Docker image found yet') &&
-      !message.includes('Application status:') &&
-      !message.includes('Created complex application:') &&
-      !message.includes('Complex application build triggered') &&
-      !message.includes('Docker version:') &&
-      !message.includes('Available Docker images:') &&
-      !message.includes('Test-related Docker images:') &&
-      !message.includes('Concurrent build request') &&
-      !message.includes('Cleaned up test application') &&
-      !message.includes('Cleaned up test model') &&
-      !message.includes('No test Docker images to clean up') &&
-      !message.includes('Successfully associated prompt with test bot')) {
+      !message.includes('Mock BotExecutionService.sendMessage called') &&
+      !message.includes('Mock response:') &&
+      !message.includes('🧪 Test environment detected, using mock response') &&
+      !message.includes('🌐 Production environment, queuing message for async processing')
+  ) {
     originalConsoleLog(...args);
   }
 }; 
