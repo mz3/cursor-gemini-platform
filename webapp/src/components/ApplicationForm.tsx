@@ -6,7 +6,6 @@ interface Application {
   name: string;
   displayName: string;
   description: string;
-  modelId?: string;
 }
 
 interface ApplicationFormProps {
@@ -27,8 +26,7 @@ const ApplicationForm: React.FC<ApplicationFormProps> = ({
   const [form, setForm] = useState<Application>({
     name: '',
     displayName: '',
-    description: '',
-    modelId: ''
+    description: ''
   });
   const [localError, setLocalError] = useState<string>('');
 
@@ -111,17 +109,7 @@ const ApplicationForm: React.FC<ApplicationFormProps> = ({
           placeholder="Describe this application..."
         />
       </div>
-      <div>
-        <label className="block text-sm font-medium text-gray-700">Model ID</label>
-        <input
-          type="text"
-          value={form.modelId || ''}
-          onChange={e => handleChange('modelId', e.target.value)}
-          disabled={readOnly}
-          className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-          placeholder="Optional model ID"
-        />
-      </div>
+
       {!readOnly && (
         <div className="flex justify-end">
           <button

@@ -26,7 +26,11 @@
     "noImplicitOverride": true,
     "allowSyntheticDefaultImports": true,
     "allowImportingTsExtensions": false,
-    "noEmit": false
+    "noEmit": false,
+    "moduleDetection": "force",
+    "moduleResolution": "node",
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true
   },
   "include": [
     "src/**/*"

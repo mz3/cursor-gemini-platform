@@ -1,8 +1,8 @@
 import 'reflect-metadata';
 import dotenv from 'dotenv';
-import { initializeDatabase } from './config/database';
-import { initializeRedis } from './config/redis';
-import { startBotWorker } from './services/botWorkerService';
+import { initializeDatabase } from './config/database.js';
+import { initializeRedis } from './config/redis.js';
+import { startBotWorker } from './services/botWorkerService.js';
 
 dotenv.config();
 

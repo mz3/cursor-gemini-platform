@@ -1,6 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, OneToMany } from 'typeorm';
-import { User } from './User';
-import { Application } from './Application';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, OneToMany, Relation } from 'typeorm';
+import { User } from './User.js';
 
 @Entity('models')
 export class Model {
@@ -19,8 +18,8 @@ export class Model {
   @Column({ default: false })
   isSystem!: boolean;
 
-  @ManyToOne(() => User, (user: User) => user.id)
-  user!: User;
+  @ManyToOne(() => User, { onDelete: 'CASCADE' })
+  user!: Relation<User>;
 
   @Column()
   userId!: string;

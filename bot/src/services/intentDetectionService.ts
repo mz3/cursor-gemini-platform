@@ -1,4 +1,4 @@
-import { GeminiService } from './geminiService';
+import { GeminiService } from './geminiService.js';
 import { BotTool } from '../entities/BotTool.js';
 
 export interface DetectedIntent {
@@ -26,7 +26,7 @@ export class IntentDetectionService {
     userId: string
   ): Promise<ToolCall[]> {
     const availableTools = tools.filter(tool => tool.isActive);
-    
+
     if (availableTools.length === 0) {
       return [];
     }
@@ -105,7 +105,7 @@ Return an empty array if no tools should be called.`;
       case 'mcp_tool':
         return [
           'create_model',
-          'list_models', 
+          'list_models',
           'get_model',
           'update_model',
           'delete_model',
@@ -190,7 +190,7 @@ For get_model:
       }
 
       const parsed = JSON.parse(jsonMatch[0]);
-      
+
       if (!parsed.toolCalls || !Array.isArray(parsed.toolCalls)) {
         console.log('Invalid toolCalls format in LLM response:', parsed);
         return [];

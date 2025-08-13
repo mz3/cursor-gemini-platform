@@ -1,15 +1,15 @@
-import { BotTool } from '../entities/BotTool';
-import { Bot } from '../entities/Bot';
-import { User } from '../entities/User';
-import { Model } from '../entities/Model';
-import { Application } from '../entities/Application';
-import { Prompt } from '../entities/Prompt';
-import { Feature } from '../entities/Feature';
-import { Workflow } from '../entities/Workflow';
-import { BotInstance, BotInstanceStatus } from '../entities/BotInstance';
-import { AppDataSource } from '../config/database';
+import { BotTool } from '../entities/BotTool.js';
+import { Bot } from '../entities/Bot.js';
+import { User } from '../entities/User.js';
+import { Model } from '../entities/Model.js';
+import { Application } from '../entities/Application.js';
+import { Prompt } from '../entities/Prompt.js';
+import { Feature } from '../entities/Feature.js';
+import { Workflow } from '../entities/Workflow.js';
+import { BotInstance, BotInstanceStatus } from '../entities/BotInstance.js';
+import { AppDataSource } from '../config/database.js';
 import axios from 'axios';
-import { Entity } from '../entities/Entity';
+import { Entity } from '../entities/Entity.js';
 
 const botRepository = AppDataSource.getRepository(Bot);
 const userRepository = AppDataSource.getRepository(User);

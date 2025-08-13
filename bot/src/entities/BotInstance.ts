@@ -1,6 +1,7 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn, Relation } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, OneToMany, JoinColumn, Relation } from 'typeorm';
 import { Bot } from './Bot.js';
 import { User } from './User.js';
+import { ChatMessage } from './ChatMessage.js';
 
 export enum BotInstanceStatus {
   RUNNING = 'running',
@@ -47,6 +48,9 @@ export class BotInstance {
 
   @Column({ type: 'jsonb', nullable: true })
   metadata?: Record<string, any>;
+
+  @OneToMany(() => ChatMessage, (message: ChatMessage) => message.botInstance)
+  messages!: Relation<ChatMessage>[];
 
   @CreateDateColumn()
   createdAt!: Date;

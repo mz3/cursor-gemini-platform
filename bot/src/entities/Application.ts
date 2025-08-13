@@ -1,7 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, OneToMany, Relation } from 'typeorm';
-import { User } from './User';
-import { Model } from './Model';
-import { Component } from './Component';
+import { User } from './User.js';
+import { Component } from './Component.js';
 
 @Entity('applications')
 export class Application {
@@ -27,20 +26,14 @@ export class Application {
   })
   status!: string;
 
-  @ManyToOne(() => User, (user: User) => user.id)
+  @ManyToOne(() => User, { onDelete: 'CASCADE' })
   user!: Relation<User>;
 
   @Column()
   userId!: string;
 
-  @ManyToOne(() => Model, (model: Model) => model.id)
-  model!: Relation<Model>;
-
-  @Column({ nullable: true })
-  modelId?: string;
-
   @OneToMany(() => Component, (component: Component) => component.application)
-  components!: Component[];
+  components!: Relation<Component>[];
 
   @CreateDateColumn()
   createdAt!: Date;

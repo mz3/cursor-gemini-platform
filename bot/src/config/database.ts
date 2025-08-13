@@ -1,12 +1,18 @@
 import { DataSource } from 'typeorm';
-import { Bot } from '../entities/Bot';
-import { BotInstance } from '../entities/BotInstance';
-import { ChatMessage } from '../entities/ChatMessage';
-import { BotTool } from '../entities/BotTool';
-import { Feature } from '../entities/Feature';
-import { Prompt } from '../entities/Prompt';
-import { PromptVersion } from '../entities/PromptVersion';
-import { Entity } from '../entities/Entity';
+import { User } from '../entities/User.js';
+import { Model } from '../entities/Model.js';
+import { Application } from '../entities/Application.js';
+import { Component } from '../entities/Component.js';
+import { Bot } from '../entities/Bot.js';
+import { BotInstance } from '../entities/BotInstance.js';
+import { ChatMessage } from '../entities/ChatMessage.js';
+import { BotTool } from '../entities/BotTool.js';
+import { Feature } from '../entities/Feature.js';
+import { Prompt } from '../entities/Prompt.js';
+import { PromptVersion } from '../entities/PromptVersion.js';
+import { Entity } from '../entities/Entity.js';
+import { Workflow } from '../entities/Workflow.js';
+import { WorkflowAction } from '../entities/WorkflowAction.js';
 
 export const AppDataSource = new DataSource({
   type: 'postgres',
@@ -18,6 +24,10 @@ export const AppDataSource = new DataSource({
   synchronize: false,
   logging: process.env.NODE_ENV === 'development',
   entities: [
+    User,
+    Model,
+    Application,
+    Component,
     Bot,
     BotInstance,
     ChatMessage,
@@ -25,7 +35,9 @@ export const AppDataSource = new DataSource({
     Feature,
     Prompt,
     PromptVersion,
-    Entity
+    Entity,
+    Workflow,
+    WorkflowAction
   ],
   migrations: [],
   subscribers: [],

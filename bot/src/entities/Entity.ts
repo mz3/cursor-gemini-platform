@@ -1,6 +1,6 @@
-import { Entity as TypeOrmEntity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
-import { Model } from './Model';
-import { User } from './User';
+import { Entity as TypeOrmEntity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn, Relation } from 'typeorm';
+import { Model } from './Model.js';
+import { User } from './User.js';
 
 @TypeOrmEntity('entities')
 export class Entity {
@@ -21,14 +21,14 @@ export class Entity {
 
   @ManyToOne(() => Model, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'modelId' })
-  model!: Model;
+  model!: Relation<Model>;
 
   @Column({ type: 'uuid' })
   userId!: string;
 
   @ManyToOne(() => User, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'userId' })
-  user!: User;
+  user!: Relation<User>;
 
   @Column({ type: 'boolean', default: false })
   isSystem!: boolean;

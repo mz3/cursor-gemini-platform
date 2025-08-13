@@ -2,6 +2,7 @@ import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateCol
 import { User } from './User.js';
 import { Prompt } from './Prompt.js';
 import { BotTool } from './BotTool.js';
+import { BotInstance } from './BotInstance.js';
 
 @Entity('bots')
 export class Bot {
@@ -45,6 +46,9 @@ export class Bot {
 
   @OneToMany(() => BotTool, (tool: BotTool) => tool.bot)
   tools!: Relation<BotTool>[];
+
+  @OneToMany(() => BotInstance, (instance: BotInstance) => instance.bot)
+  instances!: Relation<BotInstance>[];
 
   @CreateDateColumn()
   createdAt!: Date;

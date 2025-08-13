@@ -1,12 +1,12 @@
-import { AppDataSource } from '../config/database';
-import { consumeEvent, publishEvent } from '../config/redis';
-import { BotInstance, BotInstanceStatus } from '../entities/BotInstance';
-import { ChatMessage, MessageRole } from '../entities/ChatMessage';
-import { Bot } from '../entities/Bot';
-import { BotTool } from '../entities/BotTool';
-import { GeminiService } from './geminiService';
-import { ToolExecutionService } from './toolExecutionService';
-import { IntentDetectionService } from './intentDetectionService';
+import { AppDataSource } from '../config/database.js';
+import { consumeEvent, publishEvent } from '../config/redis.js';
+import { BotInstance, BotInstanceStatus } from '../entities/BotInstance.js';
+import { ChatMessage, MessageRole } from '../entities/ChatMessage.js';
+import { Bot } from '../entities/Bot.js';
+import { BotTool } from '../entities/BotTool.js';
+import { GeminiService } from './geminiService.js';
+import { ToolExecutionService } from './toolExecutionService.js';
+import { IntentDetectionService } from './intentDetectionService.js';
 
 const botInstanceRepository = AppDataSource.getRepository(BotInstance);
 const chatMessageRepository = AppDataSource.getRepository(ChatMessage);

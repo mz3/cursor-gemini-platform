@@ -1,9 +1,9 @@
-import { BotTool, ToolType } from '../entities/BotTool';
+import { BotTool, ToolType } from '../entities/BotTool.js';
 import axios from 'axios';
 import { exec } from 'child_process';
 import { promisify } from 'util';
-import { AppDataSource } from '../config/database';
-import { MCPToolService } from './mcpToolService';
+import { AppDataSource } from '../config/database.js';
+import { MCPToolService } from './mcpToolService.js';
 
 const execAsync = promisify(exec);
 
