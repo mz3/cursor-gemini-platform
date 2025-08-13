@@ -4,22 +4,24 @@ export class AddMCPToolType1754023310254 implements MigrationInterface {
     name = 'AddMCPToolType1754023310254'
 
     public async up(queryRunner: QueryRunner): Promise<void> {
-        await queryRunner.query(`ALTER TABLE "features" DROP CONSTRAINT "FK_features_userId"`);
-        await queryRunner.query(`ALTER TABLE "applications" DROP CONSTRAINT "FK_applications_model"`);
-        await queryRunner.query(`ALTER TABLE "bots" DROP CONSTRAINT "FK_bots_userId"`);
-        await queryRunner.query(`ALTER TABLE "bot_instances" DROP CONSTRAINT "FK_bot_instances_bot"`);
-        await queryRunner.query(`ALTER TABLE "bot_instances" DROP CONSTRAINT "FK_bot_instances_user"`);
-        await queryRunner.query(`ALTER TABLE "chat_messages" DROP CONSTRAINT "FK_chat_messages_bot_instance"`);
-        await queryRunner.query(`ALTER TABLE "chat_messages" DROP CONSTRAINT "FK_chat_messages_user"`);
-        await queryRunner.query(`ALTER TABLE "application_features" DROP CONSTRAINT "FK_application_features_featureId"`);
-        await queryRunner.query(`ALTER TABLE "application_features" DROP CONSTRAINT "FK_application_features_applicationId"`);
-        await queryRunner.query(`ALTER TABLE "bot_prompts" DROP CONSTRAINT "FK_bot_prompts_botId"`);
-        await queryRunner.query(`ALTER TABLE "bot_prompts" DROP CONSTRAINT "FK_bot_prompts_promptId"`);
+        // Drop constraints with IF EXISTS to handle cases where they may not exist
+        await queryRunner.query(`ALTER TABLE "features" DROP CONSTRAINT IF EXISTS "FK_features_userId"`);
+        await queryRunner.query(`ALTER TABLE "applications" DROP CONSTRAINT IF EXISTS "FK_applications_model"`);
+        await queryRunner.query(`ALTER TABLE "bots" DROP CONSTRAINT IF EXISTS "FK_bots_userId"`);
+        await queryRunner.query(`ALTER TABLE "bot_instances" DROP CONSTRAINT IF EXISTS "FK_bot_instances_bot"`);
+        await queryRunner.query(`ALTER TABLE "bot_instances" DROP CONSTRAINT IF EXISTS "FK_bot_instances_user"`);
+        await queryRunner.query(`ALTER TABLE "chat_messages" DROP CONSTRAINT IF EXISTS "FK_chat_messages_bot_instance"`);
+        await queryRunner.query(`ALTER TABLE "chat_messages" DROP CONSTRAINT IF EXISTS "FK_chat_messages_user"`);
+        await queryRunner.query(`ALTER TABLE "application_features" DROP CONSTRAINT IF EXISTS "FK_application_features_featureId"`);
+        await queryRunner.query(`ALTER TABLE "application_features" DROP CONSTRAINT IF EXISTS "FK_application_features_applicationId"`);
+        await queryRunner.query(`ALTER TABLE "bot_prompts" DROP CONSTRAINT IF EXISTS "FK_bot_prompts_botId"`);
+        await queryRunner.query(`ALTER TABLE "bot_prompts" DROP CONSTRAINT IF EXISTS "FK_bot_prompts_promptId"`);
         await queryRunner.query(`DROP INDEX "public"."IDX_bot_tools_botId"`);
         await queryRunner.query(`DROP INDEX "public"."IDX_bot_tools_type"`);
         await queryRunner.query(`DROP INDEX "public"."IDX_bot_tools_active"`);
-        await queryRunner.query(`ALTER TABLE "applications" DROP COLUMN "modelId"`);
-        await queryRunner.query(`ALTER TABLE "users" DROP COLUMN "darkMode"`);
+        // Drop columns with IF EXISTS to handle cases where they may not exist
+        await queryRunner.query(`ALTER TABLE "applications" DROP COLUMN IF EXISTS "modelId"`);
+        await queryRunner.query(`ALTER TABLE "users" DROP COLUMN IF EXISTS "darkMode"`);
         await queryRunner.query(`ALTER TYPE "public"."bot_tool_type_enum" RENAME TO "bot_tool_type_enum_old"`);
         await queryRunner.query(`CREATE TYPE "public"."bot_tools_type_enum" AS ENUM('http_request', 'database_query', 'file_operation', 'shell_command', 'custom_script', 'workflow_action', 'mcp_tool')`);
         await queryRunner.query(`ALTER TABLE "bot_tools" ALTER COLUMN "type" TYPE "public"."bot_tools_type_enum" USING "type"::"text"::"public"."bot_tools_type_enum"`);
