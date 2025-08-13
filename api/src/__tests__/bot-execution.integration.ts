@@ -1,4 +1,8 @@
 import request from 'supertest';
+import { AppDataSource } from '../config/database.js';
+import { Bot } from '../entities/Bot.js';
+import { BotInstance } from '../entities/BotInstance.js';
+import { ChatMessage } from '../entities/ChatMessage.js';
 
 // Mock the bot worker processing to prevent actual Gemini API calls
 jest.mock('../config/redis.ts', () => ({
@@ -12,7 +16,7 @@ jest.mock('../config/redis.ts', () => ({
   })
 }));
 
-const API_BASE_URL = process.env.API_URL || 'http://localhost:4000';
+const API_BASE_URL = process.env.API_URL || 'http://localhost:4001';
 
 describe('Bot Execution API Integration Tests', () => {
   let testUserId: string;
@@ -189,7 +193,7 @@ describe('Bot Execution API Integration Tests', () => {
       expect(typeof response.body.botResponse.tokensUsed).toBe('number');
       // Note: tokensUsed is mocked to prevent actual Gemini API calls
       expect(response.body.botResponse.tokensUsed).toBeGreaterThanOrEqual(0);
-      expect(response.body.botResponse.content).toContain('mock');
+      expect(response.body.botResponse.content).toBe('Processing your message...');
     });
 
     it('should return 400 when userId is missing', async () => {
@@ -267,7 +271,7 @@ describe('Bot Execution API Integration Tests', () => {
       expect(chatResponse.body.botResponse.content.length).toBeGreaterThan(0);
       // Note: tokensUsed is mocked to prevent actual Gemini API calls
       expect(chatResponse.body.botResponse.tokensUsed).toBeGreaterThanOrEqual(0);
-      expect(chatResponse.body.botResponse.content).toContain('mock');
+      expect(chatResponse.body.botResponse.content).toBe('Processing your message...');
 
       // Step 3: Get conversation history
       const historyResponse = await request(API_BASE_URL)
@@ -320,7 +324,7 @@ describe('Bot Execution API Integration Tests', () => {
         expect(response.body.botResponse.content.length).toBeGreaterThan(0);
         // Note: tokensUsed is mocked to prevent actual Gemini API calls
         expect(response.body.botResponse.tokensUsed).toBeGreaterThanOrEqual(0);
-        expect(response.body.botResponse.content).toContain('mock');
+        expect(response.body.botResponse.content).toBe('Processing your message...');
       }
 
       // Stop bot

@@ -57,7 +57,7 @@ class WebSocketService {
       this.socket.on('disconnect', (reason: string) => {
         console.log('🔌 WebSocket disconnected:', reason);
         this.eventHandlers.onDisconnect?.();
-        
+
         if (reason === 'io server disconnect') {
           // Server disconnected us, try to reconnect
           this.reconnect();
@@ -67,7 +67,7 @@ class WebSocketService {
       this.socket.on('connect_error', (error: Error) => {
         console.error('🔌 WebSocket connection error:', error);
         this.eventHandlers.onError?.(error);
-        
+
         if (this.reconnectAttempts < this.maxReconnectAttempts) {
           this.reconnect();
         }
@@ -110,8 +110,12 @@ class WebSocketService {
       this.isConnecting = true;
 
       try {
-        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:4000';
-        this.socket = io(apiUrl, {
+        // When running in Docker, use relative URLs to leverage Vite proxy
+        // When running locally, use the full URL
+        const isDocker = import.meta.env.VITE_DOCKER === 'true';
+        const wsUrl = isDocker ? window.location.origin : (import.meta.env.VITE_API_URL || 'http://localhost:4001');
+
+        this.socket = io(wsUrl, {
           auth: { token },
           transports: ['websocket', 'polling'],
           timeout: 10000,
@@ -210,9 +214,9 @@ class WebSocketService {
 
     this.reconnectAttempts++;
     const delay = this.reconnectDelay * Math.pow(2, this.reconnectAttempts - 1);
-    
+
     console.log(`🔌 Attempting to reconnect in ${delay}ms (attempt ${this.reconnectAttempts})`);
-    
+
     setTimeout(() => {
       if (this.socket) {
         this.socket.connect();
@@ -236,4 +240,4 @@ class WebSocketService {
 
 // Export singleton instance
 export const wsService = new WebSocketService();
-export default wsService; 
+export default wsService;

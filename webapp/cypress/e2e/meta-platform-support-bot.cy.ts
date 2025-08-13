@@ -79,7 +79,7 @@ describe('Meta Platform Support Bot E2E Test', () => {
       if ($body.find(`:contains("${displayName}")`).length > 0) {
         // Model exists - verify it
         cy.contains(displayName).should('be.visible');
-        
+
         // Click on the View Model button to view its details
         cy.get('button[title="View Model"]').first().click();
         cy.url().should('include', '/models/');
@@ -88,7 +88,7 @@ describe('Meta Platform Support Bot E2E Test', () => {
         // Verify model details
         cy.contains('Model Details').should('be.visible');
         cy.contains('Schema Definition').should('be.visible');
-        
+
         // Verify the model has some fields (don't check specific field names as they may vary)
         cy.contains('Schema Fields').should('be.visible');
         // Check that there are some fields displayed
@@ -114,7 +114,7 @@ describe('Meta Platform Support Bot E2E Test', () => {
     cy.contains('Bots').click();
     cy.contains('Meta Platform Customer Support Bot').closest('li').find('button[title="View Bot"]').click();
     cy.contains('Chat').click();
-    
+
     // Check if bot is running and start if needed
     cy.get('body').then(($body) => {
       if ($body.find('button:contains("Start Bot")').length > 0) {
@@ -134,46 +134,46 @@ describe('Meta Platform Support Bot E2E Test', () => {
     // Wait for any initial response and then for the final response
     cy.wait(3000);
     cy.get('.bg-gray-200, .bg-white').should('exist'); // Check for any bot response bubble
-    
+
     // Wait for intermediate status messages and final response
     cy.wait(15000); // Increased wait time for the new messaging system
-    
+
     // Verify the bot responded with a final response (not just intermediate status)
     cy.get('body').should('contain', 'model'); // Check if any response contains 'model'
     cy.get('.bg-gray-200, .bg-white').should('exist'); // Check for bot response bubble
-    
+
     // Look for the final response that contains the model details
     cy.get('body').should('contain', 'successfully created');
 
     // Verify the model was created by checking the API
     cy.request({
       method: 'GET',
-      url: 'http://localhost:4000/api/models',
+              url: 'http://localhost:4001/api/models',
       headers: {
         'Content-Type': 'application/json'
       }
     }).then((response) => {
       expect(response.status).to.eq(200);
-      
+
       // Check if our model was created
       const models = response.body;
       const createdModel = models.find((model: any) => model.name === modelName);
-      
+
       if (createdModel) {
         // Model was created successfully - verify its details
         expect(createdModel.displayName).to.eq(displayName);
         expect(createdModel.schema).to.have.property('fields');
         expect(createdModel.schema.fields).to.be.an('array');
-        
+
         // Verify the model has the expected fields
         const fieldNames = createdModel.schema.fields.map((field: any) => field.name);
         expect(fieldNames).to.include('productName');
         expect(fieldNames).to.include('price');
         expect(fieldNames).to.include('description');
         expect(fieldNames).to.include('inStock');
-        
+
         cy.log(`✅ Model "${modelName}" was successfully created with ${createdModel.schema.fields.length} fields`);
-        
+
         // Also verify in the UI
         cy.visit('/models');
         cy.wait(3000);
@@ -181,12 +181,12 @@ describe('Meta Platform Support Bot E2E Test', () => {
       } else {
         // Model was not created - this indicates the bot is not working properly
         cy.log(`❌ Model "${modelName}" was not created - bot model creation is not working`);
-        
+
         // Check the UI to confirm
         cy.visit('/models');
         cy.wait(3000);
         cy.contains(displayName).should('not.exist');
-        
+
         // This should fail the test since we expect models to be created
         throw new Error(`Model "${modelName}" was not created by the bot`);
       }
@@ -198,7 +198,7 @@ describe('Meta Platform Support Bot E2E Test', () => {
     cy.contains('Bots').click();
     cy.contains('Meta Platform Customer Support Bot').closest('li').find('button[title="View Bot"]').click();
     cy.contains('Chat').click();
-    
+
     // Check if bot is running and start if needed
     cy.get('body').then(($body) => {
       if ($body.find('button:contains("Start Bot")').length > 0) {
@@ -217,4 +217,4 @@ describe('Meta Platform Support Bot E2E Test', () => {
     // The bot should respond (even if it's an error message)
     cy.get('.bg-gray-200, .bg-white').should('exist'); // Bot response bubble
   });
-}); 
+});

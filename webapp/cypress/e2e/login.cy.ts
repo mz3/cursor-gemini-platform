@@ -5,7 +5,7 @@ describe('Login', () => {
 
   it('should login successfully with valid credentials', () => {
     // Use environment variables for API URL and credentials
-    const apiUrl = Cypress.env('apiUrl') || 'http://localhost:4000';
+    const apiUrl = Cypress.env('apiUrl') || 'http://localhost:4001';
     const testEmail = Cypress.env('testEmail') || 'admin@platform.com';
     const testPassword = Cypress.env('testPassword') || 'admin123';
 
@@ -29,7 +29,7 @@ describe('Login', () => {
     cy.get('input[name="password"]').type('wrongpassword');
     cy.get('button[type="submit"]').click();
 
-    // Should show error message
-    cy.contains('Invalid credentials').should('be.visible');
+    // Should show error message - updated to match our new error handling
+    cy.contains('Invalid email or password').should('be.visible');
   });
 });

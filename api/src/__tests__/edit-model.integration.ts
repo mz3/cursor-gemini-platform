@@ -4,7 +4,7 @@ import { Model } from '../entities/Model.js';
 import { Relationship } from '../entities/Relationship.js';
 import { User } from '../entities/User.js';
 
-const API_BASE_URL = process.env.API_URL || 'http://localhost:4000';
+const API_BASE_URL = process.env.API_URL || 'http://localhost:4001';
 
 describe('Edit Model API', () => {
   let token: string;

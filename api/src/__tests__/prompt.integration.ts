@@ -4,7 +4,7 @@ import { Model } from '../entities/Model.js';
 import { Prompt } from '../entities/Prompt.js';
 import { PromptVersion } from '../entities/PromptVersion.js';
 
-const API_BASE_URL = process.env.API_URL || 'http://localhost:4000';
+const API_BASE_URL = process.env.API_URL || 'http://localhost:4001';
 
 describe('Prompt API Integration Tests', () => {
   let token: string;

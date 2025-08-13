@@ -22,7 +22,7 @@ import { Entity } from '../entities/Entity.js';
 
 // Helper to determine if running from dist (production build), ESM compatible
 // Use a different approach for test environment to avoid import.meta issues
-const isDist = process.env.NODE_ENV === 'production' || 
+const isDist = process.env.NODE_ENV === 'production' ||
                (typeof __filename !== 'undefined' && __filename.includes('/dist/')) ||
                (typeof __filename !== 'undefined' && __filename.includes('\\dist\\'));
 

@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import api from '../utils/api';
+import { handleError, isAuthError } from '../utils/errorHandler';
 
 interface User {
   id: string;
@@ -21,6 +22,7 @@ interface AuthContextType {
   error: string | null;
   darkMode: boolean;
   setDarkMode: (value: boolean) => Promise<void>;
+  clearError: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -53,14 +55,26 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   }, []);
 
+  const clearError = () => {
+    setError(null);
+  };
+
   const fetchUser = async () => {
     try {
       const response = await api.get('/users/profile');
       setUser(response.data);
       setError(null);
     } catch (error: any) {
-      setError(error.message || 'Failed to fetch user profile.');
-      localStorage.removeItem('token');
+      const processedError = handleError(error, 'Fetch User Profile');
+
+      // Handle authentication errors
+      if (isAuthError(error)) {
+        setError('Your session has expired. Please log in again.');
+        localStorage.removeItem('token');
+        setUser(null);
+      } else {
+        setError(processedError.message);
+      }
     } finally {
       setLoading(false);
     }
@@ -70,8 +84,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       const response = await api.get('/users/settings');
       setDarkModeState(response.data.darkMode);
-    } catch (error) {
-      // ignore, default to false
+    } catch (error: any) {
+      // Don't show error for settings, just use default
+      handleError(error, 'Fetch User Settings');
+      setDarkModeState(false);
     }
   };
 
@@ -79,20 +95,27 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       await api.put('/users/settings', { darkMode: value });
       setDarkModeState(value);
-    } catch (error) {
-      // Optionally handle error
+      setError(null);
+    } catch (error: any) {
+      const processedError = handleError(error, 'Update Dark Mode Setting');
+      setError(processedError.message);
     }
   };
 
   const login = async (email: string, password: string) => {
     try {
+      setError(null);
       const response = await api.post('/users/login', { email, password });
       const { token, user } = response.data;
       localStorage.setItem('token', token);
       setUser(user);
       setError(null);
+
+      // Fetch settings after successful login
+      await fetchSettings();
     } catch (error: any) {
-      setError(error.message || 'Login failed.');
+      const processedError = handleError(error, 'User Login');
+      setError(processedError.message);
       throw error;
     }
   };
@@ -100,6 +123,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const logout = () => {
     localStorage.removeItem('token');
     setUser(null);
+    setError(null);
   };
 
   const value = {
@@ -109,7 +133,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     loading,
     error,
     darkMode,
-    setDarkMode
+    setDarkMode,
+    clearError
   };
 
   return (

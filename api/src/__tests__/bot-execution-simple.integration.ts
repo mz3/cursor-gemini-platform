@@ -1,6 +1,9 @@
 import request from 'supertest';
+import { AppDataSource } from '../config/database.js';
+import { Bot } from '../entities/Bot.js';
+import { BotInstance } from '../entities/BotInstance.js';
 
-const API_BASE_URL = process.env.API_URL || 'http://localhost:4000';
+const API_BASE_URL = process.env.API_URL || 'http://localhost:4001';
 
 describe('Simple Bot Execution Test', () => {
   let testUserId: string;
@@ -66,4 +69,4 @@ describe('Simple Bot Execution Test', () => {
     expect(stopBotRes.body.status).toBe('stopped');
     console.log('Stopped bot:', stopBotRes.body);
   }, 10000);
-}); 
+});
