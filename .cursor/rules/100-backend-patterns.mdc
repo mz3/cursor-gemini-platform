@@ -1,8 +1,7 @@
 ---
-globs: api/src/**/*.ts
+globs: api/src/**/*.ts,bot/src/**/*.ts
 alwaysApply: false
 ---
-
 # Backend Development Patterns
 
 ## Entity Patterns

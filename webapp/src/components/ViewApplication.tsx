@@ -47,6 +47,7 @@ const ViewApplication: React.FC = () => {
       </div>
       <ApplicationForm
         initialData={application}
+        onSubmit={async () => {}} // Dummy function for read-only view
         readOnly
       />
     </div>
