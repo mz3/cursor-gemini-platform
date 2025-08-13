@@ -1,0 +1,7 @@
+---
+globs: *.ts
+alwaysApply: false
+---
+
+- Use the `Relation<TargetModel>` generic when joining Typeorm entities
+- Include the `.js` extension for local imports (i.e. `import User from './user.js'`)
