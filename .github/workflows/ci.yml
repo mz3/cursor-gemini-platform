@@ -150,8 +150,8 @@ jobs:
           sleep 5
           echo "Checking if API process is still running..."
           ps aux | grep node || echo "No node processes found"
-          echo "Checking port 4000..."
-          netstat -tlnp | grep :4000 || echo "Port 4000 not in use"
+          echo "Checking port 4001..."
+          netstat -tlnp | grep :4001 || echo "Port 4001 not in use"
           sleep 5
         env:
           NODE_ENV: test
@@ -163,7 +163,7 @@ jobs:
           REDIS_HOST: localhost
           REDIS_PORT: 6379
           JWT_SECRET: test-jwt-secret-key
-          API_PORT: 4000
+          API_PORT: 4001
           GEMINI_KEY: ${{ secrets.GEMINI_KEY }}
 
       - name: Start UI server with nginx
@@ -183,11 +183,11 @@ jobs:
       - name: Verify API server is running
         run: |
           echo "Checking if API server is responding..."
-          curl -v http://localhost:4000/health || echo "Health endpoint not responding"
-          curl -v http://localhost:4000/api/health || echo "API health endpoint not responding"
+          curl -v http://localhost:4001/health || echo "Health endpoint not responding"
+          curl -v http://localhost:4001/api/health || echo "API health endpoint not responding"
           TIMEOUT=15
           ELAPSED=0
-          until curl -f http://localhost:4000/health; do
+          until curl -f http://localhost:4001/health; do
             echo "Waiting for API server... ($ELAPSED seconds)"
             sleep 2
             ELAPSED=$((ELAPSED+2))
@@ -221,14 +221,14 @@ jobs:
           REDIS_HOST: localhost
           REDIS_PORT: 6379
           JWT_SECRET: test-jwt-secret-key
-          API_PORT: 4000
+          API_PORT: 4001
           GEMINI_KEY: ${{ secrets.GEMINI_KEY }}
 
       - name: Test API login with test credentials
         run: |
           echo "Testing API login with test credentials..."
           # Test login endpoint
-          response=$(curl -s -w "\n%{http_code}" -X POST http://localhost:4000/api/users/login \
+          response=$(curl -s -w "\n%{http_code}" -X POST http://localhost:4001/api/users/login \
             -H "Content-Type: application/json" \
             -d '{"email":"admin@platform.com","password":"admin123"}')
 
@@ -245,7 +245,7 @@ jobs:
             echo "Token extracted: ${token:0:20}..."
 
             # Test user profile endpoint
-            profile_response=$(curl -s -w "\n%{http_code}" -X GET http://localhost:4000/api/users/profile \
+            profile_response=$(curl -s -w "\n%{http_code}" -X GET http://localhost:4001/api/users/profile \
               -H "Authorization: Bearer $token")
 
             profile_http_code=$(echo "$profile_response" | tail -n1)
@@ -270,7 +270,7 @@ jobs:
         working-directory: ./webapp
         env:
           CYPRESS_baseUrl: http://localhost:3000
-          CYPRESS_apiUrl: http://localhost:4000
+          CYPRESS_apiUrl: http://localhost:4001
           CYPRESS_testEmail: admin@platform.com
           CYPRESS_testPassword: admin123
 
