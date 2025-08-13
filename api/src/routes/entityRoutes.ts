@@ -35,21 +35,21 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
   }
 });
 
-// GET /api/entities/:modelId - Get all entities for a specific model
-router.get('/model/:modelId', async (req: Request, res: Response, next: NextFunction) => {
+// GET /api/entities/:schemaId - Get all entities for a specific schema
+router.get('/schema/:schemaId', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { modelId } = req.params;
+    const { schemaId } = req.params;
     const user = extractUserFromToken(req);
-    
+
     if (!user) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    if (!modelId) {
-      return res.status(400).json({ error: 'Model ID is required' });
+    if (!schemaId) {
+      return res.status(400).json({ error: 'Schema ID is required' });
     }
 
-    const entities = await EntityService.getEntitiesByModel(modelId, user.userId);
+    const entities = await EntityService.getEntitiesBySchema(schemaId, user.userId);
     return res.json(entities);
   } catch (error) {
     return next(error);
@@ -61,7 +61,7 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
     const user = extractUserFromToken(req);
-    
+
     if (!user) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
@@ -84,16 +84,16 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
 // POST /api/entities - Create a new entity
 router.post('/', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { name, displayName, data, modelId } = req.body;
+    const { name, displayName, data, schemaId } = req.body;
     const user = extractUserFromToken(req);
-    
+
     if (!user) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    if (!name || !displayName || !data || !modelId) {
-      return res.status(400).json({ 
-        error: 'Missing required fields: name, displayName, data, modelId' 
+    if (!name || !displayName || !data || !schemaId) {
+      return res.status(400).json({
+        error: 'Missing required fields: name, displayName, data, schemaId'
       });
     }
 
@@ -101,7 +101,7 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
       name,
       displayName,
       data,
-      modelId,
+      schemaId,
       userId: user.userId
     });
 
@@ -117,7 +117,7 @@ router.put('/:id', async (req: Request, res: Response, next: NextFunction) => {
     const { id } = req.params;
     const { data } = req.body;
     const user = extractUserFromToken(req);
-    
+
     if (!user) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
@@ -142,7 +142,7 @@ router.delete('/:id', async (req: Request, res: Response, next: NextFunction) =>
   try {
     const { id } = req.params;
     const user = extractUserFromToken(req);
-    
+
     if (!user) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
@@ -158,4 +158,4 @@ router.delete('/:id', async (req: Request, res: Response, next: NextFunction) =>
   }
 });
 
-export default router; 
+export default router;

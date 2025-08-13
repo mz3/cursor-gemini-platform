@@ -28,6 +28,7 @@ export interface WebSocketEventHandlers {
   onMessage?: (message: ChatMessage) => void;
   onStatusUpdate?: (status: BotStatusUpdate) => void;
   onTypingIndicator?: (indicator: TypingIndicator) => void;
+  onConversationHistory?: (messages: ChatMessage[]) => void;
   onError?: (error: Error) => void;
   onConnect?: () => void;
   onDisconnect?: () => void;
@@ -85,7 +86,7 @@ class WebSocketService {
 
       this.socket.on('conversation-history', (messages: ChatMessage[]) => {
         console.log('📚 Received conversation history:', messages.length, 'messages');
-        // Handle conversation history - could be added to event handlers if needed
+        this.eventHandlers.onConversationHistory?.(messages);
       });
 
       this.socket.on('typing-indicator', (indicator: TypingIndicator) => {

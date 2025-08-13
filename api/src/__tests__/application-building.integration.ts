@@ -2,7 +2,7 @@ import request from 'supertest';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 
-const API_BASE_URL = process.env.API_URL || 'http://localhost:4000';
+const API_BASE_URL = process.env.API_URL || 'http://localhost:4001';
 const execAsync = promisify(exec);
 
 describe('Application Building API Integration Tests', () => {
@@ -17,7 +17,7 @@ describe('Application Building API Integration Tests', () => {
   beforeAll(async () => {
     // Check if we're in CI environment
     ciEnvironment = process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true';
-    
+
     if (ciEnvironment) {
       console.log('CI environment detected, skipping application building tests');
       return;
@@ -99,7 +99,7 @@ describe('Application Building API Integration Tests', () => {
     };
 
     const modelRes = await request(API_BASE_URL)
-      .post('/api/models')
+      .post('/api/schemas')
       .set('Authorization', `Bearer ${authToken}`)
       .send(modelData);
 
@@ -159,6 +159,7 @@ describe('Application Building API Integration Tests', () => {
         try {
           await request(API_BASE_URL)
             .post(`/api/bot-execution/${codeBuilderBotId}/stop`)
+            .set('Authorization', `Bearer ${authToken}`)
             .send({ userId: testUserId });
           console.log('Stopped existing bot instance');
         } catch (error) {
@@ -170,6 +171,7 @@ describe('Application Building API Integration Tests', () => {
 
         const startBotRes = await request(API_BASE_URL)
           .post(`/api/bot-execution/${codeBuilderBotId}/start`)
+          .set('Authorization', `Bearer ${authToken}`)
           .send({ userId: testUserId })
           .expect(200);
 
@@ -213,6 +215,7 @@ describe('Application Building API Integration Tests', () => {
         // Step 8: Stop the bot
         await request(API_BASE_URL)
           .post(`/api/bot-execution/${codeBuilderBotId}/stop`)
+          .set('Authorization', `Bearer ${authToken}`)
           .send({ userId: testUserId })
           .expect(200);
       } else {
@@ -342,8 +345,8 @@ describe('Application Building API Integration Tests', () => {
         console.log('Available Docker images:', dockerImages);
 
         // Check for any images related to our test
-        const testImages = dockerImages.split('\n').filter(line => 
-          line.includes('test-user-management') || 
+        const testImages = dockerImages.split('\n').filter(line =>
+          line.includes('test-user-management') ||
           line.includes('complex-dashboard') ||
           line.includes('platform-app')
         );
@@ -559,7 +562,7 @@ describe('Application Building API Integration Tests', () => {
     try {
       const { stdout } = await execAsync('docker images --format "{{.Repository}}:{{.Tag}}" | grep -E "(test-user-management|complex-dashboard|lifecycle-test|large-config-test)"');
       const imagesToRemove = stdout.split('\n').filter(img => img.trim());
-      
+
       for (const image of imagesToRemove) {
         if (image.trim()) {
           await execAsync(`docker rmi ${image.trim()}`);
@@ -570,4 +573,4 @@ describe('Application Building API Integration Tests', () => {
       console.log('No test Docker images to clean up or error during cleanup:', error);
     }
   });
-}); 
+});

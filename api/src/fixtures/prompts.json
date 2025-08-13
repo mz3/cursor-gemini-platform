@@ -1,12 +1,12 @@
 [
   {
     "name": "code-generation",
-    "description": "Generate application code based on models",
+    "description": "Generate application code based on schemas",
     "userId": "system"
   },
   {
-    "name": "model-creation",
-    "description": "Create data models from natural language",
+    "name": "schema-creation",
+    "description": "Create data schemas from natural language",
     "userId": "system"
   },
   {

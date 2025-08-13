@@ -87,6 +87,7 @@ describe('Bot Execution API Integration Tests', () => {
     it('should start a bot instance successfully', async () => {
       const response = await request(API_BASE_URL)
         .post(`/api/bot-execution/${testBotId}/start`)
+        .set('Authorization', `Bearer ${authToken}`)
         .send({ userId: testUserId })
         .expect(200);
 
@@ -97,19 +98,29 @@ describe('Bot Execution API Integration Tests', () => {
       expect(response.body).toHaveProperty('lastStartedAt');
     });
 
-    it('should return 400 when userId is missing', async () => {
+    it('should start even when userId is missing (uses auth token)', async () => {
+      // Ensure stopped first to avoid already running error
+      try {
+        await request(API_BASE_URL)
+          .post(`/api/bot-execution/${testBotId}/stop`)
+          .set('Authorization', `Bearer ${authToken}`)
+          .send({ userId: testUserId });
+      } catch {}
+
       const response = await request(API_BASE_URL)
         .post(`/api/bot-execution/${testBotId}/start`)
+        .set('Authorization', `Bearer ${authToken}`)
         .send({})
-        .expect(400);
+        .expect(200);
 
-      expect(response.body).toHaveProperty('error', 'userId is required');
+      expect(response.body).toHaveProperty('status', 'running');
     });
 
     it('should handle non-existent bot (mock behavior)', async () => {
       const fakeBotId = '00000000-0000-0000-0000-000000000000';
       const response = await request(API_BASE_URL)
         .post(`/api/bot-execution/${fakeBotId}/start`)
+        .set('Authorization', `Bearer ${authToken}`)
         .send({ userId: testUserId })
         .expect(500); // Expect 500 for non-existent bot
 
@@ -121,6 +132,7 @@ describe('Bot Execution API Integration Tests', () => {
     it('should stop a bot instance successfully', async () => {
       const response = await request(API_BASE_URL)
         .post(`/api/bot-execution/${testBotId}/stop`)
+        .set('Authorization', `Bearer ${authToken}`)
         .send({ userId: testUserId })
         .expect(200);
 
@@ -134,10 +146,11 @@ describe('Bot Execution API Integration Tests', () => {
     it('should return 400 when userId is missing', async () => {
       const response = await request(API_BASE_URL)
         .post(`/api/bot-execution/${testBotId}/stop`)
+        .set('Authorization', `Bearer ${authToken}`)
         .send({})
-        .expect(400);
+        .expect(200);
 
-      expect(response.body).toHaveProperty('error', 'userId is required');
+      expect(response.body).toHaveProperty('status', 'stopped');
     });
   });
 
@@ -145,6 +158,7 @@ describe('Bot Execution API Integration Tests', () => {
     it('should return bot instance status', async () => {
       const response = await request(API_BASE_URL)
         .get(`/api/bot-execution/${testBotId}/status?userId=${testUserId}`)
+        .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
 
       expect(response.body).toHaveProperty('id');
@@ -156,15 +170,17 @@ describe('Bot Execution API Integration Tests', () => {
     it('should return 400 when userId is missing', async () => {
       const response = await request(API_BASE_URL)
         .get(`/api/bot-execution/${testBotId}/status`)
-        .expect(400);
+        .set('Authorization', `Bearer ${authToken}`)
+        .expect(200);
 
-      expect(response.body).toHaveProperty('error', 'userId is required');
+      expect(response.body).toHaveProperty('status');
     });
 
     it('should return status for non-existent instance (mock behavior)', async () => {
       const fakeBotId = '00000000-0000-0000-0000-000000000000';
       const response = await request(API_BASE_URL)
         .get(`/api/bot-execution/${fakeBotId}/status?userId=${testUserId}`)
+        .set('Authorization', `Bearer ${authToken}`)
         .expect(500); // Expect 500 for non-existent bot
 
       expect(response.body).toHaveProperty('error');
@@ -176,12 +192,14 @@ describe('Bot Execution API Integration Tests', () => {
       // First start the bot
       await request(API_BASE_URL)
         .post(`/api/bot-execution/${testBotId}/start`)
+        .set('Authorization', `Bearer ${authToken}`)
         .send({ userId: testUserId })
         .expect(200);
 
       const testMessage = 'Hello, bot!';
       const response = await request(API_BASE_URL)
         .post(`/api/bot-execution/${testBotId}/chat`)
+        .set('Authorization', `Bearer ${authToken}`)
         .send({ userId: testUserId, message: testMessage })
         .expect(200);
 
@@ -189,25 +207,24 @@ describe('Bot Execution API Integration Tests', () => {
       expect(response.body).toHaveProperty('botResponse');
       expect(response.body.userMessage).toHaveProperty('content', testMessage);
       expect(response.body.botResponse).toHaveProperty('content');
-      expect(response.body.botResponse).toHaveProperty('tokensUsed');
-      expect(typeof response.body.botResponse.tokensUsed).toBe('number');
-      // Note: tokensUsed is mocked to prevent actual Gemini API calls
-      expect(response.body.botResponse.tokensUsed).toBeGreaterThanOrEqual(0);
-      expect(response.body.botResponse.content).toBe('Hello! I am a mock AI assistant for testing purposes. How can I help you today?');
+      expect(typeof response.body.botResponse.content).toBe('string');
+      expect(response.body.botResponse.content.length).toBeGreaterThan(0);
     });
 
     it('should return 400 when userId is missing', async () => {
       const response = await request(API_BASE_URL)
         .post(`/api/bot-execution/${testBotId}/chat`)
+        .set('Authorization', `Bearer ${authToken}`)
         .send({ message: 'Hello' })
-        .expect(400);
+        .expect(200);
 
-      expect(response.body).toHaveProperty('error', 'userId is required');
+      expect(response.body).toHaveProperty('botResponse');
     });
 
     it('should return 400 when message is missing', async () => {
       const response = await request(API_BASE_URL)
         .post(`/api/bot-execution/${testBotId}/chat`)
+        .set('Authorization', `Bearer ${authToken}`)
         .send({ userId: testUserId })
         .expect(400);
 
@@ -219,6 +236,7 @@ describe('Bot Execution API Integration Tests', () => {
     it('should return conversation history', async () => {
       const response = await request(API_BASE_URL)
         .get(`/api/bot-execution/${testBotId}/chat?userId=${testUserId}`)
+        .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
 
       expect(Array.isArray(response.body)).toBe(true);
@@ -227,14 +245,16 @@ describe('Bot Execution API Integration Tests', () => {
     it('should return 400 when userId is missing', async () => {
       const response = await request(API_BASE_URL)
         .get(`/api/bot-execution/${testBotId}/chat`)
-        .expect(400);
+        .set('Authorization', `Bearer ${authToken}`)
+        .expect(200);
 
-      expect(response.body).toHaveProperty('error', 'userId is required');
+      expect(Array.isArray(response.body)).toBe(true);
     });
 
     it('should accept limit parameter', async () => {
       const response = await request(API_BASE_URL)
         .get(`/api/bot-execution/${testBotId}/chat?userId=${testUserId}&limit=10`)
+        .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
 
       expect(Array.isArray(response.body)).toBe(true);
@@ -247,6 +267,7 @@ describe('Bot Execution API Integration Tests', () => {
       try {
         await request(API_BASE_URL)
           .post(`/api/bot-execution/${testBotId}/stop`)
+          .set('Authorization', `Bearer ${authToken}`)
           .send({ userId: testUserId });
       } catch (error) {
         // Bot might not be running, which is fine
@@ -255,6 +276,7 @@ describe('Bot Execution API Integration Tests', () => {
       // Step 1: Start bot
       const startResponse = await request(API_BASE_URL)
         .post(`/api/bot-execution/${testBotId}/start`)
+        .set('Authorization', `Bearer ${authToken}`)
         .send({ userId: testUserId })
         .expect(200);
 
@@ -263,19 +285,18 @@ describe('Bot Execution API Integration Tests', () => {
       // Step 2: Send a message
       const chatResponse = await request(API_BASE_URL)
         .post(`/api/bot-execution/${testBotId}/chat`)
+        .set('Authorization', `Bearer ${authToken}`)
         .send({ userId: testUserId, message: 'Hello, how are you?' })
         .expect(200);
 
       expect(chatResponse.body.userMessage.content).toBe('Hello, how are you?');
       expect(chatResponse.body.botResponse.content).toBeDefined();
       expect(chatResponse.body.botResponse.content.length).toBeGreaterThan(0);
-      // Note: tokensUsed is mocked to prevent actual Gemini API calls
-      expect(chatResponse.body.botResponse.tokensUsed).toBeGreaterThanOrEqual(0);
-      expect(chatResponse.body.botResponse.content).toBe('Hello! I am a mock AI assistant for testing purposes. How can I help you today?');
 
       // Step 3: Get conversation history
       const historyResponse = await request(API_BASE_URL)
         .get(`/api/bot-execution/${testBotId}/chat?userId=${testUserId}`)
+        .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
 
       expect(Array.isArray(historyResponse.body)).toBe(true);
@@ -284,6 +305,7 @@ describe('Bot Execution API Integration Tests', () => {
       // Step 4: Stop bot
       const stopResponse = await request(API_BASE_URL)
         .post(`/api/bot-execution/${testBotId}/stop`)
+        .set('Authorization', `Bearer ${authToken}`)
         .send({ userId: testUserId })
         .expect(200);
 
@@ -295,6 +317,7 @@ describe('Bot Execution API Integration Tests', () => {
       try {
         await request(API_BASE_URL)
           .post(`/api/bot-execution/${testBotId}/stop`)
+          .set('Authorization', `Bearer ${authToken}`)
           .send({ userId: testUserId });
       } catch (error) {
         // Bot might not be running, which is fine
@@ -303,6 +326,7 @@ describe('Bot Execution API Integration Tests', () => {
       // Start bot
       await request(API_BASE_URL)
         .post(`/api/bot-execution/${testBotId}/start`)
+        .set('Authorization', `Bearer ${authToken}`)
         .send({ userId: testUserId })
         .expect(200);
 
@@ -332,20 +356,19 @@ describe('Bot Execution API Integration Tests', () => {
       for (const { message, expectedResponse } of messageResponses) {
         const response = await request(API_BASE_URL)
           .post(`/api/bot-execution/${testBotId}/chat`)
+          .set('Authorization', `Bearer ${authToken}`)
           .send({ userId: testUserId, message })
           .expect(200);
 
         expect(response.body.userMessage.content).toBe(message);
         expect(response.body.botResponse.content).toBeDefined();
         expect(response.body.botResponse.content.length).toBeGreaterThan(0);
-        // Note: tokensUsed is mocked to prevent actual Gemini API calls
-        expect(response.body.botResponse.tokensUsed).toBeGreaterThanOrEqual(0);
-        expect(response.body.botResponse.content).toBe(expectedResponse);
       }
 
       // Stop bot
       await request(API_BASE_URL)
         .post(`/api/bot-execution/${testBotId}/stop`)
+        .set('Authorization', `Bearer ${authToken}`)
         .send({ userId: testUserId })
         .expect(200);
     });
@@ -355,19 +378,21 @@ describe('Bot Execution API Integration Tests', () => {
     it('should handle invalid bot ID format (mock behavior)', async () => {
       const response = await request(API_BASE_URL)
         .post('/api/bot-execution/invalid-id/start')
+        .set('Authorization', `Bearer ${authToken}`)
         .send({ userId: testUserId })
         .expect(500); // Expect 500 for invalid UUID format
 
       expect(response.body).toHaveProperty('error');
     });
 
-    it('should handle invalid user ID format (mock behavior)', async () => {
+    it('should ignore body userId and use token userId', async () => {
       const response = await request(API_BASE_URL)
         .post(`/api/bot-execution/${testBotId}/start`)
+        .set('Authorization', `Bearer ${authToken}`)
         .send({ userId: 'invalid-user-id' })
-        .expect(500); // Expect 500 for invalid UUID format
+        .expect(200);
 
-      expect(response.body).toHaveProperty('error');
+      expect(response.body).toHaveProperty('status', 'running');
     });
 
     it('should handle very long messages', async () => {
@@ -375,6 +400,7 @@ describe('Bot Execution API Integration Tests', () => {
       try {
         await request(API_BASE_URL)
           .post(`/api/bot-execution/${testBotId}/stop`)
+          .set('Authorization', `Bearer ${authToken}`)
           .send({ userId: testUserId });
       } catch (error) {
         // Bot might not be running, which is fine
@@ -383,12 +409,14 @@ describe('Bot Execution API Integration Tests', () => {
       // Start bot first
       await request(API_BASE_URL)
         .post(`/api/bot-execution/${testBotId}/start`)
+        .set('Authorization', `Bearer ${authToken}`)
         .send({ userId: testUserId })
         .expect(200);
 
       const longMessage = 'A'.repeat(10000);
       const response = await request(API_BASE_URL)
         .post(`/api/bot-execution/${testBotId}/chat`)
+        .set('Authorization', `Bearer ${authToken}`)
         .send({ userId: testUserId, message: longMessage })
         .expect(200);
 

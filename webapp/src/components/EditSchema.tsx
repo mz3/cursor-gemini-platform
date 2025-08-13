@@ -3,7 +3,7 @@ import { ArrowLeft } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../utils/api';
-import ModelForm from './ModelForm';
+import SchemaForm from './SchemaForm';
 
 interface Field {
   name: string;
@@ -31,7 +31,7 @@ interface RelationshipForm {
   description?: string;
 }
 
-interface ModelFormData {
+interface SchemaFormData {
   name: string;
   displayName: string;
   description: string;
@@ -39,10 +39,10 @@ interface ModelFormData {
   relationships?: RelationshipForm[];
 }
 
-const EditModel: React.FC = () => {
+const EditSchema: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const [formData, setFormData] = useState<ModelFormData | null>(null);
+  const [formData, setFormData] = useState<SchemaFormData | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -59,7 +59,7 @@ const EditModel: React.FC = () => {
     try {
       setLoading(true);
       const [modelResponse, relationshipsResponse] = await Promise.all([
-        api.get(`/models/${id}`),
+        api.get(`/schemas/${id}`),
         api.get(`/relationships`)
       ]);
 
@@ -91,7 +91,7 @@ const EditModel: React.FC = () => {
     }
   };
 
-  const handleSubmit = async (data: ModelFormData) => {
+  const handleSubmit = async (data: SchemaFormData) => {
     setSaving(true);
     setError('');
 
@@ -110,7 +110,7 @@ const EditModel: React.FC = () => {
       };
 
       // Update model
-      await api.put(`/models/${id}`, modelData);
+      await api.put(`/schemas/${id}`, modelData);
 
       // Update relationships
       if (data.relationships && data.relationships.length > 0) {
@@ -132,7 +132,7 @@ const EditModel: React.FC = () => {
         }
       }
 
-      navigate('/models');
+              navigate('/schemas');
     } catch (err: any) {
       setError(err.response?.data?.error || err.message || 'Failed to update model');
       throw err; // Re-throw so the form can handle it
@@ -163,7 +163,7 @@ const EditModel: React.FC = () => {
     <div className="max-w-4xl mx-auto p-6">
       <div className="mb-6">
         <button
-          onClick={() => navigate('/models')}
+          onClick={() => navigate('/schemas')}
           className="flex items-center text-gray-600 hover:text-gray-900 mb-4"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
@@ -173,13 +173,13 @@ const EditModel: React.FC = () => {
         <p className="text-gray-600 mt-2">Update your data model with custom fields and properties</p>
       </div>
 
-      <ModelForm
+              <SchemaForm
         initialData={formData}
         onSubmit={handleSubmit}
-        submitLabel="Update Model"
+                  submitLabel="Update Schema"
         loading={saving}
         error={error}
-        onCancel={() => navigate('/models')}
+        onCancel={() => navigate('/schemas')}
         showCancelButton={true}
         onError={setError}
       />
@@ -187,4 +187,4 @@ const EditModel: React.FC = () => {
   );
 };
 
-export default EditModel;
+export default EditSchema;

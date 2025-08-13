@@ -35,7 +35,7 @@ class ChatWebSocketServer {
     this.io.use(async (socket: Socket, next: (err?: Error) => void) => {
       try {
         const token = (socket as any).handshake.auth.token || (socket as any).handshake.headers.authorization?.replace('Bearer ', '');
-        
+
         if (!token) {
           return next(new Error('Authentication token required'));
         }
@@ -65,10 +65,10 @@ class ChatWebSocketServer {
           const { botId } = data;
           userData.botId = botId;
           this.socketUserData.set(socket.id, userData);
-          
+
           // Join the bot room
           socket.join(`bot:${botId}`);
-          
+
           // Track connected users
           if (!this.connectedUsers.has(userData.userId)) {
             this.connectedUsers.set(userData.userId, new Set());
@@ -111,7 +111,7 @@ class ChatWebSocketServer {
 
           // Send message to bot execution service
           const result = await BotExecutionService.sendMessage(botId, userId, message);
-          
+
           // Broadcast user message to all users in the bot room
           this.io.to(`bot:${botId}`).emit('new-message', result.userMessage);
 
@@ -164,10 +164,10 @@ class ChatWebSocketServer {
           const { userId } = userData;
 
           const instance = await BotExecutionService.startBotInstance(botId, userId);
-          
+
           // Broadcast bot status update to all users in the room
           this.io.to(`bot:${botId}`).emit('bot-status-update', instance);
-          
+
         } catch (error) {
           console.error('Error starting bot:', error);
           socket.emit('error', { message: 'Failed to start bot' });
@@ -180,10 +180,10 @@ class ChatWebSocketServer {
           const { userId } = userData;
 
           const instance = await BotExecutionService.stopBotInstance(botId, userId);
-          
+
           // Broadcast bot status update to all users in the room
           this.io.to(`bot:${botId}`).emit('bot-status-update', instance);
-          
+
         } catch (error) {
           console.error('Error stopping bot:', error);
           socket.emit('error', { message: 'Failed to stop bot' });
@@ -193,7 +193,7 @@ class ChatWebSocketServer {
       // Handle disconnection
       socket.on('disconnect', () => {
         console.log(`User ${userData.userId} disconnected: ${socket.id}`);
-        
+
         // Remove from connected users
         const userSockets = this.connectedUsers.get(userData.userId);
         if (userSockets) {
@@ -236,6 +236,10 @@ class ChatWebSocketServer {
     this.io.to(`bot:${botId}`).emit('typing-indicator', indicator);
   }
 
+  public broadcastConversationCleared(botId: string, userId: string) {
+    this.io.to(`bot:${botId}`).emit('conversation-cleared', { botId, userId });
+  }
+
   public getConnectedUsers(botId: string): string[] {
     return Array.from(this.botRooms.get(botId) || []);
   }
@@ -245,4 +249,4 @@ class ChatWebSocketServer {
   }
 }
 
-export default ChatWebSocketServer; 
+export default ChatWebSocketServer;

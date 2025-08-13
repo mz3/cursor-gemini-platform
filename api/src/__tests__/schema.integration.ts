@@ -1,14 +1,14 @@
 import request from 'supertest';
 import { AppDataSource } from '../config/database.js';
-import { Model } from '../entities/Model.js';
+import { Schema } from '../entities/Schema.js';
 import { Relationship } from '../entities/Relationship.js';
 
 const API_BASE_URL = process.env.API_URL || 'http://localhost:4001';
 
-describe('POST /api/models', () => {
+describe('POST /api/schemas', () => {
   let token: string;
   let userId: string;
-  let projectModelId: string;
+  let projectSchemaId: string;
 
   beforeAll(async () => {
     // Login to get token and userId
@@ -18,9 +18,9 @@ describe('POST /api/models', () => {
     token = res.body.token;
     userId = res.body.user.id;
 
-    // Create a Project model (parent)
+    // Create a Project schema (parent)
     const projectRes = await request(API_BASE_URL)
-      .post('/api/models')
+      .post('/api/schemas')
       .set('Authorization', `Bearer ${token}`)
       .send({
         name: 'Project',
@@ -28,37 +28,37 @@ describe('POST /api/models', () => {
         schema: { fields: [{ name: 'title', type: 'string', required: true }] },
         userId
       });
-    projectModelId = projectRes.body.id;
+    projectSchemaId = projectRes.body.id;
   });
 
-  it('should create a new model with valid data', async () => {
-    const modelData = {
-      name: 'TestModel',
-      displayName: 'Test Models',
+  it('should create a new schema with valid data', async () => {
+    const schemaData = {
+      name: 'TestSchema',
+      displayName: 'Test Schemas',
       schema: { fields: [{ name: 'field1', type: 'string', required: true }] },
       userId
     };
     const res = await request(API_BASE_URL)
-      .post('/api/models')
+      .post('/api/schemas')
       .set('Authorization', `Bearer ${token}`)
-      .send(modelData);
+      .send(schemaData);
     expect(res.status).toBe(201);
     expect(res.body).toHaveProperty('id');
-    expect(res.body.name).toBe('TestModel');
-    expect(res.body.displayName).toBe('Test Models');
+    expect(res.body.name).toBe('TestSchema');
+    expect(res.body.displayName).toBe('Test Schemas');
   });
 
   it('should fail with missing required fields', async () => {
     const res = await request(API_BASE_URL)
-      .post('/api/models')
+      .post('/api/schemas')
       .set('Authorization', `Bearer ${token}`)
       .send({});
     expect(res.status).toBe(400);
     expect(res.body).toHaveProperty('error', 'Missing required fields');
   });
 
-  it('should create a Task model with a relationship to Project', async () => {
-    const modelData = {
+  it('should create a Task schema with a relationship to Project', async () => {
+    const schemaData = {
       name: 'Task',
       displayName: 'Tasks',
       schema: { fields: [
@@ -71,7 +71,7 @@ describe('POST /api/models', () => {
           name: 'projectTasks',
           displayName: 'Project Tasks',
           type: 'many-to-one',
-          targetModelId: projectModelId,
+          targetSchemaId: projectSchemaId,
           sourceField: 'project',
           targetField: 'tasks',
           cascade: false,
@@ -81,9 +81,9 @@ describe('POST /api/models', () => {
       ]
     };
     const res = await request(API_BASE_URL)
-      .post('/api/models')
+      .post('/api/schemas')
       .set('Authorization', `Bearer ${token}`)
-      .send(modelData);
+      .send(schemaData);
     expect(res.status).toBe(201);
     expect(res.body).toHaveProperty('id');
     expect(res.body.relationships).toBeDefined();
@@ -91,7 +91,7 @@ describe('POST /api/models', () => {
     expect(res.body.relationships[0]).toMatchObject({
       name: 'projectTasks',
       type: 'many-to-one',
-      targetModelId: projectModelId,
+      targetSchemaId: projectSchemaId,
       sourceField: 'project',
       targetField: 'tasks',
       description: 'Each task belongs to a project.'

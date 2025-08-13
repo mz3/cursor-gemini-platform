@@ -4,10 +4,10 @@ import { BrowserRouter as Router, Routes, Route, Navigate, Link, useLocation } f
 import { Home, Database, AppWindow, Settings as SettingsIcon, Plus, LogOut, User, MessageSquare, Bot, Zap, Wrench, Layers } from 'lucide-react';
 import Login from './components/Login';
 import Dashboard from './components/Dashboard';
-import Models from './components/Models';
-import CreateModel from './components/CreateModel';
-import EditModel from './components/EditModel';
-import ViewModel from './components/ViewModel';
+import Schemas from './components/Schemas';
+import CreateSchema from './components/CreateSchema';
+import EditSchema from './components/EditSchema';
+import ViewSchema from './components/ViewSchema';
 import Applications from './components/Applications';
 import Prompts from './components/Prompts';
 import CreatePrompt from './components/CreatePrompt';
@@ -62,7 +62,7 @@ const AppContent: React.FC = () => {
 
   const navigation = [
     { name: 'Dashboard', href: '/', icon: Home },
-    { name: 'Models', href: '/models', icon: Database },
+    { name: 'Schemas', href: '/schemas', icon: Database },
     { name: 'Applications', href: '/applications', icon: AppWindow },
     { name: 'Features', href: '/features', icon: Zap },
     { name: 'Prompts', href: '/prompts', icon: MessageSquare },
@@ -153,10 +153,10 @@ const AppContent: React.FC = () => {
         <div className="p-4 sm:p-6 lg:p-8">
           <Routes>
             <Route path="/" element={<Dashboard />} />
-            <Route path="/models" element={<Models />} />
-            <Route path="/models/create" element={<CreateModel />} />
-            <Route path="/models/:id" element={<ViewModel />} />
-            <Route path="/models/:id/edit" element={<EditModel />} />
+            <Route path="/schemas" element={<Schemas />} />
+            <Route path="/schemas/create" element={<CreateSchema />} />
+            <Route path="/schemas/:id" element={<ViewSchema />} />
+            <Route path="/schemas/:id/edit" element={<EditSchema />} />
             <Route path="/applications" element={<Applications />} />
             <Route path="/applications/create" element={<CreateApplication />} />
             <Route path="/applications/:id" element={<ViewApplication />} />

@@ -6,19 +6,19 @@ jest.mock('../services/geminiService', () => {
     GeminiService: jest.fn().mockImplementation(() => ({
       generateResponse: jest.fn((promptContext, conversationHistory, userMessage) => {
         // Simulate LLM output based on userMessage
-        if (userMessage.includes('create a model') && userMessage.includes('list models')) {
+        if (userMessage.includes('create a schema') && userMessage.includes('list schemas')) {
           return Promise.resolve({
             response: JSON.stringify({
               toolCalls: [
                 {
                   toolName: 'platform-api-sdk',
-                  operation: 'list_models',
+                  operation: 'list_schemas',
                   parameters: {},
                   confidence: 0.95
                 },
                 {
                   toolName: 'platform-api-sdk',
-                  operation: 'create_model',
+                  operation: 'create_schema',
                   parameters: { name: 'Multi', displayName: 'Multi' },
                   confidence: 0.92
                 }
@@ -26,16 +26,16 @@ jest.mock('../services/geminiService', () => {
             }),
             tokensUsed: 55
           });
-        } else if (userMessage.includes('create a model')) {
+        } else if (userMessage.includes('create a schema')) {
           return Promise.resolve({
             response: JSON.stringify({
               toolCalls: [
                 {
                   toolName: 'platform-api-sdk',
-                  operation: 'create_model',
+                  operation: 'create_schema',
                   parameters: {
-                    name: 'TestModel',
-                    displayName: 'Test Model',
+                    name: 'TestSchema',
+                    displayName: 'Test Schema',
                     fields: [
                       { name: 'name', type: 'string', required: true },
                       { name: 'age', type: 'number', required: false }
@@ -100,15 +100,15 @@ describe('IntentDetectionService', () => {
     service = new IntentDetectionService();
   });
 
-  it('detects create_model intent and parameters', async () => {
-    const message = 'Please create a model called "TestModel" with display name "Test Model". The model should have a field called "name" that should be string type and a field called "age" that should be number type.';
+  it('detects create_schema intent and parameters', async () => {
+    const message = 'Please create a schema called "TestSchema" with display name "Test Schema". The schema should have a field called "name" that should be string type and a field called "age" that should be number type.';
     const result = await service.detectToolCalls(message, tools, userId);
     expect(result.length).toBe(1);
     if (result.length > 0) {
       expect(result[0]!.tool.name).toBe('platform-api-sdk');
-      expect(result[0]!.params.operation).toBe('create_model');
-      expect(result[0]!.params.name).toBe('TestModel');
-      expect(result[0]!.params.displayName).toBe('Test Model');
+      expect(result[0]!.params.operation).toBe('create_schema');
+      expect(result[0]!.params.name).toBe('TestSchema');
+      expect(result[0]!.params.displayName).toBe('Test Schema');
       expect(result[0]!.params.fields).toEqual([
         { name: 'name', type: 'string', required: true },
         { name: 'age', type: 'number', required: false }
@@ -123,12 +123,12 @@ describe('IntentDetectionService', () => {
   });
 
   it('detects multiple tool calls', async () => {
-    const message = 'list models and also create a model called Multi with display name Multi';
+    const message = 'list schemas and also create a schema called Multi with display name Multi';
     const result = await service.detectToolCalls(message, tools, userId);
     expect(result.length).toBe(2);
     if (result.length > 1) {
-      expect(result[0]!.params.operation).toBe('list_models');
-      expect(result[1]!.params.operation).toBe('create_model');
+      expect(result[0]!.params.operation).toBe('list_schemas');
+      expect(result[1]!.params.operation).toBe('create_schema');
       expect(result[1]!.params.name).toBe('Multi');
     }
   });

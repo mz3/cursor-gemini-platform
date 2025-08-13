@@ -7,7 +7,7 @@ import dotenv from 'dotenv';
 import { createServer } from 'http';
 import { initializeDatabase } from './config/database.js';
 import { initializeRedis } from './config/redis.js';
-import { modelRoutes } from './routes/modelRoutes.js';
+import { schemaRoutes } from './routes/schemaRoutes.js';
 import { relationshipRoutes } from './routes/relationshipRoutes.js';
 import { applicationRoutes } from './routes/applicationRoutes.js';
 import { userRoutes } from './routes/userRoutes.js';
@@ -68,7 +68,7 @@ console.log('🏥 Health check endpoint configured');
 
 // API Routes
 console.log('🛣️ Setting up API routes...');
-app.use('/api/models', modelRoutes);
+app.use('/api/schemas', schemaRoutes);
 app.use('/api/relationships', relationshipRoutes);
 app.use('/api/applications', applicationRoutes);
 app.use('/api/users', userRoutes);
@@ -104,22 +104,22 @@ async function startServer() {
     console.log('✅ Database seeded successfully');
 
     console.log(`🚀 Starting HTTP server on port ${PORT}...`);
-    
+
     // Initialize WebSocket server
     const wsServer = new ChatWebSocketServer(server);
     const messageHandler = MessageHandler.getInstance();
     messageHandler.setWebSocketServer(wsServer);
-    
+
     console.log('🔌 WebSocket server initialized');
-    
+
     // Start bot response listener
     console.log('🤖 Initializing bot response service...');
     const botResponseService = BotResponseService.getInstance();
     console.log('🤖 Bot response service instance created');
     await botResponseService.startListening();
-    
+
     console.log('🤖 Bot response listener started');
-    
+
     // Start server
     server.listen(PORT, () => {
       console.log(`🎉 Platform API server running on port ${PORT}`);

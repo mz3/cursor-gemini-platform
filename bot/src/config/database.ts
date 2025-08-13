@@ -1,6 +1,6 @@
 import { DataSource } from 'typeorm';
 import { User } from '../entities/User.js';
-import { Model } from '../entities/Model.js';
+import { Schema } from '../entities/Schema.js';
 import { Application } from '../entities/Application.js';
 import { Component } from '../entities/Component.js';
 import { Bot } from '../entities/Bot.js';
@@ -25,7 +25,7 @@ export const AppDataSource = new DataSource({
   logging: process.env.NODE_ENV === 'development',
   entities: [
     User,
-    Model,
+    Schema,
     Application,
     Component,
     Bot,

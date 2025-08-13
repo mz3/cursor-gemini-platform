@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-import wsService, { 
-  ChatMessage, 
-  BotStatusUpdate, 
-  TypingIndicator, 
-  WebSocketEventHandlers 
+import wsService, {
+  ChatMessage,
+  BotStatusUpdate,
+  TypingIndicator,
+  WebSocketEventHandlers
 } from '../services/websocket';
 
 interface UseWebSocketOptions {
@@ -14,6 +14,7 @@ interface UseWebSocketOptions {
   onMessage?: (message: ChatMessage) => void;
   onStatusUpdate?: (status: BotStatusUpdate) => void;
   onTypingIndicator?: (indicator: TypingIndicator) => void;
+  onConversationCleared?: (data: { botId: string; userId: string }) => void;
   onError?: (error: any) => void;
   onConnect?: () => void;
   onDisconnect?: () => void;
@@ -29,6 +30,7 @@ export const useWebSocket = (options: UseWebSocketOptions = {}) => {
     onMessage,
     onStatusUpdate,
     onTypingIndicator,
+    onConversationCleared,
     onError,
     onConnect,
     onDisconnect,
@@ -46,6 +48,11 @@ export const useWebSocket = (options: UseWebSocketOptions = {}) => {
     onMessage,
     onStatusUpdate,
     onTypingIndicator,
+    onConversationCleared,
+    onConversationHistory: (messages) => {
+      // No-op here; components can choose to load history themselves.
+      // Prevent duplicate state updates or scroll jumps.
+    },
     onError: (error) => {
       setConnectionError(error.message || 'WebSocket error');
       onError?.(error);
@@ -83,7 +90,7 @@ export const useWebSocket = (options: UseWebSocketOptions = {}) => {
     try {
       await wsService.connect(token);
       wsService.setEventHandlers(eventHandlers);
-      
+
       if (botId) {
         wsService.joinBot(botId);
       }
@@ -113,33 +120,33 @@ export const useWebSocket = (options: UseWebSocketOptions = {}) => {
   // Start typing indicator
   const startTyping = useCallback((botId: string) => {
     if (!isConnected || !botId) return;
-    
+
     // Clear existing timeout
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current);
     }
-    
+
     wsService.startTyping(botId);
   }, [isConnected]);
 
   // Stop typing indicator
   const stopTyping = useCallback((botId: string) => {
     if (!isConnected || !botId) return;
-    
+
     // Clear existing timeout
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current);
     }
-    
+
     wsService.stopTyping(botId);
   }, [isConnected]);
 
   // Start typing with auto-stop after delay
   const startTypingWithTimeout = useCallback((botId: string, timeoutMs: number = 3000) => {
     if (!isConnected || !botId) return;
-    
+
     startTyping(botId);
-    
+
     // Auto-stop typing after timeout
     typingTimeoutRef.current = setTimeout(() => {
       stopTyping(botId);
@@ -209,7 +216,7 @@ export const useWebSocket = (options: UseWebSocketOptions = {}) => {
     isConnecting,
     connectionError,
     reconnectAttempts,
-    
+
     // Methods
     connect,
     disconnect,
@@ -220,8 +227,8 @@ export const useWebSocket = (options: UseWebSocketOptions = {}) => {
     startBot,
     stopBot,
     joinBot,
-    
+
     // Connection status
     getConnectionStatus: wsService.getConnectionStatus.bind(wsService),
   };
-}; 
+};

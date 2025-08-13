@@ -30,7 +30,7 @@ interface RelationshipForm {
   description?: string;
 }
 
-interface ModelFormData {
+interface SchemaFormData {
   name: string;
   displayName: string;
   description: string;
@@ -38,9 +38,9 @@ interface ModelFormData {
   relationships?: RelationshipForm[];
 }
 
-interface ModelFormProps {
-  initialData?: ModelFormData;
-  onSubmit: (data: ModelFormData) => Promise<void>;
+interface SchemaFormProps {
+  initialData?: SchemaFormData;
+  onSubmit: (data: SchemaFormData) => Promise<void>;
   submitLabel: string;
   loading: boolean;
   error: string;
@@ -69,7 +69,7 @@ const fieldTypes = [
   { value: 'select', label: 'Select/Enum' }
 ];
 
-const ModelForm: React.FC<ModelFormProps> = ({
+const SchemaForm: React.FC<SchemaFormProps> = ({
   initialData,
   onSubmit,
   submitLabel,
@@ -79,7 +79,7 @@ const ModelForm: React.FC<ModelFormProps> = ({
   showCancelButton = true,
   onError
 }) => {
-  const [form, setForm] = useState<ModelFormData>(initialData || {
+  const [form, setForm] = useState<SchemaFormData>(initialData || {
     name: '',
     displayName: '',
     description: '',
@@ -91,7 +91,7 @@ const ModelForm: React.FC<ModelFormProps> = ({
 
   // Fetch models for relationship dropdown
   useEffect(() => {
-    api.get('/models')
+    api.get('/schemas')
       .then(res => setModels(res.data))
       .catch(() => setModels([]));
   }, []);
@@ -573,4 +573,4 @@ const ModelForm: React.FC<ModelFormProps> = ({
   );
 };
 
-export default ModelForm;
+export default SchemaForm;

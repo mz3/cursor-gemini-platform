@@ -2,8 +2,8 @@ import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateCol
 import { User } from './User.js';
 import { Application } from './Application.js';
 
-@Entity('models')
-export class Model {
+@Entity('schemas')
+export class Schema {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 

@@ -1,4 +1,4 @@
-describe('Edit Model', () => {
+describe('Edit Schema', () => {
   beforeEach(() => {
     // Use environment variables for credentials
     const testEmail = Cypress.env('testEmail') || 'admin@platform.com';
@@ -17,21 +17,21 @@ describe('Edit Model', () => {
     // Verify we're actually logged in by checking for Dashboard content
     cy.contains('Dashboard').should('be.visible');
 
-    // Navigate to models page
-    cy.visit('/models');
+    // Navigate to schemas page
+    cy.visit('/schemas');
     cy.wait(2000); // Wait for page to load
   });
 
-  it('should edit an existing model', () => {
+  it('should edit an existing schema', () => {
     const timestamp = Date.now();
     const modelName = `TestModelEdit${timestamp}`;
     const displayName = `Test Model Edit ${timestamp}`;
 
-    // First, create a model to edit
-    cy.contains('New Model').click();
-    cy.url().should('include', '/models/create');
+    // First, create a schema to edit
+    cy.contains('New Schema').click();
+    cy.url().should('include', '/schemas/create');
 
-    // Fill in the model form
+    // Fill in the schema form
     cy.get('input[id="name"]').type(modelName);
     cy.get('input[id="displayName"]').type(displayName);
     cy.get('textarea[id="description"]').type('A test model for editing');
@@ -44,13 +44,13 @@ describe('Edit Model', () => {
     cy.get('input[type="checkbox"]').first().check(); // Required
 
     // Submit the form
-    cy.get('button').contains('Create Model').click();
-    cy.url().should('include', '/models');
+    cy.get('button').contains('Create Schema').click();
+    cy.url().should('include', '/schemas');
     cy.contains(displayName).should('be.visible');
 
-    // Get the model ID by intercepting the API call or finding it in the list
-    // For now, let's use a more reliable approach - find the model and click its edit button
-    cy.contains(displayName).closest('li').find('button[title="Edit Model"]').click();
+    // Get the schema ID by intercepting the API call or finding it in the list
+    // For now, let's use a more reliable approach - find the schema and click its edit button
+    cy.contains(displayName).closest('li').find('button[title="Edit Schema"]').click();
     cy.url().should('include', '/edit');
 
     // Verify the form is populated with existing data
@@ -58,7 +58,7 @@ describe('Edit Model', () => {
     cy.get('input[id="displayName"]').should('have.value', displayName);
     cy.get('textarea[id="description"]').should('have.value', 'A test model for editing');
 
-    // Update the model information
+    // Update the schema information
     const updatedDisplayName = `Updated Test Model ${timestamp}`;
     cy.get('input[id="displayName"]').clear().type(updatedDisplayName);
     cy.get('textarea[id="description"]').clear().type('Updated description for the test model');
@@ -73,23 +73,23 @@ describe('Edit Model', () => {
     cy.get('select').last().select('number');
 
     // Submit the form
-    cy.get('button').contains('Update Model').click();
+    cy.get('button').contains('Update Schema').click();
 
-    // Should redirect to models list and show the updated model
-    cy.url().should('include', '/models');
+    // Should redirect to schemas list and show the updated schema
+    cy.url().should('include', '/schemas');
     cy.contains(updatedDisplayName).should('be.visible');
   });
 
-  it('should edit a model with relationships', () => {
+  it('should edit a schema with relationships', () => {
     const timestamp = Date.now();
     const projectName = `ProjectEdit${timestamp}`;
     const projectDisplayName = `Project Edit ${timestamp}`;
     const taskName = `TaskEdit${timestamp}`;
     const taskDisplayName = `Task Edit ${timestamp}`;
 
-    // First, create two models to establish a relationship
-    // Create Project model
-    cy.contains('New Model').click();
+    // First, create two schemas to establish a relationship
+    // Create Project schema
+    cy.contains('New Schema').click();
     cy.get('input[id="name"]').type(projectName);
     cy.get('input[id="displayName"]').type(projectDisplayName);
     cy.get('textarea[id="description"]').type('A project entity');
@@ -101,8 +101,8 @@ describe('Edit Model', () => {
     cy.get('button').contains('Create Model').click();
     cy.url().should('include', '/models');
 
-    // Create Task model with relationship
-    cy.contains('New Model').click();
+    // Create Task schema with relationship
+    cy.contains('New Schema').click();
     cy.get('input[id="name"]').type(taskName);
     cy.get('input[id="displayName"]').type(taskDisplayName);
     cy.get('textarea[id="description"]').type('A task entity');
@@ -117,7 +117,7 @@ describe('Edit Model', () => {
     cy.get('input[placeholder="e.g., project_tasks"]').type('projectTasks');
     cy.get('input[placeholder="e.g., Project Tasks"]').type('Project Tasks');
     cy.get('select').eq(1).select('many-to-one'); // Relationship type
-    cy.get('select').eq(2).select(projectDisplayName); // Target model
+    cy.get('select').eq(2).select(projectDisplayName); // Target schema
     cy.get('input[placeholder="e.g., projectId"]').type('projectId'); // Source field
     cy.get('input[placeholder="e.g., id"]').type('id');
     cy.get('textarea[placeholder="Describe this relationship..."]').type('Each task belongs to a project.');
@@ -125,11 +125,11 @@ describe('Edit Model', () => {
     cy.get('button').contains('Create Model').click();
     cy.url().should('include', '/models');
 
-    // Verify the Task model was created
+    // Verify the Task schema was created
     cy.contains(taskDisplayName).should('be.visible');
 
-    // Now edit the Task model - look for the specific model we just created
-    cy.contains(taskDisplayName).closest('li').find('button[title="Edit Model"]').click();
+    // Now edit the Task schema - look for the specific schema we just created
+    cy.contains(taskDisplayName).closest('li').find('button[title="Edit Schema"]').click();
     cy.url().should('include', '/edit');
 
     // Wait for the form to load completely
@@ -167,20 +167,20 @@ describe('Edit Model', () => {
     });
 
     // Submit the form without adding a new field
-    cy.get('button').contains('Update Model').click();
+    cy.get('button').contains('Update Schema').click();
 
-    // Should redirect to models list
-    cy.url().should('include', '/models');
+    // Should redirect to schemas list
+    cy.url().should('include', '/schemas');
     cy.contains(taskDisplayName).should('be.visible');
   });
 
-  it('should handle validation errors when editing a model', () => {
+  it('should handle validation errors when editing a schema', () => {
     const timestamp = Date.now();
     const modelName = `ValidationTestModel${timestamp}`;
     const displayName = `Validation Test Model ${timestamp}`;
 
-    // Create a model first
-    cy.contains('New Model').click();
+    // Create a schema first
+    cy.contains('New Schema').click();
     cy.get('input[id="name"]').type(modelName);
     cy.get('input[id="displayName"]').type(displayName);
     cy.get('textarea[id="description"]').type('A test model for validation');

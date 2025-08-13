@@ -3,7 +3,7 @@ import { ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../utils/api';
-import ModelForm from './ModelForm';
+import SchemaForm from './SchemaForm';
 
 interface Field {
   name: string;
@@ -30,7 +30,7 @@ interface RelationshipForm {
   description?: string;
 }
 
-interface ModelFormData {
+interface SchemaFormData {
   name: string;
   displayName: string;
   description: string;
@@ -38,13 +38,13 @@ interface ModelFormData {
   relationships?: RelationshipForm[];
 }
 
-const CreateModel: React.FC = () => {
+const CreateSchema: React.FC = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const { user } = useAuth();
 
-  const handleSubmit = async (data: ModelFormData) => {
+  const handleSubmit = async (data: SchemaFormData) => {
     setLoading(true);
     setError('');
 
@@ -66,8 +66,8 @@ const CreateModel: React.FC = () => {
       if (data.relationships && data.relationships.length > 0) {
         modelData.relationships = data.relationships;
       }
-      await api.post('/models', modelData);
-      navigate('/models');
+      await api.post('/schemas', modelData);
+              navigate('/schemas');
     } catch (err: any) {
       setError(err.response?.data?.error || err.message || 'Failed to create model');
       throw err; // Re-throw so the form can handle it
@@ -80,7 +80,7 @@ const CreateModel: React.FC = () => {
     <div className="max-w-4xl mx-auto p-6">
       <div className="mb-6">
         <button
-          onClick={() => navigate('/models')}
+          onClick={() => navigate('/schemas')}
           className="flex items-center text-gray-600 hover:text-gray-900 mb-4"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
@@ -90,12 +90,12 @@ const CreateModel: React.FC = () => {
         <p className="text-gray-600 mt-2">Design your data model with custom fields and properties</p>
       </div>
 
-      <ModelForm
+              <SchemaForm
         onSubmit={handleSubmit}
-        submitLabel="Create Model"
+                  submitLabel="Create Schema"
         loading={loading}
         error={error}
-        onCancel={() => navigate('/models')}
+        onCancel={() => navigate('/schemas')}
         showCancelButton={true}
         onError={setError}
       />
@@ -103,4 +103,4 @@ const CreateModel: React.FC = () => {
   );
 };
 
-export default CreateModel;
+export default CreateSchema;

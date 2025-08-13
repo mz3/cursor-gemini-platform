@@ -3,6 +3,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeSanitize from 'rehype-sanitize';
 import api from '../utils/api';
+import { extractAgentInsights } from '../utils/chatParsing';
 import { useWebSocket } from '../hooks/useWebSocket';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -53,6 +54,14 @@ export const BotChat: React.FC<BotChatProps> = ({ botId, userId, botName }) => {
   const [insightsByMessageId, setInsightsByMessageId] = useState<Record<string, AgentInsights>>({});
   const [expandedToolEventIds, setExpandedToolEventIds] = useState<Set<string>>(new Set());
   const [expandedThoughtMessageIds, setExpandedThoughtMessageIds] = useState<Set<string>>(new Set());
+  const pendingBotMessageIdRef = useRef<string | null>(null);
+  const tempUserMessageIdRef = useRef<string | null>(null);
+
+  const scrollToBottom = useCallback(() => {
+    requestAnimationFrame(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'auto' });
+    });
+  }, []);
 
   const toggleToolEvent = useCallback((id: string) => {
     setExpandedToolEventIds(prev => {
@@ -87,7 +96,18 @@ export const BotChat: React.FC<BotChatProps> = ({ botId, userId, botName }) => {
     onMessage: (message) => {
       // For bot messages, extract agent thoughts and tool events and strip them from chat content
       let processedMessage = { ...message };
+      // If we optimistically added a local user message, remove it when the real one arrives
+      if (message.role === 'user' && tempUserMessageIdRef.current) {
+        const localId = tempUserMessageIdRef.current;
+        tempUserMessageIdRef.current = null;
+        setMessages(prev => prev.filter(m => m.id !== localId));
+      }
       if (message.role === 'bot' && message.content) {
+        // Remove any local pending placeholder
+        if (pendingBotMessageIdRef.current) {
+          setMessages(prev => prev.filter(m => m.id !== pendingBotMessageIdRef.current));
+          pendingBotMessageIdRef.current = null;
+        }
         const parsed = extractAgentInsights(message.content, message.id);
         if (parsed.thoughts.length || parsed.toolEvents.length) {
           setInsightsByMessageId(prev => ({ ...prev, [message.id]: { thoughts: parsed.thoughts, toolEvents: parsed.toolEvents } }));
@@ -103,6 +123,7 @@ export const BotChat: React.FC<BotChatProps> = ({ botId, userId, botName }) => {
           return [...prev, processedMessage];
         }
       });
+      scrollToBottom();
     },
     onStatusUpdate: (status) => {
       setBotInstance(status);
@@ -131,7 +152,7 @@ export const BotChat: React.FC<BotChatProps> = ({ botId, userId, botName }) => {
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    scrollToBottom();
   }, [messages]);
 
   // Join bot room when connected
@@ -143,11 +164,12 @@ export const BotChat: React.FC<BotChatProps> = ({ botId, userId, botName }) => {
 
   const loadConversationHistory = async () => {
     try {
-      const response = await api.get(`/bot-execution/${botId}/chat?userId=${userId}&limit=50`);
+      const response = await api.get(`/bot-execution/${botId}/chat?limit=50`);
       const newMessages = response.data;
 
       if (newMessages.length > 0) {
         setMessages(newMessages);
+        scrollToBottom();
       }
     } catch (error) {
       console.error('Failed to load conversation history:', error);
@@ -156,10 +178,39 @@ export const BotChat: React.FC<BotChatProps> = ({ botId, userId, botName }) => {
 
   const loadBotStatus = async () => {
     try {
-      const response = await api.get(`/bot-execution/${botId}/status?userId=${userId}`);
+      const response = await api.get(`/bot-execution/${botId}/status`);
       setBotInstance(response.data);
     } catch (error) {
       console.error('Failed to load bot status:', error);
+    }
+  };
+
+  const clearChat = async () => {
+    if (!confirm('Are you sure you want to clear the chat history? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+
+      // Clear via API
+      await api.delete(`/bot-execution/${botId}/chat`);
+
+      // Clear local state
+      setMessages([]);
+      setInsightsByMessageId({});
+      setExpandedToolEventIds(new Set());
+      setExpandedThoughtMessageIds(new Set());
+
+      // Clear any pending message refs
+      tempUserMessageIdRef.current = null;
+      pendingBotMessageIdRef.current = null;
+
+    } catch (error) {
+      console.error('Failed to clear chat history:', error);
+      alert('Failed to clear chat history. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -170,7 +221,7 @@ export const BotChat: React.FC<BotChatProps> = ({ botId, userId, botName }) => {
         wsStartBot(botId);
       } else {
         // Fallback to REST API if WebSocket not connected
-        await api.post(`/bot-execution/${botId}/start`, { userId });
+        await api.post(`/bot-execution/${botId}/start`, {});
         await loadBotStatus();
       }
     } catch (error) {
@@ -187,7 +238,7 @@ export const BotChat: React.FC<BotChatProps> = ({ botId, userId, botName }) => {
         wsStopBot(botId);
       } else {
         // Fallback to REST API if WebSocket not connected
-        await api.post(`/bot-execution/${botId}/stop`, { userId });
+        await api.post(`/bot-execution/${botId}/stop`, {});
         await loadBotStatus();
       }
     } catch (error) {
@@ -211,19 +262,47 @@ export const BotChat: React.FC<BotChatProps> = ({ botId, userId, botName }) => {
         // Use WebSocket for real-time messaging
         wsSendMessage(currentValue);
         if (inputRef.current) inputRef.current.value = '';
+        // Optimistically render user message so ellipsis shows beneath it
+        const now = new Date().toISOString();
+        const ellipsisTime = new Date(Date.now() + 1).toISOString(); // Ensure ellipsis comes after
+        const tempId = `local-${Date.now()}`;
+        const pendingId = `pending-${Date.now()}-bot`;
+        tempUserMessageIdRef.current = tempId;
+        pendingBotMessageIdRef.current = pendingId;
+        setMessages(prev => {
+          const newMessages = [
+            ...prev,
+            { id: tempId, role: 'user', content: currentValue, createdAt: now } as ChatMessage,
+            { id: pendingId, role: 'bot', content: '…', createdAt: ellipsisTime, status: 'processing' } as ChatMessage,
+          ];
+          // Ensure proper ordering by timestamp
+          return newMessages.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+        });
+        scrollToBottom();
       } else {
         // Fallback to REST API
         const response = await api.post(`/bot-execution/${botId}/chat`, {
-          userId,
           message: currentValue
         });
 
-        // Add user message immediately
-        setMessages(prev => [...prev, response.data.userMessage]);
+        // Add user message immediately and then pending
         if (inputRef.current) inputRef.current.value = '';
+        const pendingId = `pending-${Date.now()}-bot`;
+        pendingBotMessageIdRef.current = pendingId;
+        const now = new Date().toISOString();
+        setMessages(prev => {
+          const newMessages = [
+            ...prev,
+            { ...response.data.userMessage, createdAt: now },
+            { id: pendingId, role: 'bot', content: '…', createdAt: now, status: 'processing' } as ChatMessage,
+          ];
+          // Ensure proper ordering by timestamp
+          return newMessages.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+        });
 
         // Force immediate load of conversation to get the processing message
         await loadConversationHistory();
+        scrollToBottom();
       }
     } catch (error) {
       console.error('Failed to send message:', error);
@@ -259,6 +338,26 @@ export const BotChat: React.FC<BotChatProps> = ({ botId, userId, botName }) => {
   };
 
   const MarkdownMessage: React.FC<{ content: string }> = React.memo(({ content }) => {
+    // If content begins with our extracted preface, suppress it (it will be shown in the separate Thoughts bubble)
+    let safe = content;
+    if (safe.startsWith('I detected') || safe.startsWith('Tool execution results:')) {
+      // strip until blank line
+      const idx = safe.indexOf('\n\n');
+      if (idx !== -1) safe = safe.slice(idx + 2);
+    }
+
+    // Heuristic: replace plain UUIDs with links to relevant app routes
+    const uuidRegex = /\b[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}\b/g;
+    const guessBasePath = (text: string): string => {
+      const lower = text.toLowerCase();
+      if (lower.includes('features available') || lower.includes('feature')) return '/features';
+      if (lower.includes('bots') || lower.includes('bot')) return '/bots';
+      if (lower.includes('schemas') || lower.includes('schema')) return '/schemas';
+      if (lower.includes('applications') || lower.includes('application')) return '/applications';
+      return '/features';
+    };
+    const base = guessBasePath(safe);
+    const safeLinked = safe.replace(uuidRegex, (id) => `[${id}](${base}/${id})`);
     const components = useMemo(() => ({
       a: ({ node, ...props }: any) => <a {...props} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline" />,
       code: ({ inline, className, children, ...props }: any) => (
@@ -280,68 +379,12 @@ export const BotChat: React.FC<BotChatProps> = ({ botId, userId, botName }) => {
 
     return (
       <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeSanitize]} components={components}>
-        {content}
+        {safeLinked}
       </ReactMarkdown>
     );
   });
 
-  // Extract agent thoughts and tool events from a single bot message
-  const extractAgentInsights = (content: string, messageId: string): {
-    thoughts: string[];
-    toolEvents: ToolEventItem[];
-    remainingContent: string;
-  } => {
-    let remaining = content;
-    const thoughts: string[] = [];
-    const events: ToolEventItem[] = [];
-
-    // Parse tool execution results first using a clear marker and end boundary (blank line or end)
-    const marker = 'Tool execution results:';
-    const markerIdx = remaining.indexOf(marker);
-    if (markerIdx !== -1) {
-      const head = remaining.slice(0, markerIdx);
-      const tail = remaining.slice(markerIdx + marker.length);
-      const endIdxInTail = tail.indexOf('\n\n');
-      const section = tail.slice(0, endIdxInTail === -1 ? undefined : endIdxInTail);
-      const after = tail.slice(endIdxInTail === -1 ? section.length : endIdxInTail);
-
-      let current: ToolEventItem | null = null;
-      for (const raw of section.split('\n')) {
-        const line = raw.trim();
-        if (!line) continue;
-        if (line.startsWith('✅ ') || line.startsWith('❌ ')) {
-          if (current) events.push(current);
-          const ok = line.startsWith('✅ ');
-          const afterIcon = line.slice(2).trim();
-          const [toolName, ...rest] = afterIcon.split(':');
-          current = {
-            id: `${messageId}-${events.length}`,
-            toolName: (toolName || 'Tool').trim(),
-            status: ok ? 'success' : 'failure',
-            details: rest.join(':').trim(),
-          };
-        } else if (current && (line.startsWith('Message:') || line.startsWith('Data:'))) {
-          const extra = line.replace(/^\w+:/, '').trim();
-          current.details = `${current.details ? current.details + '\n' : ''}${extra}`;
-        }
-      }
-      if (current) events.push(current);
-
-      remaining = (head + after).trim();
-    }
-
-    // Extract thoughts section starting from "I detected" until a blank line
-    const thoughtsIdx = remaining.indexOf('I detected');
-    if (thoughtsIdx !== -1) {
-      const tail = remaining.slice(thoughtsIdx);
-      const endIdx = tail.indexOf('\n\n') !== -1 ? thoughtsIdx + tail.indexOf('\n\n') : remaining.length;
-      const section = remaining.slice(thoughtsIdx, endIdx);
-      section.split('\n').map(l => l.trim()).filter(Boolean).forEach(l => thoughts.push(l));
-      remaining = (remaining.slice(0, thoughtsIdx) + remaining.slice(endIdx)).trim();
-    }
-
-    return { thoughts, toolEvents: events, remainingContent: remaining.trim() };
-  };
+  // extractAgentInsights now imported from utils for unit testing
 
   const isBotRunning = botInstance?.status === 'running';
   const isBotStarting = botInstance?.status === 'starting';
@@ -386,79 +429,83 @@ export const BotChat: React.FC<BotChatProps> = ({ botId, userId, botName }) => {
         {items.length === 0 ? (
           <div className="text-center text-gray-500 py-8">Start the bot to begin chatting</div>
         ) : (
-          items.map((message) => (
-            <div key={message.id} className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-              <div
-                className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
-                  message.role === 'user'
-                    ? 'bg-blue-600 text-white'
-                    : message.content.toLowerCase().includes('processing your message')
-                    ? 'bg-blue-100 text-blue-800 border border-blue-200'
-                    : message.content.toLowerCase().includes('thinking') || message.content.toLowerCase().includes('detecting')
-                    ? 'bg-yellow-100 text-yellow-800 border border-yellow-200'
-                    : message.content.toLowerCase().includes('executing') || message.content.toLowerCase().includes('tool')
-                    ? 'bg-green-100 text-green-800 border border-green-200'
-                    : 'bg-gray-200 text-gray-900'
-                }`}
-              >
-                <div className="text-sm prose prose-sm max-w-none prose-p:my-2 prose-pre:my-2 prose-code:before:content-[''] prose-code:after:content-['']">
-                  <MarkdownMessage content={message.content} />
-                </div>
-                {statusIcon(message)}
-                <div className="flex items-center justify-between mt-2 text-xs opacity-75">
-                  <span>{new Date(message.createdAt).toLocaleTimeString()}</span>
-                  {message.responseTime && <span>{message.responseTime}ms</span>}
-                  {message.tokensUsed && <span>{message.tokensUsed} tokens</span>}
-                </div>
-              </div>
-
-              {message.role === 'bot' && insights[message.id] && (
-                <div className="w-full mt-2">
-                  {insights[message.id].thoughts.length > 0 && (
-                    <div className="text-xs text-gray-700 bg-white border border-gray-200 rounded-md p-3 space-y-1 mb-2">
-                      {insights[message.id].thoughts.map((t, i) => (
+          items.map((message) => {
+            const insight = insights[message.id];
+            const isUser = message.role === 'user';
+            return (
+              <div key={message.id} className={`flex flex-col ${isUser ? 'items-end' : 'items-start'}`}>
+                {/* Thoughts bubble first (if any) */}
+                {!isUser && insight && insight.thoughts.length > 0 && (
+                  <div className="max-w-xs lg:max-w-md mb-2 px-4 py-2 rounded-lg bg-gray-100 text-gray-800 border border-gray-200">
+                    <div className="text-xs font-semibold mb-1">Thoughts</div>
+                    <div className="text-xs space-y-1">
+                      {insight.thoughts.map((t, i) => (
                         <div key={`${message.id}-thought-${i}`}>{t}</div>
                       ))}
                     </div>
-                  )}
-                  {insights[message.id].toolEvents.length > 0 && (
-                    <div className="space-y-2">
-                      {insights[message.id].toolEvents.map(ev => {
-                        const isExpanded = expandedIds.has(ev.id);
-                        const limit = 220;
-                        const details = ev.details || '';
-                        const truncated = details.length > limit ? details.slice(0, limit) + '…' : details;
-                        return (
-                          <div key={ev.id} className={`text-xs rounded-md border ${ev.status === 'success' ? 'border-green-200 bg-green-50 text-green-800' : ev.status === 'failure' ? 'border-red-200 bg-red-50 text-red-800' : 'border-gray-200 bg-gray-50 text-gray-800'}`}>
-                            <div className="flex items-center justify-between p-2">
-                              <div className="flex items-center min-w-0">
-                                <span className="mr-2 flex-shrink-0">{ev.status === 'success' ? '✅' : ev.status === 'failure' ? '❌' : 'ℹ️'}</span>
-                                <div className="font-medium truncate">{ev.toolName}</div>
-                              </div>
-                              {details && (
-                                <button type="button" onClick={() => onToggle(ev.id)} className={`ml-3 px-2 py-1 rounded border text-[11px] ${ev.status === 'success' ? 'border-green-300 hover:bg-green-100' : ev.status === 'failure' ? 'border-red-300 hover:bg-red-100' : 'border-gray-300 hover:bg-gray-100'}`}>
-                                  {isExpanded ? 'Hide details' : 'Show details'}
-                                </button>
-                              )}
-                            </div>
+                  </div>
+                )}
+
+                {/* One bubble per tool event */}
+                {!isUser && insight && insight.toolEvents.length > 0 && (
+                  <div className="flex flex-col space-y-2 mb-2">
+                    {insight.toolEvents.map(ev => {
+                      const isExpanded = expandedIds.has(ev.id);
+                      const limit = 220;
+                      const details = ev.details || '';
+                      const truncated = details.length > limit ? details.slice(0, limit) + '…' : details;
+                      return (
+                        <div key={ev.id} className={`max-w-xs lg:max-w-md text-xs rounded-lg border ${ev.status === 'success' ? 'border-green-200 bg-green-50 text-green-800' : ev.status === 'failure' ? 'border-red-200 bg-red-50 text-red-800' : 'border-gray-200 bg-gray-50 text-gray-800'}`}>
+                          <div className="flex items-center justify-between p-2">
+                            <div className="font-medium truncate">{ev.status === 'success' ? 'Used' : 'Tried'} {ev.toolName}</div>
                             {details && (
-                              <div className="px-2 pb-2">
-                                {!isExpanded ? (
-                                  <pre className="whitespace-pre-wrap text-[11px] leading-snug">{truncated}</pre>
-                                ) : (
-                                  <pre className="whitespace-pre-wrap text-[11px] leading-snug max-h-64 overflow-auto">{details}</pre>
-                                )}
-                              </div>
+                              <button type="button" onClick={() => onToggle(ev.id)} className={`ml-3 px-2 py-1 rounded border text-[11px] ${ev.status === 'success' ? 'border-green-300 hover:bg-green-100' : ev.status === 'failure' ? 'border-red-300 hover:bg-red-100' : 'border-gray-300 hover:bg-gray-100'}`}>
+                                {isExpanded ? 'Hide details' : 'Show details'}
+                              </button>
                             )}
                           </div>
-                        );
-                      })}
-                    </div>
-                  )}
+                          {details && (
+                            <div className="px-2 pb-2">
+                              {!isExpanded ? (
+                                <pre className="whitespace-pre-wrap text-[11px] leading-snug">{truncated}</pre>
+                              ) : (
+                                <pre className="whitespace-pre-wrap text-[11px] leading-snug max-h-64 overflow-auto">{details}</pre>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Main response/user bubble */}
+                <div
+                  className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+                    isUser
+                      ? 'bg-blue-600 text-white'
+                      : message.content.toLowerCase().includes('processing your message')
+                      ? 'bg-blue-100 text-blue-800 border border-blue-200'
+                      : message.content.toLowerCase().includes('thinking') || message.content.toLowerCase().includes('detecting')
+                      ? 'bg-yellow-100 text-yellow-800 border border-yellow-200'
+                      : message.content.toLowerCase().includes('executing') || message.content.toLowerCase().includes('tool')
+                      ? 'bg-green-100 text-green-800 border border-green-200'
+                      : 'bg-gray-200 text-gray-900'
+                  }`}
+                >
+                  <div className="text-sm prose prose-sm max-w-none prose-p:my-2 prose-pre:my-2 prose-code:before:content-[''] prose-code:after:content-['']">
+                    <MarkdownMessage content={message.content} />
+                  </div>
+                  {statusIcon(message)}
+                  <div className="flex items-center justify-between mt-2 text-xs opacity-75">
+                    <span>{new Date(message.createdAt).toLocaleTimeString()}</span>
+                    {message.responseTime && <span>{message.responseTime}ms</span>}
+                    {message.tokensUsed && <span>{message.tokensUsed} tokens</span>}
+                  </div>
                 </div>
-              )}
-            </div>
-          ))
+              </div>
+            );
+          })
         )}
 
         {typingUsers.size > 0 && (
@@ -482,7 +529,7 @@ export const BotChat: React.FC<BotChatProps> = ({ botId, userId, botName }) => {
   });
 
   return (
-    <div className="flex flex-col h-full bg-white rounded-lg shadow-lg">
+    <div className="flex flex-col h-full bg-white dark:bg-gray-800 rounded-lg shadow-lg">
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-gray-200">
         <div>
@@ -510,6 +557,16 @@ export const BotChat: React.FC<BotChatProps> = ({ botId, userId, botName }) => {
         </div>
 
         <div className="flex space-x-2">
+          {messages.length > 0 && (
+            <button
+              onClick={clearChat}
+              disabled={isLoading}
+              className="px-3 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+            >
+              Clear Chat
+            </button>
+          )}
+
           {!isBotRunning && !isBotStarting && (
             <button
               onClick={startBot}

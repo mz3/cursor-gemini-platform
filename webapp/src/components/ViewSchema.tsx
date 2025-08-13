@@ -32,7 +32,7 @@ interface Entity {
   type: string;
 }
 
-const ViewModel: React.FC = () => {
+const ViewSchema: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const [model, setModel] = useState<Model | null>(null);
@@ -50,7 +50,7 @@ const ViewModel: React.FC = () => {
     try {
       setLoading(true);
       const [modelResponse, applicationsResponse, relationshipsResponse] = await Promise.all([
-        api.get(`/models/${id}`),
+        api.get(`/schemas/${id}`),
         api.get('/applications'),
         api.get('/relationships')
       ]);
@@ -152,13 +152,13 @@ const ViewModel: React.FC = () => {
     return (
       <div className="max-w-6xl mx-auto p-6">
         <div className="text-center py-12">
-          <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-4">Error Loading Model</h2>
+          <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-4">Error Loading Schema</h2>
           <p className="text-gray-600 mb-4">{error}</p>
           <button
-            onClick={() => navigate('/models')}
+            onClick={() => navigate('/schemas')}
             className="bg-primary-500 text-white px-4 py-2 rounded-md hover:bg-primary-600 transition-colors"
           >
-            Back to Models
+            Back to Schemas
           </button>
         </div>
       </div>
@@ -169,13 +169,13 @@ const ViewModel: React.FC = () => {
     return (
       <div className="max-w-6xl mx-auto p-6">
         <div className="text-center py-12">
-          <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-4">Model Not Found</h2>
-          <p className="text-gray-600 mb-4">The requested model could not be found.</p>
+          <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-4">Schema Not Found</h2>
+          <p className="text-gray-600 mb-4">The requested schema could not be found.</p>
           <button
-            onClick={() => navigate('/models')}
+            onClick={() => navigate('/schemas')}
             className="bg-primary-500 text-white px-4 py-2 rounded-md hover:bg-primary-600 transition-colors"
           >
-            Back to Models
+            Back to Schemas
           </button>
         </div>
       </div>
@@ -187,11 +187,11 @@ const ViewModel: React.FC = () => {
       {/* Header */}
       <div className="mb-6">
         <button
-          onClick={() => navigate('/models')}
+          onClick={() => navigate('/schemas')}
           className="flex items-center text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 mb-4"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to Models
+          Back to Schemas
         </button>
         <div className="flex items-center justify-between">
           <div>
@@ -200,11 +200,11 @@ const ViewModel: React.FC = () => {
           </div>
           <div className="flex space-x-3">
             <button
-              onClick={() => navigate(`/models/${model.id}/edit`)}
+              onClick={() => navigate(`/schemas/${model.id}/edit`)}
               className="flex items-center bg-primary-500 text-white px-4 py-2 rounded-md hover:bg-primary-600 transition-colors"
             >
               <Edit className="w-4 h-4 mr-2" />
-              Edit Model
+              Edit Schema
             </button>
           </div>
         </div>
@@ -215,7 +215,7 @@ const ViewModel: React.FC = () => {
         <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
           <div className="flex items-center mb-4">
             <Database className="w-5 h-5 text-gray-400 mr-2" />
-            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Model Details</h3>
+            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Schema Details</h3>
           </div>
           <dl className="space-y-3">
             <div>
@@ -227,11 +227,11 @@ const ViewModel: React.FC = () => {
               <dd className="text-sm text-gray-900 dark:text-gray-100">
                 {model.isSystem ? (
                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                    System Model
+                    System Schema
                   </span>
                 ) : (
                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                    Custom Model
+                    Custom Schema
                   </span>
                 )}
               </dd>
@@ -367,4 +367,4 @@ const ViewModel: React.FC = () => {
   );
 };
 
-export default ViewModel;
+export default ViewSchema;

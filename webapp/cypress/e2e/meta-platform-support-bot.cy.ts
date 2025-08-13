@@ -148,7 +148,7 @@ describe('Meta Platform Support Bot E2E Test', () => {
     // Verify the model was created by checking the API
     cy.request({
       method: 'GET',
-              url: 'http://localhost:4001/api/models',
+              url: 'http://localhost:4001/api/schemas',
       headers: {
         'Content-Type': 'application/json'
       }

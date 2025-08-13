@@ -3,14 +3,14 @@ import { Database, AppWindow, Users, TrendingUp } from 'lucide-react';
 import api from '../utils/api';
 
 interface Stats {
-  models: number;
+  schemas: number;
   applications: number;
   users: number;
   builds: number;
 }
 
 const Dashboard: React.FC = () => {
-  const [stats, setStats] = useState<Stats>({ models: 0, applications: 0, users: 0, builds: 0 });
+  const [stats, setStats] = useState<Stats>({ schemas: 0, applications: 0, users: 0, builds: 0 });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -20,12 +20,12 @@ const Dashboard: React.FC = () => {
   const fetchStats = async () => {
     try {
       const [modelsRes, appsRes] = await Promise.all([
-        api.get('/models'),
+        api.get('/schemas'),
         api.get('/applications')
       ]);
 
       setStats({
-        models: modelsRes.data.length,
+        schemas: modelsRes.data.length,
         applications: appsRes.data.length,
         users: 1, // For demo
         builds: appsRes.data.filter((app: any) => app.status === 'built').length
@@ -38,7 +38,7 @@ const Dashboard: React.FC = () => {
   };
 
   const statCards = [
-    { name: 'Models', value: stats.models, icon: Database, color: 'bg-blue-500' },
+    { name: 'Schemas', value: stats.schemas, icon: Database, color: 'bg-blue-500' },
     { name: 'Applications', value: stats.applications, icon: AppWindow, color: 'bg-green-500' },
     { name: 'Users', value: stats.users, icon: Users, color: 'bg-purple-500' },
     { name: 'Builds', value: stats.builds, icon: TrendingUp, color: 'bg-orange-500' },
@@ -88,11 +88,11 @@ const Dashboard: React.FC = () => {
         <div className="px-4 py-5 sm:p-6">
           <h3 className="text-lg leading-6 font-medium text-gray-900">Getting Started</h3>
           <div className="mt-2 max-w-xl text-sm text-gray-500">
-            <p>Create your first model to start building applications.</p>
+            <p>Create your first schema to start building applications.</p>
           </div>
           <div className="mt-5">
             <button className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700">
-              Create Model
+              Create Schema
             </button>
           </div>
         </div>

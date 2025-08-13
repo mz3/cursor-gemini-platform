@@ -1,4 +1,4 @@
-describe('Create Model', () => {
+describe('Create Schema', () => {
   beforeEach(() => {
     // Use environment variables for credentials
     const testEmail = Cypress.env('testEmail') || 'admin@platform.com';
@@ -17,24 +17,24 @@ describe('Create Model', () => {
     // Verify we're actually logged in by checking for Dashboard content
     cy.contains('Dashboard').should('be.visible');
 
-    // Navigate to models page
-    cy.visit('/models');
+    // Navigate to schemas page
+    cy.visit('/schemas');
     cy.wait(2000); // Wait for page to load
   });
 
-  it('should create a new model', () => {
+  it('should create a new schema', () => {
     const timestamp = Date.now();
     const modelName = `TestModel${timestamp}`;
     const displayName = `Test Model ${timestamp}`;
 
-    // Click on "New Model" button
-    cy.contains('New Model').click();
+    // Click on "New Schema" button
+    cy.contains('New Schema').click();
 
-    // Should be on the create model page
-    cy.url().should('include', '/models/create');
-    cy.contains('h1', 'Create New Model').should('be.visible');
+    // Should be on the create schema page
+    cy.url().should('include', '/schemas/create');
+    cy.contains('h1', 'Create New Schema').should('be.visible');
 
-    // Fill in the model form
+    // Fill in the schema form
     cy.get('input[id="name"]').type(modelName);
     cy.get('input[id="displayName"]').type(displayName);
     cy.get('textarea[id="description"]').type('A test model for E2E testing');
@@ -49,23 +49,23 @@ describe('Create Model', () => {
     cy.get('input[type="checkbox"]').first().check(); // Required
 
     // Submit the form
-    cy.get('button').contains('Create Model').click();
+    cy.get('button').contains('Create Schema').click();
 
-    // Should redirect to models list and show the new model
-    cy.url().should('include', '/models');
+    // Should redirect to schemas list and show the new schema
+    cy.url().should('include', '/schemas');
     cy.contains(displayName).should('be.visible');
   });
 
-  it('should create a new model with a relationship', () => {
+  it('should create a new schema with a relationship', () => {
     const timestamp = Date.now();
     const projectName = `ProjectForRelationship${timestamp}`;
     const projectDisplayName = `Project For Relationship ${timestamp}`;
     const taskName = `TaskForRelationship${timestamp}`;
     const taskDisplayName = `Task For Relationship ${timestamp}`;
 
-    // Create a base model (Project)
-    cy.contains('New Model').click();
-    cy.url().should('include', '/models/create');
+    // Create a base schema (Project)
+    cy.contains('New Schema').click();
+    cy.url().should('include', '/schemas/create');
     cy.get('input[id="name"]').type(projectName);
     cy.get('input[id="displayName"]').type(projectDisplayName);
     cy.get('textarea[id="description"]').type('A project entity');
@@ -74,13 +74,13 @@ describe('Create Model', () => {
     cy.get('input[placeholder="Display name"]').first().type('Title');
     cy.get('select').first().select('string');
     cy.get('input[type="checkbox"]').first().check(); // Required
-    cy.get('button').contains('Create Model').click();
-    cy.url().should('include', '/models');
+    cy.get('button').contains('Create Schema').click();
+    cy.url().should('include', '/schemas');
     cy.contains(projectDisplayName).should('be.visible');
 
-    // Create a related model (Task) with a relationship to Project
-    cy.contains('New Model').click();
-    cy.url().should('include', '/models/create');
+    // Create a related schema (Task) with a relationship to Project
+    cy.contains('New Schema').click();
+    cy.url().should('include', '/schemas/create');
     cy.get('input[id="name"]').type(taskName);
     cy.get('input[id="displayName"]').type(taskDisplayName);
     cy.get('textarea[id="description"]').type('A task entity');
@@ -95,7 +95,7 @@ describe('Create Model', () => {
     cy.get('input[placeholder="e.g., project_tasks"]').type('projectTasks');
     cy.get('input[placeholder="e.g., Project Tasks"]').type('Project Tasks');
     cy.get('select').eq(1).select('many-to-one'); // Relationship type
-    cy.get('select').eq(2).select(projectDisplayName); // Target model
+    cy.get('select').eq(2).select(projectDisplayName); // Target schema
     cy.get('input[placeholder="e.g., projectId"]').type('projectId'); // Source field
     cy.get('input[placeholder="e.g., id"]').type('id'); // Target field
     cy.get('textarea[placeholder="Describe this relationship..."]').type('Each task belongs to a project.');

@@ -1,8 +1,8 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, OneToMany, Relation } from 'typeorm';
 import { User } from './User.js';
 
-@Entity('models')
-export class Model {
+@Entity('schemas')
+export class Schema {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 

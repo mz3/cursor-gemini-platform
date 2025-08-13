@@ -42,6 +42,7 @@ describe('Simple Bot Execution Test', () => {
     try {
       await request(API_BASE_URL)
         .post(`/api/bot-execution/${codeBuilderBotId}/stop`)
+        .set('Authorization', `Bearer ${authToken}`)
         .send({ userId: testUserId });
       console.log('Stopped existing bot instance');
     } catch (error) {
@@ -54,6 +55,7 @@ describe('Simple Bot Execution Test', () => {
     // Start the bot
     const startBotRes = await request(API_BASE_URL)
       .post(`/api/bot-execution/${codeBuilderBotId}/start`)
+      .set('Authorization', `Bearer ${authToken}`)
       .send({ userId: testUserId })
       .expect(200);
 
@@ -63,6 +65,7 @@ describe('Simple Bot Execution Test', () => {
     // Stop the bot
     const stopBotRes = await request(API_BASE_URL)
       .post(`/api/bot-execution/${codeBuilderBotId}/stop`)
+      .set('Authorization', `Bearer ${authToken}`)
       .send({ userId: testUserId })
       .expect(200);
 

@@ -2,7 +2,7 @@ import { DataSource } from 'typeorm';
 import { fileURLToPath } from 'url';
 import path from 'path';
 import { User } from '../entities/User.js';
-import { Model } from '../entities/Model.js';
+import { Schema } from '../entities/Schema.js';
 import { Application } from '../entities/Application.js';
 import { Component } from '../entities/Component.js';
 import { Template } from '../entities/Template.js';
@@ -38,7 +38,7 @@ export const AppDataSource = new DataSource({
   entities: [
     User,
     UserSettings,
-    Model,
+    Schema,
     Application,
     Workflow,
     WorkflowAction,

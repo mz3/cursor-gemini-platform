@@ -1,5 +1,5 @@
 import { Entity as TypeOrmEntity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
-import { Model } from './Model.js';
+import { Schema } from './Schema.js';
 import { User } from './User.js';
 
 @TypeOrmEntity('entities')
@@ -17,11 +17,11 @@ export class Entity {
   data!: Record<string, any>;
 
   @Column({ type: 'uuid' })
-  modelId!: string;
+  schemaId!: string;
 
-  @ManyToOne(() => Model, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'modelId' })
-  model!: Model;
+  @ManyToOne(() => Schema, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'schemaId' })
+  schema!: Schema;
 
   @Column({ type: 'uuid' })
   userId!: string;
@@ -38,4 +38,4 @@ export class Entity {
 
   @UpdateDateColumn()
   updatedAt!: Date;
-} 
+}

@@ -1,43 +1,43 @@
 import { Router } from 'express';
 import { AppDataSource } from '../config/database.js';
-import { Model } from '../entities/Model.js';
+import { Schema } from '../entities/Schema.js';
 import { Relationship } from '../entities/Relationship.js';
 import { User } from '../entities/User.js';
 
 const router = Router();
-const modelRepository = AppDataSource.getRepository(Model);
+const schemaRepository = AppDataSource.getRepository(Schema);
 
-// GET /api/models - Get all models
+// GET /api/schemas - Get all schemas
 router.get('/', async (req, res, next) => {
   try {
-    const models = await modelRepository.find({
+    const schemas = await schemaRepository.find({
       order: { createdAt: 'ASC' }
     });
-    return res.json(models);
+    return res.json(schemas);
   } catch (error) {
     return next(error);
   }
 });
 
-// GET /api/models/:id - Get model by ID with user information
+// GET /api/schemas/:id - Get schema by ID with user information
 router.get('/:id', async (req, res, next) => {
   try {
-    const model = await modelRepository.findOne({
+    const schema = await schemaRepository.findOne({
       where: { id: req.params.id },
       relations: ['user']
     });
 
-    if (!model) {
-      return res.status(404).json({ error: 'Model not found' });
+    if (!schema) {
+      return res.status(404).json({ error: 'Schema not found' });
     }
 
-    return res.json(model);
+    return res.json(schema);
   } catch (error) {
     return next(error);
   }
 });
 
-// POST /api/models - Create new model (with optional relationships)
+// POST /api/schemas - Create new schema (with optional relationships)
 router.post('/', async (req, res, next) => {
   try {
     const { name, displayName, description, schema, userId, relationships } = req.body;
@@ -46,7 +46,7 @@ router.post('/', async (req, res, next) => {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
-    const model = modelRepository.create({
+    const schemaEntity = schemaRepository.create({
       name,
       displayName,
       description,
@@ -55,80 +55,77 @@ router.post('/', async (req, res, next) => {
       isSystem: false
     });
 
-    const savedModel = await modelRepository.save(model);
+    const savedSchema = await schemaRepository.save(schemaEntity);
 
     // Create relationships if provided
     let createdRelationships = [];
     if (Array.isArray(relationships) && relationships.length > 0) {
       const relationshipRepo = AppDataSource.getRepository(Relationship);
       for (const rel of relationships) {
-        const relationship = relationshipRepo.create({ ...rel, sourceModelId: savedModel.id, userId });
+        const relationship = relationshipRepo.create({ ...rel, sourceSchemaId: savedSchema.id, userId });
         await relationshipRepo.save(relationship);
         createdRelationships.push(relationship);
       }
     }
 
-    return res.status(201).json({ ...savedModel, relationships: createdRelationships });
+    return res.status(201).json({ ...savedSchema, relationships: createdRelationships });
   } catch (error) {
     return next(error);
   }
 });
 
-// GET /api/models/:id/relationships - Get relationships for a model
+// GET /api/schemas/:id/relationships - Get relationships for a schema
 router.get('/:id/relationships', async (req, res, next) => {
   try {
     const relationshipRepo = AppDataSource.getRepository(Relationship);
-    const relationships = await relationshipRepo.find({ where: { sourceModelId: req.params.id } });
+    const relationships = await relationshipRepo.find({ where: { sourceSchemaId: req.params.id } });
     return res.json(relationships);
   } catch (error) {
     return next(error);
   }
 });
 
-
-
-// PUT /api/models/:id - Update model
+// PUT /api/schemas/:id - Update schema
 router.put('/:id', async (req, res, next) => {
   try {
-    const model = await modelRepository.findOne({
+    const schema = await schemaRepository.findOne({
       where: { id: req.params.id }
     });
 
-    if (!model) {
-      return res.status(404).json({ error: 'Model not found' });
+    if (!schema) {
+      return res.status(404).json({ error: 'Schema not found' });
     }
 
-    const { name, displayName, description, schema } = req.body;
+    const { name, displayName, description, schema: schemaData } = req.body;
 
-    if (name) model.name = name;
-    if (displayName) model.displayName = displayName;
-    if (description !== undefined) model.description = description;
-    if (schema) model.schema = schema;
+    if (name) schema.name = name;
+    if (displayName) schema.displayName = displayName;
+    if (description !== undefined) schema.description = description;
+    if (schemaData) schema.schema = schemaData;
 
-    const updatedModel = await modelRepository.save(model);
-    return res.json(updatedModel);
+    const updatedSchema = await schemaRepository.save(schema);
+    return res.json(updatedSchema);
   } catch (error) {
     return next(error);
   }
 });
 
-// DELETE /api/models/:id - Delete model
+// DELETE /api/schemas/:id - Delete schema
 router.delete('/:id', async (req, res, next) => {
   try {
-    const model = await modelRepository.findOne({
+    const schema = await schemaRepository.findOne({
       where: { id: req.params.id }
     });
 
-    if (!model) {
-      return res.status(404).json({ error: 'Model not found' });
+    if (!schema) {
+      return res.status(404).json({ error: 'Schema not found' });
     }
 
-    await modelRepository.remove(model);
-
-    return res.json({ message: 'Model deleted successfully' });
+    await schemaRepository.remove(schema);
+    return res.status(204).send();
   } catch (error) {
     return next(error);
   }
 });
 
-export { router as modelRoutes };
+export { router as schemaRoutes };

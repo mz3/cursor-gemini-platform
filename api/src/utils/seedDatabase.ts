@@ -1,6 +1,6 @@
 import { AppDataSource } from '../config/database.js';
 import { User } from '../entities/User.js';
-import { Model } from '../entities/Model.js';
+import { Schema } from '../entities/Schema.js';
 import { Workflow } from '../entities/Workflow.js';
 import { WorkflowAction } from '../entities/WorkflowAction.js';
 import { CodeTemplate } from '../entities/CodeTemplate.js';
@@ -29,7 +29,7 @@ export const seedDatabase = async (): Promise<void> => {
 
     // Initialize repositories
     const userRepository = AppDataSource.getRepository(User);
-    const modelRepository = AppDataSource.getRepository(Model);
+    const schemaRepository = AppDataSource.getRepository(Schema);
     const workflowRepository = AppDataSource.getRepository(Workflow);
     const workflowActionRepository = AppDataSource.getRepository(WorkflowAction);
     const codeTemplateRepository = AppDataSource.getRepository(CodeTemplate);
@@ -54,13 +54,13 @@ export const seedDatabase = async (): Promise<void> => {
     const existingUsers = await userRepository.find();
     const existingFeatures = await featureRepository.find();
     const existingApplications = await applicationRepository.find();
-    const existingModels = await modelRepository.find();
+    const existingSchemas = await schemaRepository.find();
     const existingPrompts = await promptRepository.find();
     const existingBots = await botRepository.find();
     const existingWorkflows = await workflowRepository.find();
 
     if (existingUsers.length > 0 || existingFeatures.length > 0 || existingApplications.length > 0 ||
-        existingModels.length > 0 || existingPrompts.length > 0 || existingBots.length > 0 || existingWorkflows.length > 0) {
+        existingSchemas.length > 0 || existingPrompts.length > 0 || existingBots.length > 0 || existingWorkflows.length > 0) {
       console.log('Database already seeded with data, skipping...');
       clearTimeout(timeout);
       return;
@@ -90,18 +90,18 @@ export const seedDatabase = async (): Promise<void> => {
       throw new Error('Failed to create or find user for seeding');
     }
 
-    console.log('Creating system models...');
-    // Create system models from fixtures
-    if (fixtures.models) {
-      for (const modelData of fixtures.models) {
+    console.log('Creating system schemas...');
+    // Create system schemas from fixtures
+    if (fixtures.schemas) {
+      for (const schemaData of fixtures.schemas) {
         try {
-          const model = modelRepository.create({
-            ...modelData,
+          const schema = schemaRepository.create({
+            ...schemaData,
             userId: savedUser!.id
           });
-          await modelRepository.save(model);
+          await schemaRepository.save(schema);
         } catch (error) {
-          console.error('Error creating model:', error);
+          console.error('Error creating schema:', error);
         }
       }
     }
@@ -184,10 +184,10 @@ export const seedDatabase = async (): Promise<void> => {
       for (const versionData of fixtures.promptVersions) {
         try {
           // Find the prompt by name
-          const prompt = await promptRepository.findOne({ 
-            where: { name: versionData.promptId } 
+          const prompt = await promptRepository.findOne({
+            where: { name: versionData.promptId }
           });
-          
+
           if (prompt) {
             const version = promptVersionRepository.create({
               ...versionData,
@@ -235,7 +235,7 @@ export const seedDatabase = async (): Promise<void> => {
       try {
         const bot = await botRepository.findOne({ where: { name: mapping.botName } });
         const prompt = await promptRepository.findOne({ where: { name: mapping.promptName } });
-        
+
         if (bot && prompt) {
           // Add the prompt to the bot's prompts
           bot.prompts = [prompt];
@@ -254,10 +254,10 @@ export const seedDatabase = async (): Promise<void> => {
       for (const toolData of fixtures.botTools) {
         try {
           // Find the bot by name for system bots
-          const bot = await botRepository.findOne({ 
-            where: { name: toolData.botId } 
+          const bot = await botRepository.findOne({
+            where: { name: toolData.botId }
           });
-          
+
           if (bot) {
             const tool = botToolRepository.create({
               ...toolData,

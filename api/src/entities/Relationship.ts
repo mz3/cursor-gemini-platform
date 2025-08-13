@@ -15,10 +15,10 @@ export class Relationship {
   type!: string; // one-to-one, one-to-many, many-to-one, many-to-many
 
   @Column()
-  sourceModelId!: string;
+  sourceSchemaId!: string;
 
   @Column()
-  targetModelId!: string;
+  targetSchemaId!: string;
 
   @Column()
   sourceField!: string;

@@ -2,14 +2,14 @@
   {
     "name": "platform-api-sdk",
     "displayName": "Platform API SDK",
-    "description": "Comprehensive API SDK for accessing all platform features - models, applications, bots, prompts, tools, etc.",
+    "description": "Comprehensive API SDK for accessing all platform features - schemas, applications, bots, prompts, tools, etc.",
     "type": "mcp_tool",
     "config": {
       "platformEndpoint": "http://api:4000/api",
       "userId": "system",
       "permissions": ["read", "write", "execute"],
       "operations": [
-        "list_models", "get_model", "create_model", "update_model", "delete_model",
+        "list_schemas", "get_schema", "create_schema", "update_schema", "delete_schema",
         "list_applications", "get_application", "create_application", "update_application", "delete_application",
         "list_bots", "get_bot", "create_bot", "update_bot", "delete_bot",
         "list_prompts", "get_prompt", "create_prompt", "update_prompt", "delete_prompt",
@@ -25,12 +25,12 @@
     "botId": "meta-platform-support"
   },
   {
-    "name": "list-user-models",
-    "displayName": "List User Models",
-    "description": "Lists all data models created by a user",
+    "name": "list-user-schemas",
+    "displayName": "List User Schemas",
+    "description": "Lists all data schemas created by a user",
     "type": "http_request",
     "config": {
-      "url": "http://api:4000/api/models",
+      "url": "http://api:4000/api/schemas",
       "method": "GET",
       "headers": {
         "Content-Type": "application/json"
@@ -383,4 +383,4 @@
     "requiresAuth": true,
     "botId": "sysadmin"
   }
-] 
+]

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../utils/api';
 
-interface Model {
+interface Schema {
   id: string;
   name: string;
   displayName: string;
@@ -21,7 +21,7 @@ interface Entity {
   displayName: string;
   data: Record<string, any>;
   modelId: string;
-  model: Model;
+  model: Schema;
   createdAt: string;
 }
 
@@ -32,18 +32,18 @@ interface Field {
 }
 
 export const Entities: React.FC = () => {
-  const [models, setModels] = useState<Model[]>([]);
+  const [schemas, setSchemas] = useState<Schema[]>([]);
   const [entities, setEntities] = useState<Entity[]>([]);
-  const [selectedModel, setSelectedModel] = useState<Model | null>(null);
-  const [activeTab, setActiveTab] = useState<'models' | 'entities'>('models');
-  
-  // Model creation state
-  const [newModel, setNewModel] = useState({
+  const [selectedSchema, setSelectedSchema] = useState<Schema | null>(null);
+  const [activeTab, setActiveTab] = useState<'schemas' | 'entities'>('schemas');
+
+  // Schema creation state
+  const [newSchema, setNewSchema] = useState({
     name: '',
     displayName: '',
     fields: [] as Field[]
   });
-  
+
   // Entity creation state
   const [newEntity, setNewEntity] = useState({
     name: '',
@@ -53,16 +53,16 @@ export const Entities: React.FC = () => {
   });
 
   useEffect(() => {
-    loadModels();
+    loadSchemas();
     loadEntities();
   }, []);
 
-  const loadModels = async () => {
+  const loadSchemas = async () => {
     try {
-      const response = await api.get('/models');
-      setModels(response.data);
+      const response = await api.get('/schemas');
+      setSchemas(response.data);
     } catch (error) {
-      console.error('Error loading models:', error);
+      console.error('Error loading schemas:', error);
     }
   };
 
@@ -76,41 +76,41 @@ export const Entities: React.FC = () => {
   };
 
   const addField = () => {
-    setNewModel(prev => ({
+    setNewSchema(prev => ({
       ...prev,
       fields: [...prev.fields, { name: '', type: 'string', required: true }]
     }));
   };
 
   const updateField = (index: number, field: Partial<Field>) => {
-    setNewModel(prev => ({
+    setNewSchema(prev => ({
       ...prev,
       fields: prev.fields.map((f, i) => i === index ? { ...f, ...field } : f)
     }));
   };
 
   const removeField = (index: number) => {
-    setNewModel(prev => ({
+    setNewSchema(prev => ({
       ...prev,
       fields: prev.fields.filter((_, i) => i !== index)
     }));
   };
 
-  const createModel = async () => {
+  const createSchema = async () => {
     try {
-      const response = await api.post('/models', {
-        name: newModel.name,
-        displayName: newModel.displayName,
+      const response = await api.post('/schemas', {
+        name: newSchema.name,
+        displayName: newSchema.displayName,
         userId: '48d1e67a-5db8-4a0d-8c34-83ab66a4d7ee', // Use the admin user ID
-        schema: { fields: newModel.fields }
+        schema: { fields: newSchema.fields }
       });
-      
-      setModels(prev => [...prev, response.data]);
-      setNewModel({ name: '', displayName: '', fields: [] });
-      alert('Model created successfully!');
+
+      setSchemas(prev => [...prev, response.data]);
+      setNewSchema({ name: '', displayName: '', fields: [] });
+      alert('Schema created successfully!');
     } catch (error) {
-      console.error('Error creating model:', error);
-      alert('Error creating model');
+      console.error('Error creating schema:', error);
+      alert('Error creating schema');
     }
   };
 
@@ -182,18 +182,18 @@ export const Entities: React.FC = () => {
   return (
     <div className="max-w-6xl mx-auto p-6">
       <h1 className="text-3xl font-bold mb-8">Entities</h1>
-      
+
       {/* Tab Navigation */}
       <div className="flex space-x-4 mb-6">
         <button
-          onClick={() => setActiveTab('models')}
+          onClick={() => setActiveTab('schemas')}
           className={`px-4 py-2 rounded-lg font-medium ${
-            activeTab === 'models'
+            activeTab === 'schemas'
               ? 'bg-blue-600 text-white'
               : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
           }`}
         >
-          Models
+          Schemas
         </button>
         <button
           onClick={() => setActiveTab('entities')}
@@ -207,35 +207,35 @@ export const Entities: React.FC = () => {
         </button>
       </div>
 
-      {activeTab === 'models' && (
+      {activeTab === 'schemas' && (
         <div className="space-y-8">
           {/* Create Model Form */}
           <div className="bg-white p-6 rounded-lg shadow-md">
-            <h2 className="text-xl font-semibold mb-4">Create New Model</h2>
+            <h2 className="text-xl font-semibold mb-4">Create New Schema</h2>
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Model Name
+                  Schema Name
                 </label>
                 <input
                   type="text"
-                  value={newModel.name}
-                  onChange={(e) => setNewModel(prev => ({ ...prev, name: e.target.value }))}
+                  value={newSchema.name}
+                  onChange={(e) => setNewSchema(prev => ({ ...prev, name: e.target.value }))}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="e.g., Dog, Product, User"
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Display Name
                 </label>
                 <input
                   type="text"
-                  value={newModel.displayName}
-                  onChange={(e) => setNewModel(prev => ({ ...prev, displayName: e.target.value }))}
+                  value={newSchema.displayName}
+                  onChange={(e) => setNewSchema(prev => ({ ...prev, displayName: e.target.value }))}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="e.g., Dog Model, Product Model"
+                  placeholder="e.g., Dog Schema, Product Schema"
                 />
               </div>
 
@@ -244,7 +244,7 @@ export const Entities: React.FC = () => {
                   Fields
                 </label>
                 <div className="space-y-3">
-                  {newModel.fields.map((field, index) => (
+                  {newSchema.fields.map((field, index) => (
                     <div key={index} className="flex space-x-2">
                       <input
                         type="text"
@@ -289,27 +289,27 @@ export const Entities: React.FC = () => {
               </div>
 
               <button
-                onClick={createModel}
-                disabled={!newModel.name || !newModel.displayName}
+                onClick={createSchema}
+                disabled={!newSchema.name || !newSchema.displayName}
                 className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
               >
-                Create Model
+                Create Schema
               </button>
             </div>
           </div>
 
           {/* Models List */}
           <div className="bg-white p-6 rounded-lg shadow-md">
-            <h2 className="text-xl font-semibold mb-4">Existing Models</h2>
+            <h2 className="text-xl font-semibold mb-4">Existing Schemas</h2>
             <div className="space-y-4">
-              {models.map((model) => (
-                <div key={model.id} className="border border-gray-200 rounded-lg p-4">
-                  <h3 className="font-semibold text-lg">{model.displayName}</h3>
-                  <p className="text-gray-600 text-sm">Name: {model.name}</p>
+              {schemas.map((schema) => (
+                <div key={schema.id} className="border border-gray-200 rounded-lg p-4">
+                  <h3 className="font-semibold text-lg">{schema.displayName}</h3>
+                  <p className="text-gray-600 text-sm">Name: {schema.name}</p>
                   <div className="mt-2">
                     <h4 className="font-medium text-sm text-gray-700">Fields:</h4>
                     <div className="mt-1 space-y-1">
-                      {model.schema.fields.map((field, index) => (
+                      {schema.schema.fields.map((field, index) => (
                         <div key={index} className="text-sm text-gray-600">
                           • {field.name} ({field.type}) {field.required ? '(required)' : '(optional)'}
                         </div>
@@ -341,7 +341,7 @@ export const Entities: React.FC = () => {
                   placeholder="e.g., spot, laptop, john"
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Display Name
@@ -355,36 +355,36 @@ export const Entities: React.FC = () => {
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Model Type
-                </label>
-                <select
-                  value={newEntity.modelId}
-                  onChange={(e) => {
-                    const modelId = e.target.value;
-                    setNewEntity(prev => ({ ...prev, modelId, data: {} }));
-                    const selectedModel = models.find(m => m.id === modelId);
-                    setSelectedModel(selectedModel || null);
-                  }}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="">Select a model</option>
-                  {models.map((model) => (
-                    <option key={model.id} value={model.id}>
-                      {model.displayName}
-                    </option>
-                  ))}
-                </select>
-              </div>
+                                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Schema Type
+                    </label>
+                    <select
+                      value={newEntity.modelId}
+                      onChange={(e) => {
+                        const schemaId = e.target.value;
+                        setNewEntity(prev => ({ ...prev, modelId: schemaId, data: {} }));
+                        const selectedSchema = schemas.find(s => s.id === schemaId);
+                        setSelectedSchema(selectedSchema || null);
+                      }}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="">Select a schema</option>
+                      {schemas.map((schema) => (
+                        <option key={schema.id} value={schema.id}>
+                          {schema.displayName}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
 
-              {selectedModel && (
+              {selectedSchema && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Entity Data
                   </label>
                   <div className="space-y-3">
-                    {selectedModel.schema.fields.map((field) => (
+                    {selectedSchema.schema.fields.map((field) => (
                       <div key={field.name}>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                           {field.name} {field.required && <span className="text-red-500">*</span>}
@@ -418,7 +418,7 @@ export const Entities: React.FC = () => {
                 <div key={entity.id} className="border border-gray-200 rounded-lg p-4">
                   <h3 className="font-semibold text-lg">{entity.displayName}</h3>
                   <p className="text-gray-600 text-sm">Name: {entity.name}</p>
-                  <p className="text-gray-600 text-sm">Model: {entity.model.displayName}</p>
+                  <p className="text-gray-600 text-sm">Schema: {entity.model.displayName}</p>
                   <div className="mt-2">
                     <h4 className="font-medium text-sm text-gray-700">Data:</h4>
                     <div className="mt-1 space-y-1">
@@ -437,4 +437,4 @@ export const Entities: React.FC = () => {
       )}
     </div>
   );
-}; 
+};

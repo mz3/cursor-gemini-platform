@@ -250,7 +250,7 @@ export class BotExecutionService {
    */
   private static generateMockResponse(userMessage: string): string {
     const message = userMessage.toLowerCase();
-    
+
     if (message.includes('hello') || message.includes('hi')) {
       return 'Hello! I am a mock AI assistant for testing purposes. How can I help you today?';
     } else if (message.includes('weather')) {
@@ -295,21 +295,21 @@ export class BotExecutionService {
     // Filter out intermediate status messages that are older than 30 seconds
     const now = new Date();
     const thirtySecondsAgo = new Date(now.getTime() - 30 * 1000);
-    
+
     return messages.filter(message => {
       // Keep all user messages
       if (message.role === MessageRole.USER) {
         return true;
       }
-      
+
       // Keep bot messages that are either:
       // 1. Recent (less than 30 seconds old)
       // 2. Not intermediate status messages (don't contain thinking/detecting/executing)
       const isRecent = new Date(message.createdAt) > thirtySecondsAgo;
-      const isIntermediateStatus = message.content.includes('🤔 Thinking...') || 
-                                  message.content.includes('🔍 Detecting tools...') || 
+      const isIntermediateStatus = message.content.includes('🤔 Thinking...') ||
+                                  message.content.includes('🔍 Detecting tools...') ||
                                   message.content.includes('🔧 Executing tools...');
-      
+
       return isRecent || !isIntermediateStatus;
     });
   }
@@ -385,6 +385,51 @@ export class BotExecutionService {
       lastStoppedAt: status.lastStoppedAt instanceof Date ? status.lastStoppedAt.toISOString() : status.lastStoppedAt
     };
     await messageHandler.handleBotStatusUpdate(botId, wsStatus);
+  }
+
+  /**
+   * Clear conversation history for a bot instance
+   */
+  static async clearConversationHistory(botId: string, userId: string): Promise<void> {
+    // Validate UUIDs
+    if (!isValidUUID(botId)) {
+      throw new Error('Invalid bot ID format');
+    }
+    if (!isValidUUID(userId)) {
+      throw new Error('Invalid user ID format');
+    }
+
+    // Check if bot exists and user owns it
+    const bot = await botRepository.findOne({
+      where: { id: botId, isActive: true }
+    });
+
+    if (!bot) {
+      throw new Error('Bot not found or not active');
+    }
+
+    if (bot.userId !== userId) {
+      throw new Error('Unauthorized to clear this bot\'s conversation history');
+    }
+
+    // Get bot instance
+    const instance = await botInstanceRepository.findOne({
+      where: { botId, userId }
+    });
+
+    if (!instance) {
+      // No instance means no messages to clear
+      return;
+    }
+
+    // Delete all chat messages for this instance
+    await chatMessageRepository.delete({
+      botInstanceId: instance.id
+    });
+
+    // Broadcast clear event via WebSocket
+    const messageHandler = MessageHandler.getInstance();
+    await messageHandler.handleConversationCleared(botId, userId);
   }
 
   /**

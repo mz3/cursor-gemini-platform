@@ -37,9 +37,9 @@ router.get('/:id', async (req, res, next) => {
 // POST /api/relationships - Create new relationship
 router.post('/', async (req, res, next) => {
   try {
-    const { name, displayName, type, sourceModelId, targetModelId, sourceField, targetField, cascade, nullable, description, userId } = req.body;
+    const { name, displayName, type, sourceSchemaId, targetSchemaId, sourceField, targetField, cascade, nullable, description, userId } = req.body;
 
-    if (!name || !displayName || !type || !sourceModelId || !targetModelId || !sourceField || !targetField || !userId) {
+    if (!name || !displayName || !type || !sourceSchemaId || !targetSchemaId || !sourceField || !targetField || !userId) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
@@ -47,8 +47,8 @@ router.post('/', async (req, res, next) => {
       name,
       displayName,
       type,
-      sourceModelId,
-      targetModelId,
+      sourceSchemaId,
+      targetSchemaId,
       sourceField,
       targetField,
       cascade: cascade || false,
@@ -75,12 +75,12 @@ router.put('/:id', async (req, res, next) => {
       return res.status(404).json({ error: 'Relationship not found' });
     }
 
-    const { name, displayName, type, targetModelId, sourceField, targetField, cascade, nullable, description } = req.body;
+    const { name, displayName, type, targetSchemaId, sourceField, targetField, cascade, nullable, description } = req.body;
 
     if (name) relationship.name = name;
     if (displayName) relationship.displayName = displayName;
     if (type) relationship.type = type;
-    if (targetModelId) relationship.targetModelId = targetModelId;
+    if (targetSchemaId) relationship.targetSchemaId = targetSchemaId;
     if (sourceField) relationship.sourceField = sourceField;
     if (targetField) relationship.targetField = targetField;
     if (cascade !== undefined) relationship.cascade = cascade;

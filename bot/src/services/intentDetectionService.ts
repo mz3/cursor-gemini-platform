@@ -104,11 +104,11 @@ Return an empty array if no tools should be called.`;
     switch (tool.type) {
       case 'mcp_tool':
         return [
-          'create_model',
-          'list_models',
-          'get_model',
-          'update_model',
-          'delete_model',
+          'create_schema',
+          'list_schemas',
+          'get_schema',
+          'update_schema',
+          'delete_schema',
           'create_application',
           'list_applications',
           'get_application',
@@ -152,17 +152,17 @@ Return an empty array if no tools should be called.`;
   private getParameterExamples(tool: BotTool): string {
     switch (tool.type) {
       case 'mcp_tool':
-        return `For create_model:
-- name: "UserModel"
-- displayName: "User Model" 
-- description: "Model for user data"
+        return `For create_schema:
+- name: "UserSchema"
+- displayName: "User Schema"
+- description: "Schema for user data"
 - fields: [{"name": "email", "type": "string", "required": true}, {"name": "age", "type": "number", "required": false}]
 
-For list_models:
+For list_schemas:
 - userId: "user-id-here"
 
-For get_model:
-- id: "model-id-here"
+For get_schema:
+- id: "schema-id-here"
 - userId: "user-id-here"`;
       case 'http_request':
         return `- url: "https://api.example.com/endpoint"
@@ -222,4 +222,4 @@ For get_model:
       return [];
     }
   }
-} 
+}

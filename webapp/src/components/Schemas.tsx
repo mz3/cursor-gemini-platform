@@ -14,7 +14,7 @@ interface Model {
   createdAt: string;
 }
 
-const Models: React.FC = () => {
+const Schemas: React.FC = () => {
   const navigate = useNavigate();
   const [models, setModels] = useState<Model[]>([]);
   const [loading, setLoading] = useState(true);
@@ -25,22 +25,22 @@ const Models: React.FC = () => {
 
   const fetchModels = async () => {
     try {
-      const response = await api.get('/models');
+      const response = await api.get('/schemas');
       setModels(response.data);
     } catch (error) {
-      console.error('Error fetching models:', error);
+              console.error('Error fetching schemas:', error);
     } finally {
       setLoading(false);
     }
   };
 
   const handleDelete = async (modelId: string) => {
-    if (window.confirm('Are you sure you want to delete this model? This action cannot be undone.')) {
+          if (window.confirm('Are you sure you want to delete this schema? This action cannot be undone.')) {
       try {
-        await api.delete(`/models/${modelId}`);
+        await api.delete(`/schemas/${modelId}`);
         fetchModels(); // Refresh the list
       } catch (error) {
-        console.error('Error deleting model:', error);
+        console.error('Error deleting schema:', error);
       }
     }
   };
@@ -57,11 +57,11 @@ const Models: React.FC = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Models</h1>
-          <p className="text-gray-600">Manage your data models and sdsffsdfsdchemas</p>
+                      <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Schemas</h1>
+          <p className="text-gray-600">Manage your data schemas</p>
         </div>
         <button
-          onClick={() => navigate('/models/create')}
+                        onClick={() => navigate('/schemas/create')}
           className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
         >
           <Plus className="w-4 h-4 mr-2" />
@@ -72,15 +72,15 @@ const Models: React.FC = () => {
       {models.length === 0 ? (
         <div className="text-center py-12">
           <Database className="mx-auto h-12 w-12 text-gray-400" />
-          <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-gray-100">No models</h3>
-          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Get started by creating your first data model.</p>
+          <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-gray-100">No schemas</h3>
+                      <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Get started by creating your first data schema.</p>
           <div className="mt-6">
             <button
-              onClick={() => navigate('/models/create')}
+              onClick={() => navigate('/schemas/create')}
               className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
             >
               <Plus className="w-4 h-4 mr-2" />
-              Create Model
+                              Create Schema
             </button>
           </div>
         </div>
@@ -116,16 +116,16 @@ const Models: React.FC = () => {
                   </div>
                   <div className="flex space-x-2">
                     <button
-                      onClick={() => navigate(`/models/${model.id}`)}
+                      onClick={() => navigate(`/schemas/${model.id}`)}
                       className="text-gray-400 hover:text-blue-600 p-1 rounded"
-                      title="View Model"
+                      title="View Schema"
                     >
                       <Eye className="h-4 w-4" />
                     </button>
                     <button
-                      onClick={() => navigate(`/models/${model.id}/edit`)}
+                      onClick={() => navigate(`/schemas/${model.id}/edit`)}
                       className="text-gray-400 hover:text-gray-600 p-1 rounded"
-                      title="Edit Model"
+                      title="Edit Schema"
                     >
                       <Edit className="h-4 w-4" />
                     </button>
@@ -133,7 +133,7 @@ const Models: React.FC = () => {
                       <button
                         onClick={() => handleDelete(model.id)}
                         className="text-gray-400 hover:text-red-600 p-1 rounded"
-                        title="Delete Model"
+                        title="Delete Schema"
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
@@ -149,4 +149,4 @@ const Models: React.FC = () => {
   );
 };
 
-export default Models;
+export default Schemas;

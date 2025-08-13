@@ -1,7 +1,7 @@
 import { BotTool } from '../entities/BotTool.js';
 import { Bot } from '../entities/Bot.js';
 import { User } from '../entities/User.js';
-import { Model } from '../entities/Model.js';
+import { Schema } from '../entities/Schema.js';
 import { Application } from '../entities/Application.js';
 import { Prompt } from '../entities/Prompt.js';
 import { Feature } from '../entities/Feature.js';
@@ -12,7 +12,7 @@ import axios from 'axios';
 
 const botRepository = AppDataSource.getRepository(Bot);
 const userRepository = AppDataSource.getRepository(User);
-const modelRepository = AppDataSource.getRepository(Model);
+const schemaRepository = AppDataSource.getRepository(Schema);
 const applicationRepository = AppDataSource.getRepository(Application);
 const promptRepository = AppDataSource.getRepository(Prompt);
 const featureRepository = AppDataSource.getRepository(Feature);
@@ -52,7 +52,7 @@ export class MCPToolService {
 
     // Execute the operation based on the entity type
     const [action, entity] = operation.split('_');
-    
+
     switch (action) {
       case 'list':
         return await this.listEntities(entity, config, params);
@@ -325,8 +325,8 @@ export class MCPToolService {
 
     let repository: any;
     switch (entityType) {
-      case 'models':
-        repository = modelRepository;
+      case 'schemas':
+        repository = schemaRepository;
         break;
       case 'applications':
         repository = applicationRepository;
@@ -374,8 +374,8 @@ export class MCPToolService {
 
     let repository: any;
     switch (entityType) {
-      case 'model':
-        repository = modelRepository;
+      case 'schema':
+        repository = schemaRepository;
         break;
       case 'application':
         repository = applicationRepository;
@@ -418,11 +418,11 @@ export class MCPToolService {
 
     let repository: any;
     let entity: any;
-    
+
     switch (entityType) {
-      case 'model':
-        repository = modelRepository;
-        entity = new Model();
+      case 'schema':
+        repository = schemaRepository;
+        entity = new Schema();
         break;
       case 'application':
         repository = applicationRepository;
@@ -473,8 +473,8 @@ export class MCPToolService {
 
     let repository: any;
     switch (entityType) {
-      case 'model':
-        repository = modelRepository;
+      case 'schema':
+        repository = schemaRepository;
         break;
       case 'application':
         repository = applicationRepository;
@@ -525,8 +525,8 @@ export class MCPToolService {
 
     let repository: any;
     switch (entityType) {
-      case 'model':
-        repository = modelRepository;
+      case 'schema':
+        repository = schemaRepository;
         break;
       case 'application':
         repository = applicationRepository;
@@ -669,8 +669,8 @@ export class MCPToolService {
       throw new Error('User ID is required');
     }
 
-    const [models, applications, bots, prompts, features, workflows] = await Promise.all([
-      modelRepository.find({ where: { userId } }),
+    const [schemas, applications, bots, prompts, features, workflows] = await Promise.all([
+      schemaRepository.find({ where: { userId } }),
       applicationRepository.find({ where: { userId } }),
       botRepository.find({ where: { userId } }),
       promptRepository.find({ where: { userId } }),
@@ -681,7 +681,7 @@ export class MCPToolService {
     return {
       success: true,
       userData: {
-        models: models.length,
+        schemas: schemas.length,
         applications: applications.length,
         bots: bots.length,
         prompts: prompts.length,
@@ -689,7 +689,7 @@ export class MCPToolService {
         workflows: workflows.length
       },
       details: {
-        models,
+        schemas,
         applications,
         bots,
         prompts,
@@ -714,8 +714,8 @@ export class MCPToolService {
 
     if (!entityType || entityType === 'all') {
       // Search across all entity types
-      const [models, applications, bots, prompts, features, workflows] = await Promise.all([
-        modelRepository.find({ where: { userId: searchUserId } }),
+      const [schemas, applications, bots, prompts, features, workflows] = await Promise.all([
+        schemaRepository.find({ where: { userId: searchUserId } }),
         applicationRepository.find({ where: { userId: searchUserId } }),
         botRepository.find({ where: { userId: searchUserId } }),
         promptRepository.find({ where: { userId: searchUserId } }),
@@ -724,7 +724,7 @@ export class MCPToolService {
       ]);
 
       results = [
-        ...models.filter(m => m.name.toLowerCase().includes(query.toLowerCase()) || m.displayName?.toLowerCase().includes(query.toLowerCase())),
+        ...schemas.filter(m => m.name.toLowerCase().includes(query.toLowerCase()) || m.displayName?.toLowerCase().includes(query.toLowerCase())),
         ...applications.filter(a => a.name.toLowerCase().includes(query.toLowerCase()) || a.displayName?.toLowerCase().includes(query.toLowerCase())),
         ...bots.filter(b => b.name.toLowerCase().includes(query.toLowerCase()) || b.displayName?.toLowerCase().includes(query.toLowerCase())),
         ...prompts.filter(p => p.name.toLowerCase().includes(query.toLowerCase()) || p.description?.toLowerCase().includes(query.toLowerCase())),
@@ -735,8 +735,8 @@ export class MCPToolService {
       // Search specific entity type
       let repository: any;
       switch (entityType) {
-        case 'models':
-          repository = modelRepository;
+        case 'schemas':
+          repository = schemaRepository;
           break;
         case 'applications':
           repository = applicationRepository;

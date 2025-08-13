@@ -26,7 +26,7 @@
   {
     "name": "code-generator",
     "displayName": "Code Generator Bot",
-    "description": "Generates application code from models and specifications",
+    "description": "Generates application code from schemas and specifications",
     "isActive": true,
     "model": "gemini-2.5-flash",
     "userId": "system"
@@ -40,9 +40,9 @@
     "userId": "system"
   },
   {
-    "name": "model-assistant",
-    "displayName": "Model Assistant Bot",
-    "description": "Assists with data model creation and optimization",
+    "name": "schema-assistant",
+    "displayName": "Schema Assistant Bot",
+    "description": "Assists with data schema creation and optimization",
     "isActive": true,
     "model": "gemini-2.5-flash",
     "userId": "system"

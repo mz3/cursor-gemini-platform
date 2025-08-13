@@ -36,14 +36,14 @@ export const Entities: React.FC = () => {
   const [entities, setEntities] = useState<Entity[]>([]);
   const [selectedModel, setSelectedModel] = useState<Model | null>(null);
   const [activeTab, setActiveTab] = useState<'models' | 'entities'>('models');
-  
+
   // Model creation state
   const [newModel, setNewModel] = useState({
     name: '',
     displayName: '',
     fields: [] as Field[]
   });
-  
+
   // Entity creation state
   const [newEntity, setNewEntity] = useState({
     name: '',
@@ -59,7 +59,7 @@ export const Entities: React.FC = () => {
 
   const loadModels = async () => {
     try {
-      const response = await api.get('/models');
+      const response = await api.get('/schemas');
       setModels(response.data);
     } catch (error) {
       console.error('Error loading models:', error);
@@ -98,13 +98,13 @@ export const Entities: React.FC = () => {
 
   const createModel = async () => {
     try {
-      const response = await api.post('/models', {
+      const response = await api.post('/schemas', {
         name: newModel.name,
         displayName: newModel.displayName,
         userId: '48d1e67a-5db8-4a0d-8c34-83ab66a4d7ee', // Use the admin user ID
         schema: { fields: newModel.fields }
       });
-      
+
       setModels(prev => [...prev, response.data]);
       setNewModel({ name: '', displayName: '', fields: [] });
       alert('Model created successfully!');
@@ -182,7 +182,7 @@ export const Entities: React.FC = () => {
   return (
     <div className="max-w-6xl mx-auto p-6">
       <h1 className="text-3xl font-bold mb-8">Entities</h1>
-      
+
       {/* Tab Navigation */}
       <div className="flex space-x-4 mb-6">
         <button
@@ -193,7 +193,7 @@ export const Entities: React.FC = () => {
               : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
           }`}
         >
-          Models
+          Schemas
         </button>
         <button
           onClick={() => setActiveTab('entities')}
@@ -211,11 +211,11 @@ export const Entities: React.FC = () => {
         <div className="space-y-8">
           {/* Create Model Form */}
           <div className="bg-white p-6 rounded-lg shadow-md">
-            <h2 className="text-xl font-semibold mb-4">Create New Model</h2>
+            <h2 className="text-xl font-semibold mb-4">Create New Schema</h2>
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Model Name
+                  Schema Name
                 </label>
                 <input
                   type="text"
@@ -225,7 +225,7 @@ export const Entities: React.FC = () => {
                   placeholder="e.g., Dog, Product, User"
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Display Name
@@ -235,7 +235,7 @@ export const Entities: React.FC = () => {
                   value={newModel.displayName}
                   onChange={(e) => setNewModel(prev => ({ ...prev, displayName: e.target.value }))}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="e.g., Dog Model, Product Model"
+                  placeholder="e.g., Dog Schema, Product Schema"
                 />
               </div>
 
@@ -293,14 +293,14 @@ export const Entities: React.FC = () => {
                 disabled={!newModel.name || !newModel.displayName}
                 className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
               >
-                Create Model
+                Create Schema
               </button>
             </div>
           </div>
 
           {/* Models List */}
           <div className="bg-white p-6 rounded-lg shadow-md">
-            <h2 className="text-xl font-semibold mb-4">Existing Models</h2>
+            <h2 className="text-xl font-semibold mb-4">Existing Schemas</h2>
             <div className="space-y-4">
               {models.map((model) => (
                 <div key={model.id} className="border border-gray-200 rounded-lg p-4">
@@ -341,7 +341,7 @@ export const Entities: React.FC = () => {
                   placeholder="e.g., spot, laptop, john"
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Display Name
@@ -357,7 +357,7 @@ export const Entities: React.FC = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Model Type
+                  Schema Type
                 </label>
                 <select
                   value={newEntity.modelId}
@@ -369,7 +369,7 @@ export const Entities: React.FC = () => {
                   }}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  <option value="">Select a model</option>
+                  <option value="">Select a schema</option>
                   {models.map((model) => (
                     <option key={model.id} value={model.id}>
                       {model.displayName}
@@ -418,7 +418,7 @@ export const Entities: React.FC = () => {
                 <div key={entity.id} className="border border-gray-200 rounded-lg p-4">
                   <h3 className="font-semibold text-lg">{entity.displayName}</h3>
                   <p className="text-gray-600 text-sm">Name: {entity.name}</p>
-                  <p className="text-gray-600 text-sm">Model: {entity.model.displayName}</p>
+                  <p className="text-gray-600 text-sm">Schema: {entity.model.displayName}</p>
                   <div className="mt-2">
                     <h4 className="font-medium text-sm text-gray-700">Data:</h4>
                     <div className="mt-1 space-y-1">
@@ -437,4 +437,4 @@ export const Entities: React.FC = () => {
       )}
     </div>
   );
-}; 
+};

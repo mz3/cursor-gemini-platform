@@ -1,7 +1,7 @@
 import { BotTool } from '../entities/BotTool.js';
 import { Bot } from '../entities/Bot.js';
 import { User } from '../entities/User.js';
-import { Model } from '../entities/Model.js';
+import { Schema } from '../entities/Schema.js';
 import { Application } from '../entities/Application.js';
 import { Prompt } from '../entities/Prompt.js';
 import { Feature } from '../entities/Feature.js';
@@ -13,7 +13,7 @@ import { Entity } from '../entities/Entity.js';
 
 const botRepository = AppDataSource.getRepository(Bot);
 const userRepository = AppDataSource.getRepository(User);
-const modelRepository = AppDataSource.getRepository(Model);
+const schemaRepository = AppDataSource.getRepository(Schema);
 const applicationRepository = AppDataSource.getRepository(Application);
 const promptRepository = AppDataSource.getRepository(Prompt);
 const featureRepository = AppDataSource.getRepository(Feature);
@@ -54,7 +54,7 @@ export class MCPToolService {
 
     // Execute the operation based on the entity type
     const [action, entity] = operation.split('_');
-    
+
     switch (action) {
       case 'list':
         return await this.listEntities(entity, config, params);
@@ -92,8 +92,8 @@ export class MCPToolService {
 
     let repository: any;
     switch (entityType) {
-      case 'models':
-        repository = modelRepository;
+      case 'schemas':
+        repository = schemaRepository;
         break;
       case 'applications':
         repository = applicationRepository;
@@ -141,8 +141,8 @@ export class MCPToolService {
 
     let repository: any;
     switch (entityType) {
-      case 'model':
-        repository = modelRepository;
+      case 'schema':
+        repository = schemaRepository;
         break;
       case 'application':
         repository = applicationRepository;
@@ -178,15 +178,15 @@ export class MCPToolService {
   }
 
   /**
-   * Create a new entity (model or entity instance)
+   * Create a new entity (schema or entity instance)
    */
   static async createEntity(params: any, userId: string): Promise<any> {
     console.log('🔧 MCP Tool Service: Creating entity with params:', params);
-    
-    const { operation, name, displayName, fields, modelId, data } = params;
-    
-    if (operation === 'create_model') {
-      return await this.createModel(params, userId);
+
+    const { operation, name, displayName, fields, schemaId, data } = params;
+
+    if (operation === 'create_schema') {
+      return await this.createSchema(params, userId);
     } else if (operation === 'create_entity') {
       return await this.createEntityInstance(params, userId);
     } else {
@@ -195,26 +195,26 @@ export class MCPToolService {
   }
 
   /**
-   * Create a new model
+   * Create a new schema
    */
-  private static async createModel(params: any, userId: string): Promise<any> {
+  private static async createSchema(params: any, userId: string): Promise<any> {
     const { name, displayName, fields } = params;
-    
+
     if (!name || !displayName) {
-      throw new Error('Model name and displayName are required');
+      throw new Error('Schema name and displayName are required');
     }
 
-    // Check if model already exists
-    const existingModel = await modelRepository.findOne({
+    // Check if schema already exists
+    const existingSchema = await schemaRepository.findOne({
       where: { name, userId }
     });
 
-    if (existingModel) {
-      throw new Error(`Model with name '${name}' already exists`);
+    if (existingSchema) {
+      throw new Error(`Schema with name '${name}' already exists`);
     }
 
-    // Create the model
-    const model = modelRepository.create({
+    // Create the schema
+    const schema = schemaRepository.create({
       name,
       displayName,
       schema: {
@@ -224,10 +224,10 @@ export class MCPToolService {
       isSystem: false
     });
 
-    const savedModel = await modelRepository.save(model);
-    console.log('✅ Model created successfully:', savedModel.id);
+    const savedSchema = await schemaRepository.save(schema);
+    console.log('✅ Schema created successfully:', savedSchema.id);
 
-    // Create a sample entity for the model if fields are provided
+    // Create a sample entity for the schema if fields are provided
     if (fields && fields.length > 0) {
       try {
         const sampleData: Record<string, any> = {};
@@ -252,7 +252,7 @@ export class MCPToolService {
           name: `${name}_sample`,
           displayName: `Sample ${displayName}`,
           data: sampleData,
-          modelId: savedModel.id,
+          schemaId: savedSchema.id,
           userId,
           isSystem: false
         });
@@ -261,13 +261,13 @@ export class MCPToolService {
         console.log('✅ Sample entity created successfully:', savedEntity.id);
       } catch (error) {
         console.warn('⚠️ Failed to create sample entity:', error);
-        // Don't fail the model creation if sample entity fails
+        // Don't fail the schema creation if sample entity fails
       }
     }
 
     return {
-      ...savedModel,
-      message: `Model '${displayName}' created successfully with ${fields?.length || 0} fields`
+      ...savedSchema,
+      message: `Schema '${displayName}' created successfully with ${fields?.length || 0} fields`
     };
   }
 
@@ -275,23 +275,23 @@ export class MCPToolService {
    * Create a new entity instance
    */
   private static async createEntityInstance(params: any, userId: string): Promise<any> {
-    const { name, displayName, data, modelId } = params;
-    
-    if (!name || !displayName || !data || !modelId) {
-      throw new Error('Entity name, displayName, data, and modelId are required');
+    const { name, displayName, data, schemaId } = params;
+
+    if (!name || !displayName || !data || !schemaId) {
+      throw new Error('Entity name, displayName, data, and schemaId are required');
     }
 
-    // Verify the model exists
-    const model = await modelRepository.findOne({
-      where: { id: modelId, userId }
+    // Verify the schema exists
+    const schema = await schemaRepository.findOne({
+      where: { id: schemaId, userId }
     });
 
-    if (!model) {
-      throw new Error(`Model with ID '${modelId}' not found`);
+    if (!schema) {
+      throw new Error(`Schema with ID '${schemaId}' not found`);
     }
 
-    // Validate data against model schema
-    const validation = this.validateEntityData(data, model.schema);
+    // Validate data against schema
+    const validation = this.validateEntityData(data, schema.schema);
     if (!validation.isValid) {
       throw new Error(`Entity validation failed: ${validation.errors.join(', ')}`);
     }
@@ -301,7 +301,7 @@ export class MCPToolService {
       name,
       displayName,
       data: validation.validatedData,
-      modelId,
+      schemaId,
       userId,
       isSystem: false
     });
@@ -316,7 +316,7 @@ export class MCPToolService {
   }
 
   /**
-   * Validate entity data against model schema
+   * Validate entity data against schema
    */
   private static validateEntityData(data: Record<string, any>, schema: any): { isValid: boolean; errors: string[]; validatedData: Record<string, any> } {
     const errors: string[] = [];
@@ -421,8 +421,8 @@ export class MCPToolService {
 
     let repository: any;
     switch (entityType) {
-      case 'model':
-        repository = modelRepository;
+      case 'schema':
+        repository = schemaRepository;
         break;
       case 'application':
         repository = applicationRepository;
@@ -473,8 +473,8 @@ export class MCPToolService {
 
     let repository: any;
     switch (entityType) {
-      case 'model':
-        repository = modelRepository;
+      case 'schema':
+        repository = schemaRepository;
         break;
       case 'application':
         repository = applicationRepository;
@@ -636,8 +636,8 @@ export class MCPToolService {
       throw new Error('User ID is required');
     }
 
-    const [models, applications, bots, prompts, features, workflows] = await Promise.all([
-      modelRepository.find({ where: { userId } }),
+    const [schemas, applications, bots, prompts, features, workflows] = await Promise.all([
+      schemaRepository.find({ where: { userId } }),
       applicationRepository.find({ where: { userId } }),
       botRepository.find({ where: { userId } }),
       promptRepository.find({ where: { userId } }),
@@ -648,7 +648,7 @@ export class MCPToolService {
     return {
       success: true,
       userData: {
-        models: models.length,
+        schemas: schemas.length,
         applications: applications.length,
         bots: bots.length,
         prompts: prompts.length,
@@ -656,7 +656,7 @@ export class MCPToolService {
         workflows: workflows.length
       },
       details: {
-        models,
+        schemas,
         applications,
         bots,
         prompts,
@@ -681,8 +681,8 @@ export class MCPToolService {
 
     if (!entityType || entityType === 'all') {
       // Search across all entity types
-      const [models, applications, bots, prompts, features, workflows] = await Promise.all([
-        modelRepository.find({ where: { userId: searchUserId } }),
+      const [schemas, applications, bots, prompts, features, workflows] = await Promise.all([
+        schemaRepository.find({ where: { userId: searchUserId } }),
         applicationRepository.find({ where: { userId: searchUserId } }),
         botRepository.find({ where: { userId: searchUserId } }),
         promptRepository.find({ where: { userId: searchUserId } }),
@@ -691,7 +691,7 @@ export class MCPToolService {
       ]);
 
       results = [
-        ...models.filter(m => m.name.toLowerCase().includes(query.toLowerCase()) || m.displayName?.toLowerCase().includes(query.toLowerCase())),
+        ...schemas.filter(s => s.name.toLowerCase().includes(query.toLowerCase()) || s.displayName?.toLowerCase().includes(query.toLowerCase())),
         ...applications.filter(a => a.name.toLowerCase().includes(query.toLowerCase()) || a.displayName?.toLowerCase().includes(query.toLowerCase())),
         ...bots.filter(b => b.name.toLowerCase().includes(query.toLowerCase()) || b.displayName?.toLowerCase().includes(query.toLowerCase())),
         ...prompts.filter(p => p.name.toLowerCase().includes(query.toLowerCase()) || p.description?.toLowerCase().includes(query.toLowerCase())),
@@ -702,8 +702,8 @@ export class MCPToolService {
       // Search specific entity type
       let repository: any;
       switch (entityType) {
-        case 'models':
-          repository = modelRepository;
+        case 'schemas':
+          repository = schemaRepository;
           break;
         case 'applications':
           repository = applicationRepository;
@@ -736,4 +736,4 @@ export class MCPToolService {
       total: results.length
     };
   }
-} 
+}

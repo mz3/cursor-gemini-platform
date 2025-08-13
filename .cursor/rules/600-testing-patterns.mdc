@@ -2,3 +2,10 @@
 description: running debugging and writing tests
 alwaysApply: false
 ---
+
+- All test commands (unit, integration, and E2E) are defined in the respective app's `package.json` files (`api`, `webapp`, `bot`).
+- To ensure tests run in the correct containerized environment, always execute test commands using `docker exec` targeting the appropriate service container (e.g., `docker exec -it api npm run test:unit`).
+- This approach guarantees that tests use the same dependencies, environment variables, and filesystem as the running service, preventing "works on my machine" issues.
+- For debugging, you can add `--inspect` or `--inspect-brk` flags to Node.js test commands and attach a debugger to the running container.
+- For E2E tests (e.g., Cypress in `webapp`), run them inside the container to ensure network access to other services (API, database, etc.) is consistent with production-like conditions.
+- Always check test logs from within the container for accurate output and troubleshooting.

@@ -1,15 +1,15 @@
 import request from 'supertest';
 import { AppDataSource } from '../config/database.js';
-import { Model } from '../entities/Model.js';
+import { Schema } from '../entities/Schema.js';
 import { Relationship } from '../entities/Relationship.js';
 import { User } from '../entities/User.js';
 
-const API_BASE_URL = process.env.API_URL || 'http://localhost:4000';
+const API_BASE_URL = process.env.API_URL || 'http://localhost:4001';
 
-describe('Edit Model API', () => {
+describe('Edit Schema API', () => {
   let token: string;
   let userId: string;
-  let testModelId: string;
+  let testSchemaId: string;
 
   beforeAll(async () => {
     // Login to get token
@@ -23,10 +23,10 @@ describe('Edit Model API', () => {
     token = loginResponse.body.token;
     userId = loginResponse.body.user.id;
 
-    // Create a test model to edit
-    const modelData = {
-      name: 'TestModelForEdit',
-      displayName: 'Test Model For Edit',
+    // Create a test schema to edit
+    const schemaData = {
+      name: 'TestSchemaForEdit',
+      displayName: 'Test Schema For Edit',
       schema: {
         fields: [
           { name: 'originalField', type: 'string', required: true, displayName: 'Original Field' }
@@ -36,26 +36,26 @@ describe('Edit Model API', () => {
     };
 
     const createResponse = await request(API_BASE_URL)
-      .post('/api/models')
+      .post('/api/schemas')
       .set('Authorization', `Bearer ${token}`)
-      .send(modelData);
+      .send(schemaData);
 
-    testModelId = createResponse.body.id;
+    testSchemaId = createResponse.body.id;
   });
 
   afterAll(async () => {
-    // Clean up test model
-    if (testModelId) {
+    // Clean up test schema
+    if (testSchemaId) {
       await request(API_BASE_URL)
-        .delete(`/api/models/${testModelId}`)
+        .delete(`/api/schemas/${testSchemaId}`)
         .set('Authorization', `Bearer ${token}`);
     }
   });
 
-  it('should update model basic information', async () => {
+  it('should update schema basic information', async () => {
     const updateData = {
-      displayName: 'Updated Test Model',
-      description: 'Updated description for the test model',
+      displayName: 'Updated Test Schema',
+      description: 'Updated description for the test schema',
       schema: {
         fields: [
           { name: 'originalField', type: 'string', required: true, displayName: 'Updated Field' },
@@ -65,23 +65,23 @@ describe('Edit Model API', () => {
     };
 
     const response = await request(API_BASE_URL)
-      .put(`/api/models/${testModelId}`)
+      .put(`/api/schemas/${testSchemaId}`)
       .set('Authorization', `Bearer ${token}`)
       .send(updateData);
 
     expect(response.status).toBe(200);
-    expect(response.body.displayName).toBe('Updated Test Model');
-    expect(response.body.description).toBe('Updated description for the test model');
+    expect(response.body.displayName).toBe('Updated Test Schema');
+    expect(response.body.description).toBe('Updated description for the test schema');
     expect(response.body.schema.fields).toHaveLength(2);
     expect(response.body.schema.fields[0].displayName).toBe('Updated Field');
     expect(response.body.schema.fields[1].name).toBe('newField');
   });
 
-  it('should handle relationships when updating model', async () => {
-    // First, create a target model for the relationship
-    const targetModelData = {
-      name: 'TargetModel',
-      displayName: 'Target Model',
+  it('should handle relationships when updating schema', async () => {
+    // First, create a target schema for the relationship
+    const targetSchemaData = {
+      name: 'TargetSchema',
+      displayName: 'Target Schema',
       schema: {
         fields: [
           { name: 'name', type: 'string', required: true, displayName: 'Name' }
@@ -91,19 +91,19 @@ describe('Edit Model API', () => {
     };
 
     const targetResponse = await request(API_BASE_URL)
-      .post('/api/models')
+      .post('/api/schemas')
       .set('Authorization', `Bearer ${token}`)
-      .send(targetModelData);
+      .send(targetSchemaData);
 
-    const targetModelId = targetResponse.body.id;
+    const targetSchemaId = targetResponse.body.id;
 
     // Create a relationship
     const relationshipData = {
       name: 'testRelationship',
       displayName: 'Test Relationship',
       type: 'many-to-one',
-      sourceModelId: testModelId,
-      targetModelId: targetModelId,
+      sourceSchemaId: testSchemaId,
+      targetSchemaId: targetSchemaId,
       sourceField: 'targetId',
       targetField: 'id',
       cascade: false,
@@ -122,32 +122,32 @@ describe('Edit Model API', () => {
 
     // Verify the relationship was created
     const relationshipsResponse = await request(API_BASE_URL)
-      .get(`/api/models/${testModelId}/relationships`)
+      .get(`/api/schemas/${testSchemaId}/relationships`)
       .set('Authorization', `Bearer ${token}`);
 
     expect(relationshipsResponse.status).toBe(200);
     expect(relationshipsResponse.body).toHaveLength(1);
     expect(relationshipsResponse.body[0].name).toBe('testRelationship');
 
-    // Clean up target model
+    // Clean up target schema
     await request(API_BASE_URL)
-      .delete(`/api/models/${targetModelId}`)
+      .delete(`/api/schemas/${targetSchemaId}`)
       .set('Authorization', `Bearer ${token}`);
   });
 
-  it('should return 404 for non-existent model', async () => {
+  it('should return 404 for non-existent schema', async () => {
     const nonExistentId = '00000000-0000-0000-0000-000000000000';
     const updateData = {
-      displayName: 'Updated Model'
+      displayName: 'Updated Schema'
     };
 
     const response = await request(API_BASE_URL)
-      .put(`/api/models/${nonExistentId}`)
+      .put(`/api/schemas/${nonExistentId}`)
       .set('Authorization', `Bearer ${token}`)
       .send(updateData);
 
     expect(response.status).toBe(404);
-    expect(response.body.error).toBe('Model not found');
+    expect(response.body.error).toBe('Schema not found');
   });
 
   it('should validate required fields when creating relationships', async () => {

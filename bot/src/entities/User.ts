@@ -2,7 +2,7 @@ import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateCol
 import { Application } from './Application.js';
 import { Prompt } from './Prompt.js';
 import { Bot } from './Bot.js';
-import { Model } from './Model.js';
+import { Schema } from './Schema.js';
 import { Feature } from './Feature.js';
 import { Entity as PlatformEntity } from './Entity.js';
 import { BotInstance } from './BotInstance.js';
@@ -46,8 +46,8 @@ export class User {
   @OneToMany(() => Bot, (bot: Bot) => bot.user)
   bots!: Relation<Bot>[];
 
-  @OneToMany(() => Model, (model: Model) => model.user)
-  models!: Relation<Model>[];
+  @OneToMany(() => Schema, (schema: Schema) => schema.user)
+  schemas!: Relation<Schema>[];
 
   @OneToMany(() => Feature, (feature: Feature) => feature.user)
   features!: Relation<Feature>[];

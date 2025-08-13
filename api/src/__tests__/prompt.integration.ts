@@ -1,6 +1,6 @@
 import request from 'supertest';
 import { AppDataSource } from '../config/database.js';
-import { Model } from '../entities/Model.js';
+import { Schema } from '../entities/Schema.js';
 import { Prompt } from '../entities/Prompt.js';
 import { PromptVersion } from '../entities/PromptVersion.js';
 

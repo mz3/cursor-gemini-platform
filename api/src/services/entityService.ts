@@ -1,17 +1,17 @@
 import { AppDataSource } from '../config/database.js';
 import { Entity } from '../entities/Entity.js';
-import { Model } from '../entities/Model.js';
+import { Schema } from '../entities/Schema.js';
 import { User } from '../entities/User.js';
 
 const entityRepository = AppDataSource.getRepository(Entity);
-const modelRepository = AppDataSource.getRepository(Model);
+const schemaRepository = AppDataSource.getRepository(Schema);
 const userRepository = AppDataSource.getRepository(User);
 
 export interface CreateEntityRequest {
   name: string;
   displayName: string;
   data: Record<string, any>;
-  modelId: string;
+  schemaId: string;
   userId: string;
 }
 
@@ -26,13 +26,13 @@ export class EntityService {
    * Create a new entity instance
    */
   static async createEntity(request: CreateEntityRequest): Promise<Entity> {
-    // Validate the model exists
-    const model = await modelRepository.findOne({
-      where: { id: request.modelId }
+    // Validate the schema exists
+    const schema = await schemaRepository.findOne({
+      where: { id: request.schemaId }
     });
 
-    if (!model) {
-      throw new Error('Model not found');
+    if (!schema) {
+      throw new Error('Schema not found');
     }
 
     // Validate the user exists
@@ -44,8 +44,8 @@ export class EntityService {
       throw new Error('User not found');
     }
 
-    // Validate the entity data against the model schema
-    const validation = this.validateEntityData(request.data, model.schema);
+    // Validate the entity data against the schema
+    const validation = this.validateEntityData(request.data, schema.schema);
     if (!validation.isValid) {
       throw new Error(`Entity validation failed: ${validation.errors.join(', ')}`);
     }
@@ -55,7 +55,7 @@ export class EntityService {
       name: request.name,
       displayName: request.displayName,
       data: validation.validatedData,
-      modelId: request.modelId,
+      schemaId: request.schemaId,
       userId: request.userId,
       isSystem: false
     });
@@ -69,18 +69,18 @@ export class EntityService {
   static async getEntitiesByUser(userId: string): Promise<Entity[]> {
     return await entityRepository.find({
       where: { userId },
-      relations: ['model'],
+      relations: ['schema'],
       order: { createdAt: 'DESC' }
     });
   }
 
   /**
-   * Get all entities for a specific model
+   * Get all entities for a specific schema
    */
-  static async getEntitiesByModel(modelId: string, userId: string): Promise<Entity[]> {
+  static async getEntitiesBySchema(schemaId: string, userId: string): Promise<Entity[]> {
     return await entityRepository.find({
-      where: { modelId, userId },
-      relations: ['model'],
+      where: { schemaId, userId },
+      relations: ['schema'],
       order: { createdAt: 'DESC' }
     });
   }
@@ -91,7 +91,7 @@ export class EntityService {
   static async getEntityById(entityId: string, userId: string): Promise<Entity | null> {
     return await entityRepository.findOne({
       where: { id: entityId, userId },
-      relations: ['model']
+      relations: ['schema']
     });
   }
 
@@ -104,8 +104,8 @@ export class EntityService {
       throw new Error('Entity not found');
     }
 
-    // Validate the new data against the model schema
-    const validation = this.validateEntityData(data, entity.model.schema);
+    // Validate the new data against the schema
+    const validation = this.validateEntityData(data, entity.schema.schema);
     if (!validation.isValid) {
       throw new Error(`Entity validation failed: ${validation.errors.join(', ')}`);
     }
@@ -129,7 +129,7 @@ export class EntityService {
   }
 
   /**
-   * Validate entity data against model schema
+   * Validate entity data against schema
    */
   static validateEntityData(data: Record<string, any>, schema: any): EntityValidationResult {
     const errors: string[] = [];
@@ -220,4 +220,4 @@ export class EntityService {
 
     return null;
   }
-} 
+}
