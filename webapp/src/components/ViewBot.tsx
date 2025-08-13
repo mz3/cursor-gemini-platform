@@ -213,7 +213,7 @@ const ViewBot: React.FC = () => {
           </div>
         </div>
       ) : location.pathname === `/bots/${bot.id}/chat` ? (
-        <div className="h-[600px]">
+        <div className="h-[calc(100vh-14rem)]">
           {user ? (
             <BotChat
               botId={bot.id}
