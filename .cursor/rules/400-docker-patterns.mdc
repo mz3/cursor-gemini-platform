@@ -18,6 +18,8 @@ The platform uses a microservices architecture with separate containers for:
 
 ### Development Environment
 
+When running local containers, start them in the background (i.e. `docker compose up -d`) and then use `docker logs` to make sure they start correctly. Note that  using `-f` with `docker logs` will keep the terminal open indefinitely.
+
 ### Database Migration Commands
 ```bash
 # Run migrations in container
