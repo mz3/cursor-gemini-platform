@@ -193,7 +193,7 @@ describe('Bot Execution API Integration Tests', () => {
       expect(typeof response.body.botResponse.tokensUsed).toBe('number');
       // Note: tokensUsed is mocked to prevent actual Gemini API calls
       expect(response.body.botResponse.tokensUsed).toBeGreaterThanOrEqual(0);
-      expect(response.body.botResponse.content).toBe('Processing your message...');
+      expect(response.body.botResponse.content).toBe('Hello! I am a mock AI assistant for testing purposes. How can I help you today?');
     });
 
     it('should return 400 when userId is missing', async () => {
@@ -271,7 +271,7 @@ describe('Bot Execution API Integration Tests', () => {
       expect(chatResponse.body.botResponse.content.length).toBeGreaterThan(0);
       // Note: tokensUsed is mocked to prevent actual Gemini API calls
       expect(chatResponse.body.botResponse.tokensUsed).toBeGreaterThanOrEqual(0);
-      expect(chatResponse.body.botResponse.content).toBe('Processing your message...');
+      expect(chatResponse.body.botResponse.content).toBe('Hello! I am a mock AI assistant for testing purposes. How can I help you today?');
 
       // Step 3: Get conversation history
       const historyResponse = await request(API_BASE_URL)
@@ -313,7 +313,23 @@ describe('Bot Execution API Integration Tests', () => {
         'Tell me a joke'
       ];
 
-      for (const message of messages) {
+      // Test each message with its expected mock response
+      const messageResponses = [
+        {
+          message: 'What is the weather like?',
+          expectedResponse: 'I am a mock assistant, so I cannot provide real weather information. This is just a test response.'
+        },
+        {
+          message: 'Can you help me with coding?',
+          expectedResponse: 'This is a mock response from the GeminiService test. I am a helpful AI assistant and I understand your message.'
+        },
+        {
+          message: 'Tell me a joke',
+          expectedResponse: 'Here is a mock joke for testing: Why did the AI assistant go to the doctor? Because it had too many bugs! 😄'
+        }
+      ];
+
+      for (const { message, expectedResponse } of messageResponses) {
         const response = await request(API_BASE_URL)
           .post(`/api/bot-execution/${testBotId}/chat`)
           .send({ userId: testUserId, message })
@@ -324,7 +340,7 @@ describe('Bot Execution API Integration Tests', () => {
         expect(response.body.botResponse.content.length).toBeGreaterThan(0);
         // Note: tokensUsed is mocked to prevent actual Gemini API calls
         expect(response.body.botResponse.tokensUsed).toBeGreaterThanOrEqual(0);
-        expect(response.body.botResponse.content).toBe('Processing your message...');
+        expect(response.body.botResponse.content).toBe(expectedResponse);
       }
 
       // Stop bot
