@@ -321,7 +321,7 @@ describe('Bot Execution API Integration Tests', () => {
         },
         {
           message: 'Can you help me with coding?',
-          expectedResponse: 'This is a mock response from the GeminiService test. I am a helpful AI assistant and I understand your message.'
+          expectedResponse: 'I am here to help! This is a mock response for integration testing.'
         },
         {
           message: 'Tell me a joke',
