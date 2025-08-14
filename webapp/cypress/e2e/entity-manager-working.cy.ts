@@ -1,19 +1,28 @@
 describe('Entity Manager Working Test', () => {
   beforeEach(() => {
     cy.visit('/');
+    
+    // Wait for login form to be visible
+    cy.get('input[name="email"]', { timeout: 10000 }).should('be.visible');
+    cy.get('input[name="password"]').should('be.visible');
+    
+    // Fill and submit login form
     cy.get('input[name="email"]').type('admin@platform.com');
     cy.get('input[name="password"]').type('admin123');
     cy.get('button[type="submit"]').click();
+    
+    // Wait for login to complete and dashboard to load
     cy.url().should('include', '/');
+    cy.contains('Dashboard', { timeout: 10000 }).should('be.visible');
   });
 
   it('should load Entity Manager and create a Schema', () => {
-    // Navigate to Entities
-    cy.contains('Entities').click();
+    // Wait for navigation to be visible and click Entities
+    cy.contains('Entities', { timeout: 10000 }).should('be.visible').click();
     cy.url().should('include', '/entity-manager');
 
     // Wait for the page to load (should be on Schemas tab by default)
-    cy.contains('Create New Schema').should('be.visible');
+    cy.contains('Create New Schema', { timeout: 10000 }).should('be.visible');
 
     // Create a simple Schema
     cy.get('input[placeholder*="Dog, Product, User"]').type('TestSchema');
