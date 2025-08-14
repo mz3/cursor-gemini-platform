@@ -1,16 +1,16 @@
 describe('Entity Manager Simple E2E Test', () => {
   beforeEach(() => {
     cy.visit('/');
-    
+
     // Wait for login form to be visible
     cy.get('input[name="email"]', { timeout: 10000 }).should('be.visible');
     cy.get('input[name="password"]').should('be.visible');
-    
+
     // Fill and submit login form
     cy.get('input[name="email"]').type('admin@platform.com');
     cy.get('input[name="password"]').type('admin123');
     cy.get('button[type="submit"]').click();
-    
+
     // Wait for login to complete and dashboard to load
     cy.url().should('include', '/');
     cy.contains('Dashboard', { timeout: 10000 }).should('be.visible');
