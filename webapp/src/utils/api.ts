@@ -3,8 +3,10 @@ import { handleError, ApiError } from './errorHandler';
 
 // When running in Docker, use relative URLs to leverage Vite proxy
 // When running locally, use the full URL
+// In CI environment, use direct API URL since nginx proxy might not be configured
 const isDocker = import.meta.env.VITE_DOCKER === 'true';
-const API_BASE_URL = isDocker ? '/api' : (import.meta.env.VITE_API_URL || 'http://localhost:4001');
+const isCI = import.meta.env.VITE_CI === 'true';
+const API_BASE_URL = isCI ? 'http://localhost:4001/api' : (isDocker ? '/api' : (import.meta.env.VITE_API_URL || 'http://localhost:4001'));
 
 const api = axios.create({
   baseURL: API_BASE_URL,

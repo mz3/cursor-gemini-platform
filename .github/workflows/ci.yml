@@ -139,6 +139,7 @@ jobs:
         working-directory: ./webapp
         env:
           NODE_ENV: test
+          VITE_CI: 'true'
 
       - name: Start API server
         run: |
@@ -273,6 +274,7 @@ jobs:
           CYPRESS_apiUrl: http://localhost:4001
           CYPRESS_testEmail: admin@platform.com
           CYPRESS_testPassword: admin123
+          VITE_CI: 'true'
 
       - name: Upload E2E screenshots (on failure)
         uses: actions/upload-artifact@v4
