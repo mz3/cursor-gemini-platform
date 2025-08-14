@@ -1,3 +1,8 @@
+---
+globs: webapp/src/**/*.ts,webapp/src/**/*.tsx
+alwaysApply: false
+---
+
 # Frontend Development Patterns
 
 ## Component Patterns
@@ -694,7 +699,3 @@ const App: React.FC = () => {
 
 export default App;
 ```
-description:
-globs:
-alwaysApply: false
----

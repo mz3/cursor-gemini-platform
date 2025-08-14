@@ -1,7 +1,6 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, OneToMany } from 'typeorm';
-import { User } from './User';
-import { Model } from './Model';
-import { Component } from './Component';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, OneToMany, Relation } from 'typeorm';
+import { User } from './User.js';
+import { Component } from './Component.js';
 
 @Entity('applications')
 export class Application {
@@ -20,14 +19,21 @@ export class Application {
   @Column('jsonb')
   config!: Record<string, any>;
 
-  @ManyToOne(() => User, (user: User) => user.id)
-  user!: User;
+  @Column({
+    type: 'enum',
+    enum: ['draft', 'building', 'built', 'failed', 'deployed'],
+    default: 'draft'
+  })
+  status!: string;
+
+  @ManyToOne(() => User, { onDelete: 'CASCADE' })
+  user!: Relation<User>;
 
   @Column()
   userId!: string;
 
   @OneToMany(() => Component, (component: Component) => component.application)
-  components!: Component[];
+  components!: Relation<Component>[];
 
   @CreateDateColumn()
   createdAt!: Date;

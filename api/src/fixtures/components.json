@@ -3,7 +3,7 @@
     "name": "meta-dashboard",
     "type": "dashboard",
     "config": {
-      "widgets": ["models", "applications", "users", "builds"],
+      "widgets": ["schemas", "applications", "users", "builds"],
       "layout": "grid"
     },
     "props": {
@@ -14,14 +14,14 @@
     "applicationId": "api-system-id"
   },
   {
-    "name": "model-form",
+    "name": "schema-form",
     "type": "form",
     "config": {
       "fields": ["name", "displayName", "description", "schema"],
       "validation": true
     },
     "props": {
-      "submitAction": "create-model",
+      "submitAction": "create-schema",
       "cancelAction": "navigate-back"
     },
     "isActive": true,
@@ -59,7 +59,7 @@
     "name": "navigation-sidebar",
     "type": "navigation",
     "config": {
-      "items": ["dashboard", "models", "prompts", "workflows", "applications"],
+      "items": ["dashboard", "schemas", "prompts", "workflows", "applications"],
       "collapsible": true
     },
     "props": {

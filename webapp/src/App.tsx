@@ -1,13 +1,13 @@
 /// <reference types="vite/client" />
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, Link, useLocation } from 'react-router-dom';
-import { Home, Database, AppWindow, Settings as SettingsIcon, Plus, LogOut, User, MessageSquare, Bot, Zap } from 'lucide-react';
+import { Home, Database, AppWindow, Settings as SettingsIcon, Plus, LogOut, User, MessageSquare, Bot, Zap, Wrench, Layers } from 'lucide-react';
 import Login from './components/Login';
 import Dashboard from './components/Dashboard';
-import Models from './components/Models';
-import CreateModel from './components/CreateModel';
-import EditModel from './components/EditModel';
-import ViewModel from './components/ViewModel';
+import Schemas from './components/Schemas';
+import CreateSchema from './components/CreateSchema';
+import EditSchema from './components/EditSchema';
+import ViewSchema from './components/ViewSchema';
 import Applications from './components/Applications';
 import Prompts from './components/Prompts';
 import CreatePrompt from './components/CreatePrompt';
@@ -25,6 +25,8 @@ import CreateFeature from './components/CreateFeature';
 import EditFeature from './components/EditFeature';
 import ViewFeature from './components/ViewFeature';
 import Settings from './components/Settings';
+import Tools from './components/Tools';
+import { Entities } from './components/Entities';
 import ChatSidebar from './components/ChatSidebar';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { cn } from './utils/cn';
@@ -60,11 +62,13 @@ const AppContent: React.FC = () => {
 
   const navigation = [
     { name: 'Dashboard', href: '/', icon: Home },
-    { name: 'Models', href: '/models', icon: Database },
+    { name: 'Schemas', href: '/schemas', icon: Database },
     { name: 'Applications', href: '/applications', icon: AppWindow },
     { name: 'Features', href: '/features', icon: Zap },
     { name: 'Prompts', href: '/prompts', icon: MessageSquare },
     { name: 'Bots', href: '/bots', icon: Bot },
+    { name: 'Entities', href: '/entity-manager', icon: Layers },
+    { name: 'Tools', href: '/tools', icon: Wrench },
     { name: 'Settings', href: '/settings', icon: SettingsIcon },
   ];
 
@@ -149,10 +153,10 @@ const AppContent: React.FC = () => {
         <div className="p-4 sm:p-6 lg:p-8">
           <Routes>
             <Route path="/" element={<Dashboard />} />
-            <Route path="/models" element={<Models />} />
-            <Route path="/models/create" element={<CreateModel />} />
-            <Route path="/models/:id" element={<ViewModel />} />
-            <Route path="/models/:id/edit" element={<EditModel />} />
+            <Route path="/schemas" element={<Schemas />} />
+            <Route path="/schemas/create" element={<CreateSchema />} />
+            <Route path="/schemas/:id" element={<ViewSchema />} />
+            <Route path="/schemas/:id/edit" element={<EditSchema />} />
             <Route path="/applications" element={<Applications />} />
             <Route path="/applications/create" element={<CreateApplication />} />
             <Route path="/applications/:id" element={<ViewApplication />} />
@@ -168,8 +172,13 @@ const AppContent: React.FC = () => {
             <Route path="/bots" element={<Bots />} />
             <Route path="/bots/create" element={<CreateBot />} />
             <Route path="/bots/:id" element={<ViewBot />} />
+            <Route path="/bots/:id/details" element={<ViewBot />} />
+            <Route path="/bots/:id/chat" element={<ViewBot />} />
+            <Route path="/bots/:id/tools" element={<ViewBot />} />
             <Route path="/bots/:id/edit" element={<EditBot />} />
+            <Route path="/tools" element={<Tools />} />
             <Route path="/settings" element={<Settings />} />
+            <Route path="/entity-manager" element={<Entities />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </div>

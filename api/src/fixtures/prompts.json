@@ -1,12 +1,12 @@
 [
   {
     "name": "code-generation",
-    "description": "Generate application code based on models",
+    "description": "Generate application code based on schemas",
     "userId": "system"
   },
   {
-    "name": "model-creation",
-    "description": "Create data models from natural language",
+    "name": "schema-creation",
+    "description": "Create data schemas from natural language",
     "userId": "system"
   },
   {
@@ -22,6 +22,21 @@
   {
     "name": "api-documentation",
     "description": "Generate API documentation from models",
+    "userId": "system"
+  },
+  {
+    "name": "platform-support",
+    "description": "Customer support and platform assistance",
+    "userId": "system"
+  },
+  {
+    "name": "code-builder",
+    "description": "Docker container building and deployment",
+    "userId": "system"
+  },
+  {
+    "name": "sysadmin",
+    "description": "System administration and server management",
     "userId": "system"
   }
 ]

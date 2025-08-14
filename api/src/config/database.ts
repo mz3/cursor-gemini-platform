@@ -2,7 +2,7 @@ import { DataSource } from 'typeorm';
 import { fileURLToPath } from 'url';
 import path from 'path';
 import { User } from '../entities/User.js';
-import { Model } from '../entities/Model.js';
+import { Schema } from '../entities/Schema.js';
 import { Application } from '../entities/Application.js';
 import { Component } from '../entities/Component.js';
 import { Template } from '../entities/Template.js';
@@ -15,12 +15,16 @@ import { PromptVersion } from '../entities/PromptVersion.js';
 import { UserSettings } from '../entities/UserSettings.js';
 import { Bot } from '../entities/Bot.js';
 import { BotInstance } from '../entities/BotInstance.js';
+import { BotTool } from '../entities/BotTool.js';
 import { ChatMessage } from '../entities/ChatMessage.js';
 import { Feature } from '../entities/Feature.js';
+import { Entity } from '../entities/Entity.js';
 
 // Helper to determine if running from dist (production build), ESM compatible
-const filename = fileURLToPath(import.meta.url);
-const isDist = filename.includes('/dist/') || filename.includes('\\dist\\');
+// Use a different approach for test environment to avoid import.meta issues
+const isDist = process.env.NODE_ENV === 'production' ||
+               (typeof __filename !== 'undefined' && __filename.includes('/dist/')) ||
+               (typeof __filename !== 'undefined' && __filename.includes('\\dist\\'));
 
 export const AppDataSource = new DataSource({
   type: 'postgres',
@@ -34,7 +38,7 @@ export const AppDataSource = new DataSource({
   entities: [
     User,
     UserSettings,
-    Model,
+    Schema,
     Application,
     Workflow,
     WorkflowAction,
@@ -46,8 +50,10 @@ export const AppDataSource = new DataSource({
     PromptVersion,
     Bot,
     BotInstance,
+    BotTool,
     ChatMessage,
-    Feature
+    Feature,
+    Entity
   ],
   migrations: [
     isDist ? 'dist/migrations/*.js' : 'src/migrations/*.ts'

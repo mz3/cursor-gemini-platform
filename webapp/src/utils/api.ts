@@ -1,15 +1,21 @@
 import axios from 'axios';
+import { handleError, ApiError } from './errorHandler';
 
-// Configure axios with the correct base URL for the environment
+// When running in Docker, use relative URLs to leverage Vite proxy
+// When running locally, use the full URL
+// In CI environment, use direct API URL since nginx proxy might not be configured
+const isDocker = import.meta.env.VITE_DOCKER === 'true';
+const isCI = import.meta.env.VITE_CI === 'true';
+const API_BASE_URL = isCI ? 'http://localhost:4001/api' : (isDocker ? '/api' : (import.meta.env.VITE_API_URL || 'http://localhost:4001'));
+
 const api = axios.create({
-  baseURL: process.env.NODE_ENV === 'test'
-    ? 'http://localhost:4000/api'
-    : import.meta.env.PROD
-    ? 'https://cursor-gemini-api.fly.dev/api'
-    : '/api'
+  baseURL: API_BASE_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
 });
 
-// Add request interceptor to include auth token
+// Request interceptor for authentication
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
   if (token) {
@@ -22,34 +28,19 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    // Log error details for debugging
-    if (error.response) {
-      console.error('API Error:', {
-        url: error.config?.url,
-        status: error.response.status,
-        data: error.response.data
-      });
-      // Return a user-friendly error object
-      return Promise.reject({
-        message: error.response.data?.message || 'An error occurred while communicating with the server.',
-        status: error.response.status,
-        data: error.response.data
-      });
-    } else if (error.request) {
-      console.error('API No Response:', error.request);
-      return Promise.reject({
-        message: 'No response received from the server.',
-        status: null,
-        data: null
-      });
-    } else {
-      console.error('API Unknown Error:', error.message);
-      return Promise.reject({
-        message: error.message || 'Unknown error occurred.',
-        status: null,
-        data: null
-      });
-    }
+    // Use the centralized error handling
+    const processedError = handleError(error, 'API Request');
+
+    // Log additional details for debugging
+    console.error('API Error Details:', {
+      url: error.config?.url,
+      method: error.config?.method,
+      status: processedError.status,
+      code: processedError.code,
+      timestamp: new Date().toISOString()
+    });
+
+    return Promise.reject(processedError);
   }
 );
 

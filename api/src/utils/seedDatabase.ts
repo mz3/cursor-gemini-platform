@@ -1,6 +1,6 @@
 import { AppDataSource } from '../config/database.js';
 import { User } from '../entities/User.js';
-import { Model } from '../entities/Model.js';
+import { Schema } from '../entities/Schema.js';
 import { Workflow } from '../entities/Workflow.js';
 import { WorkflowAction } from '../entities/WorkflowAction.js';
 import { CodeTemplate } from '../entities/CodeTemplate.js';
@@ -9,6 +9,8 @@ import { Feature } from '../entities/Feature.js';
 import { Component } from '../entities/Component.js';
 import { Prompt } from '../entities/Prompt.js';
 import { Bot } from '../entities/Bot.js';
+import { BotTool } from '../entities/BotTool.js';
+import { PromptVersion } from '../entities/PromptVersion.js';
 import { Template } from '../entities/Template.js';
 import { Relationship } from '../entities/Relationship.js';
 import { UserSettings } from '../entities/UserSettings.js';
@@ -27,7 +29,7 @@ export const seedDatabase = async (): Promise<void> => {
 
     // Initialize repositories
     const userRepository = AppDataSource.getRepository(User);
-    const modelRepository = AppDataSource.getRepository(Model);
+    const schemaRepository = AppDataSource.getRepository(Schema);
     const workflowRepository = AppDataSource.getRepository(Workflow);
     const workflowActionRepository = AppDataSource.getRepository(WorkflowAction);
     const codeTemplateRepository = AppDataSource.getRepository(CodeTemplate);
@@ -36,6 +38,8 @@ export const seedDatabase = async (): Promise<void> => {
     const componentRepository = AppDataSource.getRepository(Component);
     const promptRepository = AppDataSource.getRepository(Prompt);
     const botRepository = AppDataSource.getRepository(Bot);
+    const botToolRepository = AppDataSource.getRepository(BotTool);
+    const promptVersionRepository = AppDataSource.getRepository(PromptVersion);
     const templateRepository = AppDataSource.getRepository(Template);
     const relationshipRepository = AppDataSource.getRepository(Relationship);
     const userSettingsRepository = AppDataSource.getRepository(UserSettings);
@@ -50,13 +54,13 @@ export const seedDatabase = async (): Promise<void> => {
     const existingUsers = await userRepository.find();
     const existingFeatures = await featureRepository.find();
     const existingApplications = await applicationRepository.find();
-    const existingModels = await modelRepository.find();
+    const existingSchemas = await schemaRepository.find();
     const existingPrompts = await promptRepository.find();
     const existingBots = await botRepository.find();
     const existingWorkflows = await workflowRepository.find();
 
     if (existingUsers.length > 0 || existingFeatures.length > 0 || existingApplications.length > 0 ||
-        existingModels.length > 0 || existingPrompts.length > 0 || existingBots.length > 0 || existingWorkflows.length > 0) {
+        existingSchemas.length > 0 || existingPrompts.length > 0 || existingBots.length > 0 || existingWorkflows.length > 0) {
       console.log('Database already seeded with data, skipping...');
       clearTimeout(timeout);
       return;
@@ -76,31 +80,28 @@ export const seedDatabase = async (): Promise<void> => {
       const defaultUser = userRepository.create({
         ...userData,
         password: hashedPassword
-      });
-      const savedUsers = await userRepository.save(defaultUser);
-      const newUser = Array.isArray(savedUsers) ? savedUsers[0] : savedUsers;
-      if (!newUser) {
-        throw new Error('Failed to save user');
-      }
-      savedUser = newUser;
+      } as any);
+      await userRepository.save(defaultUser);
+      // Fetch the user again after creation
+      savedUser = await userRepository.findOne({ where: { email: userData.email } });
     }
 
     if (!savedUser) {
       throw new Error('Failed to create or find user for seeding');
     }
 
-    console.log('Creating system models...');
-    // Create system models from fixtures
-    if (fixtures.models) {
-      for (const modelData of fixtures.models) {
+    console.log('Creating system schemas...');
+    // Create system schemas from fixtures
+    if (fixtures.schemas) {
+      for (const schemaData of fixtures.schemas) {
         try {
-          const model = modelRepository.create({
-            ...modelData,
+          const schema = schemaRepository.create({
+            ...schemaData,
             userId: savedUser!.id
           });
-          await modelRepository.save(model);
+          await schemaRepository.save(schema);
         } catch (error) {
-          console.error('Error creating model:', error);
+          console.error('Error creating schema:', error);
         }
       }
     }
@@ -177,6 +178,31 @@ export const seedDatabase = async (): Promise<void> => {
       }
     }
 
+    console.log('Creating prompt versions...');
+    // Create prompt versions from fixtures
+    if (fixtures.promptVersions) {
+      for (const versionData of fixtures.promptVersions) {
+        try {
+          // Find the prompt by name
+          const prompt = await promptRepository.findOne({
+            where: { name: versionData.promptId }
+          });
+
+          if (prompt) {
+            const version = promptVersionRepository.create({
+              ...versionData,
+              promptId: prompt.id
+            });
+            await promptVersionRepository.save(version);
+          } else {
+            console.warn(`Prompt not found for version ${versionData.name}: ${versionData.promptId}`);
+          }
+        } catch (error) {
+          console.error('Error creating prompt version:', error);
+        }
+      }
+    }
+
     console.log('Creating bots...');
     // Create bots from fixtures
     if (fixtures.bots) {
@@ -189,6 +215,60 @@ export const seedDatabase = async (): Promise<void> => {
           await botRepository.save(bot);
         } catch (error) {
           console.error('Error creating bot:', error);
+        }
+      }
+    }
+
+    console.log('Linking bots to prompts...');
+    // Link bots to their appropriate prompts
+    const botPromptMappings = [
+      { botName: 'meta-platform-support', promptName: 'platform-support' },
+      { botName: 'code-builder', promptName: 'code-builder' },
+      { botName: 'sysadmin', promptName: 'sysadmin' },
+      { botName: 'code-generator', promptName: 'code-generation' },
+      { botName: 'schema-assistant', promptName: 'schema-creation' },
+      { botName: 'workflow-assistant', promptName: 'workflow-generation' },
+      { botName: 'deployment-bot', promptName: 'code-builder' }
+    ];
+
+    for (const mapping of botPromptMappings) {
+      try {
+        const bot = await botRepository.findOne({ where: { name: mapping.botName } });
+        const prompt = await promptRepository.findOne({ where: { name: mapping.promptName } });
+
+        if (bot && prompt) {
+          // Add the prompt to the bot's prompts
+          bot.prompts = [prompt];
+          await botRepository.save(bot);
+        } else {
+          console.warn(`Bot or prompt not found for mapping: ${mapping.botName} -> ${mapping.promptName}`);
+        }
+      } catch (error) {
+        console.error('Error linking bot to prompt:', error);
+      }
+    }
+
+    console.log('Creating bot tools...');
+    // Create bot tools from fixtures
+    if (fixtures.botTools) {
+      for (const toolData of fixtures.botTools) {
+        try {
+          // Find the bot by name for system bots
+          const bot = await botRepository.findOne({
+            where: { name: toolData.botId }
+          });
+
+          if (bot) {
+            const tool = botToolRepository.create({
+              ...toolData,
+              botId: bot.id
+            });
+            await botToolRepository.save(tool);
+          } else {
+            console.warn(`Bot not found for tool ${toolData.name}: ${toolData.botId}`);
+          }
+        } catch (error) {
+          console.error('Error creating bot tool:', error);
         }
       }
     }

@@ -11,13 +11,13 @@ const CreateApplication: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const handleSubmit = async (data: { name: string; displayName: string; description: string; config: string }) => {
+  const handleSubmit = async (data: { name: string; displayName: string; description: string }) => {
     setLoading(true);
     setError('');
     try {
       await api.post('/applications', {
         ...data,
-        config: data.config ? JSON.parse(data.config) : {},
+        config: {},
         userId: user?.id,
       });
       navigate('/applications');
@@ -46,8 +46,6 @@ const CreateApplication: React.FC = () => {
         onSubmit={handleSubmit}
         loading={loading}
         error={error}
-        submitLabel="Create Application"
-        onCancel={() => navigate('/applications')}
       />
     </div>
   );

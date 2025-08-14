@@ -1,12 +1,18 @@
 import { DataSource } from 'typeorm';
-import { User } from '../entities/User';
-import { Model } from '../entities/Model';
-import { Application } from '../entities/Application';
-import { Component } from '../entities/Component';
-import { Template } from '../entities/Template';
-import { Workflow } from '../entities/Workflow';
-import { WorkflowAction } from '../entities/WorkflowAction';
-import { CodeTemplate } from '../entities/CodeTemplate';
+import { User } from '../entities/User.js';
+import { Schema } from '../entities/Schema.js';
+import { Application } from '../entities/Application.js';
+import { Component } from '../entities/Component.js';
+import { Bot } from '../entities/Bot.js';
+import { BotInstance } from '../entities/BotInstance.js';
+import { ChatMessage } from '../entities/ChatMessage.js';
+import { BotTool } from '../entities/BotTool.js';
+import { Feature } from '../entities/Feature.js';
+import { Prompt } from '../entities/Prompt.js';
+import { PromptVersion } from '../entities/PromptVersion.js';
+import { Entity } from '../entities/Entity.js';
+import { Workflow } from '../entities/Workflow.js';
+import { WorkflowAction } from '../entities/WorkflowAction.js';
 
 export const AppDataSource = new DataSource({
   type: 'postgres',
@@ -16,8 +22,25 @@ export const AppDataSource = new DataSource({
   password: process.env.DB_PASSWORD || 'platform_password',
   database: process.env.DB_NAME || 'platform_db',
   synchronize: false,
-  logging: false,
-  entities: [User, Model, Application, Component, Template, Workflow, WorkflowAction, CodeTemplate],
+  logging: process.env.NODE_ENV === 'development',
+  entities: [
+    User,
+    Schema,
+    Application,
+    Component,
+    Bot,
+    BotInstance,
+    ChatMessage,
+    BotTool,
+    Feature,
+    Prompt,
+    PromptVersion,
+    Entity,
+    Workflow,
+    WorkflowAction
+  ],
+  migrations: [],
+  subscribers: [],
 });
 
 export const initializeDatabase = async (): Promise<void> => {

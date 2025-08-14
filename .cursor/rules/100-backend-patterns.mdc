@@ -1,3 +1,7 @@
+---
+globs: api/src/**/*.ts,bot/src/**/*.ts
+alwaysApply: false
+---
 # Backend Development Patterns
 
 ## Entity Patterns
@@ -447,7 +451,452 @@ export const AppDataSource = new DataSource({
   subscribers: [],
 });
 ```
-description:
-globs:
-alwaysApply: false
----
+# Backend Development Patterns
+
+## Entity Patterns
+
+### TypeORM Entity Structure
+```typescript
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, Relation } from 'typeorm';
+
+@Entity('table_name')
+export class EntityName {
+  @PrimaryGeneratedColumn('uuid')
+  id!: string;
+
+  @Column()
+  name!: string;
+
+  @Column({ nullable: true })
+  description?: string;
+
+  @Column({ default: true })
+  isActive!: boolean;
+
+  @ManyToOne(() => RelatedEntity, { onDelete: 'CASCADE' })
+  relatedEntity!: Relation<RelatedEntity>;
+
+  @Column()
+  relatedEntityId!: string;
+
+  @CreateDateColumn()
+  createdAt!: Date;
+
+  @UpdateDateColumn()
+  updatedAt!: Date;
+}
+```
+
+### Entity Relationships
+- **One-to-Many**: Use `@OneToMany` and `@ManyToOne`
+- **Many-to-Many**: Use `@ManyToMany` with `@JoinTable`
+- **One-to-One**: Use `@OneToOne`
+- **Cascade**: Use `onDelete: 'CASCADE'` for dependent entities
+
+## Route Patterns
+
+### Express Route Structure
+```typescript
+import express from 'express';
+import { validate } from 'class-validator';
+import { CreateEntityDto, UpdateEntityDto } from '../dto/EntityDto.js';
+
+const router = express.Router();
+
+// GET /api/entities - List all
+router.get('/', async (req, res, next) => {
+  try {
+    const entities = await entityService.findAll(req.user.id);
+    res.json(entities);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// GET /api/entities/:id - Get specific
+router.get('/:id', async (req, res, next) => {
+  try {
+    const entity = await entityService.findById(req.params.id, req.user.id);
+    if (!entity) {
+      return res.status(404).json({ message: 'Entity not found' });
+    }
+    res.json(entity);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// POST /api/entities - Create new
+router.post('/', async (req, res, next) => {
+  try {
+    const dto = new CreateEntityDto();
+    Object.assign(dto, req.body);
+
+    const errors = await validate(dto);
+    if (errors.length > 0) {
+      return res.status(400).json({ errors });
+    }
+
+    const entity = await entityService.create(dto, req.user.id);
+    res.status(201).json(entity);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// PUT /api/entities/:id - Update
+router.put('/:id', async (req, res, next) => {
+  try {
+    const dto = new UpdateEntityDto();
+    Object.assign(dto, req.body);
+
+    const errors = await validate(dto);
+    if (errors.length > 0) {
+      return res.status(400).json({ errors });
+    }
+
+    const entity = await entityService.update(req.params.id, dto, req.user.id);
+    res.json(entity);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// DELETE /api/entities/:id - Delete
+router.delete('/:id', async (req, res, next) => {
+  try {
+    await entityService.delete(req.params.id, req.user.id);
+    res.status(204).send();
+  } catch (error) {
+    next(error);
+  }
+});
+
+export { router as entityRoutes };
+```
+
+## Service Patterns
+
+### Service Layer Structure
+```typescript
+import { Repository } from 'typeorm';
+import { Entity } from '../entities/Entity.js';
+import { CreateEntityDto, UpdateEntityDto } from '../dto/EntityDto.js';
+
+export class EntityService {
+  constructor(private entityRepository: Repository<Entity>) {}
+
+  async findAll(userId: string): Promise<Entity[]> {
+    return this.entityRepository.find({
+      where: { userId },
+      relations: ['relatedEntity']
+    });
+  }
+
+  async findById(id: string, userId: string): Promise<Entity | null> {
+    return this.entityRepository.findOne({
+      where: { id, userId },
+      relations: ['relatedEntity']
+    });
+  }
+
+  async create(dto: CreateEntityDto, userId: string): Promise<Entity> {
+    const entity = this.entityRepository.create({
+      ...dto,
+      userId
+    });
+
+    return this.entityRepository.save(entity);
+  }
+
+  async update(id: string, dto: UpdateEntityDto, userId: string): Promise<Entity> {
+    const entity = await this.findById(id, userId);
+    if (!entity) {
+      throw new Error('Entity not found');
+    }
+
+    Object.assign(entity, dto);
+    return this.entityRepository.save(entity);
+  }
+
+  async delete(id: string, userId: string): Promise<void> {
+    const entity = await this.findById(id, userId);
+    if (!entity) {
+      throw new Error('Entity not found');
+    }
+
+    await this.entityRepository.remove(entity);
+  }
+}
+```
+
+## DTO Patterns
+
+### Data Transfer Objects
+```typescript
+import { IsString, IsOptional, IsBoolean, IsUUID } from 'class-validator';
+
+export class CreateEntityDto {
+  @IsString()
+  name!: string;
+
+  @IsOptional()
+  @IsString()
+  description?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  isActive?: boolean;
+
+  @IsOptional()
+  @IsUUID()
+  relatedEntityId?: string;
+}
+
+export class UpdateEntityDto {
+  @IsOptional()
+  @IsString()
+  name?: string;
+
+  @IsOptional()
+  @IsString()
+  description?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  isActive?: boolean;
+
+  @IsOptional()
+  @IsUUID()
+  relatedEntityId?: string;
+}
+```
+
+## Migration Patterns
+
+### TypeORM Migration Structure
+```typescript
+import { MigrationInterface, QueryRunner, Table, TableForeignKey } from 'typeorm';
+
+export class MigrationName1234567890123 implements MigrationInterface {
+  name = 'MigrationName1234567890123';
+
+  public async up(queryRunner: QueryRunner): Promise<void> {
+    await queryRunner.createTable(
+      new Table({
+        name: 'table_name',
+        columns: [
+          {
+            name: 'id',
+            type: 'uuid',
+            isPrimary: true,
+            generationStrategy: 'uuid',
+            default: 'uuid_generate_v4()',
+          },
+          {
+            name: 'name',
+            type: 'varchar',
+            isNullable: false,
+          },
+          {
+            name: 'description',
+            type: 'text',
+            isNullable: true,
+          },
+          {
+            name: 'isActive',
+            type: 'boolean',
+            default: true,
+          },
+          {
+            name: 'userId',
+            type: 'uuid',
+            isNullable: false,
+          },
+          {
+            name: 'createdAt',
+            type: 'timestamp',
+            default: 'now()',
+          },
+          {
+            name: 'updatedAt',
+            type: 'timestamp',
+            default: 'now()',
+          },
+        ],
+      }),
+      true
+    );
+
+    await queryRunner.createForeignKey(
+      'table_name',
+      new TableForeignKey({
+        columnNames: ['userId'],
+        referencedColumnNames: ['id'],
+        referencedTableName: 'users',
+        onDelete: 'CASCADE',
+      })
+    );
+  }
+
+  public async down(queryRunner: QueryRunner): Promise<void> {
+    await queryRunner.dropTable('table_name');
+  }
+}
+```
+
+## Error Handling
+
+### Global Error Handler
+```typescript
+import { Request, Response, NextFunction } from 'express';
+
+export const errorHandler = (
+  error: Error,
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  console.error('Error:', error);
+
+  if (error.name === 'ValidationError') {
+    return res.status(400).json({
+      message: 'Validation error',
+      errors: error.message
+    });
+  }
+
+  if (error.name === 'UnauthorizedError') {
+    return res.status(401).json({
+      message: 'Unauthorized'
+    });
+  }
+
+  res.status(500).json({
+    message: 'Internal server error'
+  });
+};
+```
+
+## Testing Patterns
+
+### Unit Test Structure
+```typescript
+import { EntityService } from '../services/EntityService.js';
+import { Entity } from '../entities/Entity.js';
+
+describe('EntityService', () => {
+  let service: EntityService;
+  let mockRepository: jest.Mocked<Repository<Entity>>;
+
+  beforeEach(() => {
+    mockRepository = {
+      find: jest.fn(),
+      findOne: jest.fn(),
+      create: jest.fn(),
+      save: jest.fn(),
+      remove: jest.fn(),
+    } as any;
+
+    service = new EntityService(mockRepository);
+  });
+
+  describe('findAll', () => {
+    it('should return all entities for user', async () => {
+      const mockEntities = [{ id: '1', name: 'Test' }];
+      mockRepository.find.mockResolvedValue(mockEntities);
+
+      const result = await service.findAll('user-id');
+
+      expect(result).toEqual(mockEntities);
+      expect(mockRepository.find).toHaveBeenCalledWith({
+        where: { userId: 'user-id' },
+        relations: ['relatedEntity']
+      });
+    });
+  });
+});
+```
+
+### Integration Test Structure
+```typescript
+import request from 'supertest';
+import { app } from '../index.js';
+import { getConnection } from 'typeorm';
+
+describe('Entity Routes', () => {
+  beforeAll(async () => {
+    // Setup test database
+  });
+
+  afterAll(async () => {
+    await getConnection().close();
+  });
+
+  describe('GET /api/entities', () => {
+    it('should return 401 without authentication', async () => {
+      const response = await request(app)
+        .get('/api/entities')
+        .expect(401);
+    });
+
+    it('should return entities with valid token', async () => {
+      const token = 'valid-jwt-token';
+      const response = await request(app)
+        .get('/api/entities')
+        .set('Authorization', `Bearer ${token}`)
+        .expect(200);
+
+      expect(Array.isArray(response.body)).toBe(true);
+    });
+  });
+});
+```
+
+## Authentication Patterns
+
+### JWT Middleware
+```typescript
+import jwt from 'jsonwebtoken';
+import { Request, Response, NextFunction } from 'express';
+
+export const authenticateToken = (req: Request, res: Response, next: NextFunction) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+
+  if (!token) {
+    return res.status(401).json({ message: 'Access token required' });
+  }
+
+  jwt.verify(token, process.env.JWT_SECRET!, (err: any, user: any) => {
+    if (err) {
+      return res.status(403).json({ message: 'Invalid token' });
+    }
+    req.user = user;
+    next();
+  });
+};
+```
+
+## Database Configuration
+
+### TypeORM Configuration
+```typescript
+import { DataSource } from 'typeorm';
+import { User } from '../entities/User.js';
+import { Entity } from '../entities/Entity.js';
+
+export const AppDataSource = new DataSource({
+  type: 'postgres',
+  host: process.env.DB_HOST || 'localhost',
+  port: parseInt(process.env.DB_PORT || '5432'),
+  username: process.env.DB_USER || 'platform_user',
+  password: process.env.DB_PASSWORD || 'platform_password',
+  database: process.env.DB_NAME || 'platform_db',
+  synchronize: false,
+  logging: process.env.NODE_ENV === 'development',
+  entities: [User, Entity],
+  migrations: ['src/migrations/*.ts'],
+  subscribers: [],
+});
+```

@@ -11,7 +11,7 @@ export default defineConfig({
     video: false,
     screenshotOnRunFailure: true,
     env: {
-      apiUrl: process.env.CYPRESS_apiUrl || 'http://localhost:4000',
+      apiUrl: process.env.CYPRESS_apiUrl || 'http://localhost:4001',
       testEmail: process.env.CYPRESS_testEmail || 'admin@platform.com',
       testPassword: process.env.CYPRESS_testPassword || 'admin123'
     }

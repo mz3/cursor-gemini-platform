@@ -1,0 +1,386 @@
+[
+  {
+    "name": "platform-api-sdk",
+    "displayName": "Platform API SDK",
+    "description": "Comprehensive API SDK for accessing all platform features - schemas, applications, bots, prompts, tools, etc.",
+    "type": "mcp_tool",
+    "config": {
+      "platformEndpoint": "http://api:4000/api",
+      "userId": "system",
+      "permissions": ["read", "write", "execute"],
+      "operations": [
+        "list_schemas", "get_schema", "create_schema", "update_schema", "delete_schema",
+        "list_applications", "get_application", "create_application", "update_application", "delete_application",
+        "list_bots", "get_bot", "create_bot", "update_bot", "delete_bot",
+        "list_prompts", "get_prompt", "create_prompt", "update_prompt", "delete_prompt",
+        "list_tools", "get_tool", "create_tool", "update_tool", "delete_tool",
+        "list_features", "get_feature", "create_feature", "update_feature", "delete_feature",
+        "list_workflows", "get_workflow", "create_workflow", "update_workflow", "delete_workflow",
+        "execute_bot", "start_bot_instance", "stop_bot_instance", "get_bot_instance",
+        "get_user_info", "list_user_data", "search_platform"
+      ]
+    },
+    "isActive": true,
+    "requiresAuth": true,
+    "botId": "meta-platform-support"
+  },
+  {
+    "name": "list-user-schemas",
+    "displayName": "List User Schemas",
+    "description": "Lists all data schemas created by a user",
+    "type": "http_request",
+    "config": {
+      "url": "http://api:4000/api/schemas",
+      "method": "GET",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "params": {
+        "userId": "${userId}"
+      }
+    },
+    "isActive": true,
+    "requiresAuth": true,
+    "botId": "meta-platform-support"
+  },
+  {
+    "name": "list-user-applications",
+    "displayName": "List User Applications",
+    "description": "Lists all applications created by a user",
+    "type": "http_request",
+    "config": {
+      "url": "http://api:4000/api/applications",
+      "method": "GET",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "params": {
+        "userId": "${userId}"
+      }
+    },
+    "isActive": true,
+    "requiresAuth": true,
+    "botId": "meta-platform-support"
+  },
+  {
+    "name": "list-user-bots",
+    "displayName": "List User Bots",
+    "description": "Lists all bots created by a user",
+    "type": "http_request",
+    "config": {
+      "url": "http://api:4000/api/bots",
+      "method": "GET",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "params": {
+        "userId": "${userId}"
+      }
+    },
+    "isActive": true,
+    "requiresAuth": true,
+    "botId": "meta-platform-support"
+  },
+  {
+    "name": "knowledge-base-search",
+    "displayName": "Knowledge Base Search",
+    "description": "Searches platform documentation and knowledge base",
+    "type": "http_request",
+    "config": {
+      "url": "https://api.notion.com/v1/search",
+      "method": "POST",
+      "headers": {
+        "Authorization": "Bearer ${NOTION_API_KEY}",
+        "Content-Type": "application/json",
+        "Notion-Version": "2022-06-28"
+      },
+      "body": {
+        "query": "${query}",
+        "filter": {
+          "property": "object",
+          "value": "page"
+        }
+      }
+    },
+    "isActive": true,
+    "requiresAuth": true,
+    "botId": "meta-platform-support"
+  },
+  {
+    "name": "user-account-lookup",
+    "displayName": "User Account Lookup",
+    "description": "Looks up user account information and subscription status",
+    "type": "database_query",
+    "config": {
+      "query": "SELECT id, email, firstName, lastName, role, isActive, createdAt FROM users WHERE email = '${email}' OR id = '${userId}'",
+      "type": "select"
+    },
+    "isActive": true,
+    "requiresAuth": true,
+    "botId": "meta-platform-support"
+  },
+  {
+    "name": "application-builder-sdk",
+    "displayName": "Application Builder SDK",
+    "description": "Comprehensive SDK for building and deploying applications on the Meta Platform",
+    "type": "mcp_tool",
+    "config": {
+      "platformEndpoint": "http://api:4000/api",
+      "userId": "system",
+      "permissions": ["read", "write", "execute"],
+      "operations": [
+        "list_applications", "get_application", "create_application", "update_application", "delete_application",
+        "build_application", "deploy_application", "test_application", "monitor_application",
+        "list_schemas", "get_schema", "create_schema", "update_schema", "delete_schema",
+        "list_components", "get_component", "create_component", "update_component", "delete_component",
+        "list_features", "get_feature", "create_feature", "update_feature", "delete_feature",
+        "generate_code", "validate_schema", "create_dockerfile", "create_docker_compose",
+        "setup_ci_cd", "configure_environment", "manage_secrets", "scale_application"
+      ]
+    },
+    "isActive": true,
+    "requiresAuth": true,
+    "botId": "code-builder"
+  },
+  {
+    "name": "docker-build",
+    "displayName": "Docker Build",
+    "description": "Builds Docker containers for connected repositories",
+    "type": "shell_command",
+    "config": {
+      "command": "docker build -t ${imageName}:${tag} ${buildContext}",
+      "workingDirectory": "/tmp/builds",
+      "timeout": 300
+    },
+    "isActive": true,
+    "requiresAuth": true,
+    "botId": "code-builder"
+  },
+  {
+    "name": "docker-push",
+    "displayName": "Docker Push",
+    "description": "Pushes built Docker images to registry",
+    "type": "shell_command",
+    "config": {
+      "command": "docker push ${imageName}:${tag}",
+      "workingDirectory": "/tmp/builds",
+      "timeout": 120
+    },
+    "isActive": true,
+    "requiresAuth": true,
+    "botId": "code-builder"
+  },
+  {
+    "name": "git-clone",
+    "displayName": "Git Clone",
+    "description": "Clones repository for building",
+    "type": "shell_command",
+    "config": {
+      "command": "git clone ${repositoryUrl} ${clonePath}",
+      "workingDirectory": "/tmp/builds",
+      "timeout": 60
+    },
+    "isActive": true,
+    "requiresAuth": true,
+    "botId": "code-builder"
+  },
+  {
+    "name": "docker-compose-build",
+    "displayName": "Docker Compose Build",
+    "description": "Builds services using docker-compose",
+    "type": "shell_command",
+    "config": {
+      "command": "docker-compose -f ${composeFile} build ${services}",
+      "workingDirectory": "${projectPath}",
+      "timeout": 600
+    },
+    "isActive": true,
+    "requiresAuth": true,
+    "botId": "code-builder"
+  },
+  {
+    "name": "repository-analysis",
+    "displayName": "Repository Analysis",
+    "description": "Analyzes repository structure and dependencies",
+    "type": "file_operation",
+    "config": {
+      "operation": "analyze",
+      "path": "${repoPath}",
+      "patterns": ["package.json", "requirements.txt", "Dockerfile", "docker-compose.yml", "pom.xml", "build.gradle"]
+    },
+    "isActive": true,
+    "requiresAuth": true,
+    "botId": "code-builder"
+  },
+  {
+    "name": "server-health-check",
+    "displayName": "Server Health Check",
+    "description": "Checks server health and status",
+    "type": "shell_command",
+    "config": {
+      "command": "ping -c 3 ${host} && curl -f ${url}/health || echo 'Health check failed'",
+      "timeout": 30
+    },
+    "isActive": true,
+    "requiresAuth": true,
+    "botId": "sysadmin"
+  },
+  {
+    "name": "database-backup",
+    "displayName": "Database Backup",
+    "description": "Creates database backups",
+    "type": "shell_command",
+    "config": {
+      "command": "pg_dump -h ${dbHost} -U ${dbUser} -d ${dbName} > ${backupPath}/${dbName}_$(date +%Y%m%d_%H%M%S).sql",
+      "workingDirectory": "/backups",
+      "timeout": 300
+    },
+    "isActive": true,
+    "requiresAuth": true,
+    "botId": "sysadmin"
+  },
+  {
+    "name": "database-restore",
+    "displayName": "Database Restore",
+    "description": "Restores database from backup",
+    "type": "shell_command",
+    "config": {
+      "command": "psql -h ${dbHost} -U ${dbUser} -d ${dbName} < ${backupFile}",
+      "workingDirectory": "/backups",
+      "timeout": 600
+    },
+    "isActive": true,
+    "requiresAuth": true,
+    "botId": "sysadmin"
+  },
+  {
+    "name": "ssl-certificate-check",
+    "displayName": "SSL Certificate Check",
+    "description": "Checks SSL certificate expiration",
+    "type": "shell_command",
+    "config": {
+      "command": "echo | openssl s_client -servername ${domain} -connect ${domain}:443 2>/dev/null | openssl x509 -noout -dates",
+      "timeout": 30
+    },
+    "isActive": true,
+    "requiresAuth": true,
+    "botId": "sysadmin"
+  },
+  {
+    "name": "disk-space-check",
+    "displayName": "Disk Space Check",
+    "description": "Checks available disk space",
+    "type": "shell_command",
+    "config": {
+      "command": "df -h ${path}",
+      "timeout": 10
+    },
+    "isActive": true,
+    "requiresAuth": true,
+    "botId": "sysadmin"
+  },
+  {
+    "name": "process-monitor",
+    "displayName": "Process Monitor",
+    "description": "Monitors running processes",
+    "type": "shell_command",
+    "config": {
+      "command": "ps aux | grep ${processName} | grep -v grep",
+      "timeout": 10
+    },
+    "isActive": true,
+    "requiresAuth": true,
+    "botId": "sysadmin"
+  },
+  {
+    "name": "nginx-config-test",
+    "displayName": "Nginx Config Test",
+    "description": "Tests nginx configuration",
+    "type": "shell_command",
+    "config": {
+      "command": "nginx -t",
+      "timeout": 10
+    },
+    "isActive": true,
+    "requiresAuth": true,
+    "botId": "sysadmin"
+  },
+  {
+    "name": "nginx-reload",
+    "displayName": "Nginx Reload",
+    "description": "Reloads nginx configuration",
+    "type": "shell_command",
+    "config": {
+      "command": "nginx -s reload",
+      "timeout": 10
+    },
+    "isActive": true,
+    "requiresAuth": true,
+    "botId": "sysadmin"
+  },
+  {
+    "name": "docker-container-manage",
+    "displayName": "Docker Container Management",
+    "description": "Manages Docker containers (start/stop/restart)",
+    "type": "shell_command",
+    "config": {
+      "command": "docker ${action} ${containerName}",
+      "timeout": 30
+    },
+    "isActive": true,
+    "requiresAuth": true,
+    "botId": "sysadmin"
+  },
+  {
+    "name": "log-analysis",
+    "displayName": "Log Analysis",
+    "description": "Analyzes log files for errors and patterns",
+    "type": "shell_command",
+    "config": {
+      "command": "tail -n ${lines} ${logFile} | grep -i '${searchTerm}'",
+      "timeout": 30
+    },
+    "isActive": true,
+    "requiresAuth": true,
+    "botId": "sysadmin"
+  },
+  {
+    "name": "system-update",
+    "displayName": "System Update",
+    "description": "Updates system packages",
+    "type": "shell_command",
+    "config": {
+      "command": "apt-get update && apt-get upgrade -y",
+      "timeout": 1800
+    },
+    "isActive": true,
+    "requiresAuth": true,
+    "botId": "sysadmin"
+  },
+  {
+    "name": "firewall-status",
+    "displayName": "Firewall Status",
+    "description": "Checks firewall status and rules",
+    "type": "shell_command",
+    "config": {
+      "command": "ufw status verbose",
+      "timeout": 10
+    },
+    "isActive": true,
+    "requiresAuth": true,
+    "botId": "sysadmin"
+  },
+  {
+    "name": "memory-usage",
+    "displayName": "Memory Usage",
+    "description": "Checks memory usage and statistics",
+    "type": "shell_command",
+    "config": {
+      "command": "free -h && vmstat 1 5",
+      "timeout": 10
+    },
+    "isActive": true,
+    "requiresAuth": true,
+    "botId": "sysadmin"
+  }
+]

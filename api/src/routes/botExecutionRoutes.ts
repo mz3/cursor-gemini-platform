@@ -1,120 +1,134 @@
 import { Router, Request, Response, NextFunction } from 'express';
+import { BotExecutionService } from '../services/botExecutionService.js';
+import jwt from 'jsonwebtoken';
 
 const router = Router();
 
-// POST /api/bot-execution/:botId/start - Start a bot instance
-router.post('/:botId/start', async (req: Request, res: Response, next: NextFunction) => {
+// Authentication middleware
+const authenticateUser = (req: Request, res: Response, next: NextFunction): void => {
   try {
-    const { botId } = req.params;
-    const { userId } = req.body;
-
-    if (!userId) {
-      return res.status(400).json({ error: 'userId is required' });
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      res.status(401).json({ error: 'Authentication token required' });
+      return;
     }
 
-    // Simple response for now
-    return res.json({ 
-      id: 'test-instance-id',
-      botId,
-      userId,
-      status: 'running',
-      lastStartedAt: new Date().toISOString()
-    });
+    const token = authHeader.substring(7);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret') as any;
+    (req as any).user = decoded;
+    next();
+  } catch (error) {
+    res.status(401).json({ error: 'Invalid authentication token' });
+    return;
+  }
+};
+
+// POST /api/bot-execution/:botId/start - Start a bot instance
+router.post('/:botId/start', authenticateUser, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { botId } = req.params;
+    const userId = (req as any).user.userId;
+
+    if (!botId) {
+      return res.status(400).json({ error: 'botId is required' });
+    }
+
+    const instance = await BotExecutionService.startBotInstance(botId, userId);
+    return res.json(instance);
   } catch (error) {
     return next(error);
   }
 });
 
 // POST /api/bot-execution/:botId/stop - Stop a bot instance
-router.post('/:botId/stop', async (req: Request, res: Response, next: NextFunction) => {
+router.post('/:botId/stop', authenticateUser, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { botId } = req.params;
-    const { userId } = req.body;
+    const userId = (req as any).user.userId;
 
-    if (!userId) {
-      return res.status(400).json({ error: 'userId is required' });
+    if (!botId) {
+      return res.status(400).json({ error: 'botId is required' });
     }
 
-    // Simple response for now
-    return res.json({ 
-      id: 'test-instance-id',
-      botId,
-      userId,
-      status: 'stopped',
-      lastStoppedAt: new Date().toISOString()
-    });
+    const instance = await BotExecutionService.stopBotInstance(botId, userId);
+    return res.json(instance);
   } catch (error) {
     return next(error);
   }
 });
 
 // GET /api/bot-execution/:botId/status - Get bot instance status
-router.get('/:botId/status', async (req: Request, res: Response, next: NextFunction) => {
+router.get('/:botId/status', authenticateUser, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { botId } = req.params;
-    const { userId } = req.query;
+    const userId = (req as any).user.userId;
 
-    if (!userId) {
-      return res.status(400).json({ error: 'userId is required' });
+    if (!botId) {
+      return res.status(400).json({ error: 'botId is required' });
     }
 
-    // Simple response for now
-    return res.json({ 
-      id: 'test-instance-id',
-      botId,
-      userId,
-      status: 'running'
-    });
+    const instance = await BotExecutionService.getBotInstanceStatus(botId, userId);
+    return res.json(instance);
   } catch (error) {
     return next(error);
   }
 });
 
 // POST /api/bot-execution/:botId/chat - Send a message to a bot
-router.post('/:botId/chat', async (req: Request, res: Response, next: NextFunction) => {
+router.post('/:botId/chat', authenticateUser, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { botId } = req.params;
-    const { userId, message } = req.body;
+    const { message } = req.body;
+    const userId = (req as any).user.userId;
 
-    if (!userId || !message) {
-      return res.status(400).json({ error: 'userId and message are required' });
+    if (!message) {
+      return res.status(400).json({ error: 'message is required' });
+    }
+    if (!botId) {
+      return res.status(400).json({ error: 'botId is required' });
     }
 
-    // Simple response for now
-    return res.json({
-      userMessage: {
-        id: 'user-msg-id',
-        role: 'user',
-        content: message,
-        createdAt: new Date().toISOString()
-      },
-      botResponse: {
-        id: 'bot-msg-id',
-        role: 'bot',
-        content: `I received your message: "${message}". This is a test response.`,
-        createdAt: new Date().toISOString()
-      }
-    });
+    const result = await BotExecutionService.sendMessage(botId, userId, message);
+    return res.json(result);
   } catch (error) {
     return next(error);
   }
 });
 
 // GET /api/bot-execution/:botId/chat - Get conversation history
-router.get('/:botId/chat', async (req: Request, res: Response, next: NextFunction) => {
+router.get('/:botId/chat', authenticateUser, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { botId } = req.params;
-    const { userId, limit } = req.query;
+    const { limit } = req.query;
+    const userId = (req as any).user.userId;
 
-    if (!userId) {
-      return res.status(400).json({ error: 'userId is required' });
+    if (!botId) {
+      return res.status(400).json({ error: 'botId is required' });
     }
 
-    // Simple response for now
-    return res.json([]);
+    const limitNum = limit ? parseInt(limit as string) : 50;
+    const messages = await BotExecutionService.getConversationHistory(botId, userId, limitNum);
+    return res.json(messages);
   } catch (error) {
     return next(error);
   }
 });
 
-export { router as botExecutionRoutes }; 
+// DELETE /api/bot-execution/:botId/chat - Clear conversation history
+router.delete('/:botId/chat', authenticateUser, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { botId } = req.params;
+    const userId = (req as any).user.userId;
+
+    if (!botId) {
+      return res.status(400).json({ error: 'botId is required' });
+    }
+
+    await BotExecutionService.clearConversationHistory(botId, userId);
+    return res.status(204).send();
+  } catch (error) {
+    return next(error);
+  }
+});
+
+export default router;

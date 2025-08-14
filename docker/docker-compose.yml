@@ -47,9 +47,9 @@ services:
       REDIS_PORT: 6379
       API_PORT: 4000
       JWT_SECRET: your-super-secret-jwt-key-change-in-production
-      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      GEMINI_KEY: ${GEMINI_KEY}
     ports:
-      - "4000:4000"
+      - "4001:4000"
     depends_on:
       postgres:
         condition: service_healthy
@@ -80,11 +80,11 @@ services:
       - ../webapp:/app
       - /app/node_modules
 
-  bot:
+  bot-worker:
     build:
       context: ../bot
       dockerfile: Dockerfile
-    container_name: bot
+    container_name: bot-worker
     environment:
       NODE_ENV: development
       DB_HOST: postgres
@@ -94,7 +94,7 @@ services:
       DB_NAME: platform_db
       REDIS_HOST: redis
       REDIS_PORT: 6379
-      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      GEMINI_KEY: ${GEMINI_KEY}
     depends_on:
       postgres:
         condition: service_healthy
@@ -105,8 +105,7 @@ services:
     volumes:
       - ../bot:/app
       - /app/node_modules
-      - /var/run/docker.sock:/var/run/docker.sock
-      - ../bot/generated-apps:/app/generated-apps
+    restart: unless-stopped
 
 volumes:
   postgres-data:

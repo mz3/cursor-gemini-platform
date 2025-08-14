@@ -1,5 +1,12 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
-import { Application } from './Application';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany, Relation } from 'typeorm';
+import { Application } from './Application.js';
+import { Prompt } from './Prompt.js';
+import { Bot } from './Bot.js';
+import { Schema } from './Schema.js';
+import { Feature } from './Feature.js';
+import { Entity as PlatformEntity } from './Entity.js';
+import { BotInstance } from './BotInstance.js';
+import { ChatMessage } from './ChatMessage.js';
 
 @Entity('users')
 export class User {
@@ -31,5 +38,26 @@ export class User {
   updatedAt!: Date;
 
   @OneToMany(() => Application, (application: Application) => application.user)
-  applications!: Application[];
+  applications!: Relation<Application>[];
+
+  @OneToMany(() => Prompt, (prompt: Prompt) => prompt.user)
+  prompts!: Relation<Prompt>[];
+
+  @OneToMany(() => Bot, (bot: Bot) => bot.user)
+  bots!: Relation<Bot>[];
+
+  @OneToMany(() => Schema, (schema: Schema) => schema.user)
+  schemas!: Relation<Schema>[];
+
+  @OneToMany(() => Feature, (feature: Feature) => feature.user)
+  features!: Relation<Feature>[];
+
+  @OneToMany(() => PlatformEntity, (entity: PlatformEntity) => entity.user)
+  entities!: Relation<PlatformEntity>[];
+
+  @OneToMany(() => BotInstance, (instance: BotInstance) => instance.user)
+  botInstances!: Relation<BotInstance>[];
+
+  @OneToMany(() => ChatMessage, (message: ChatMessage) => message.user)
+  chatMessages!: Relation<ChatMessage>[];
 }

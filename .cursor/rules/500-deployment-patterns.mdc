@@ -1,3 +1,7 @@
+---
+description: deployments with fly.io
+alwaysApply: false
+---
 # Deployment Patterns
 
 ## Fly.io Deployment Architecture
@@ -179,7 +183,7 @@ flyctl secrets set \
   JWT_SECRET="your-super-secret-jwt-key" \
   DB_HOST="your-db-host" \
   DB_PASSWORD="your-db-password" \
-  GEMINI_API_KEY="your-gemini-api-key" \
+  GEMINI_KEY="your-gemini-api-key" \
   --app cursor-gemini-platform-api
 
 # Set secrets for UI app
@@ -455,7 +459,460 @@ flyctl billing show
 # View app costs
 flyctl billing show --app cursor-gemini-platform-api
 ```
-description:
-globs:
-alwaysApply: false
----
+# Deployment Patterns
+
+## Fly.io Deployment Architecture
+
+### Multi-App Deployment
+The platform uses separate Fly.io apps for different services:
+- **API App**: `cursor-gemini-platform-api` (Backend API)
+- **UI App**: `cursor-gemini-webapp` (React Frontend)
+- **Database**: Managed PostgreSQL or external database
+
+## Fly.io Configuration
+
+### API App Configuration (fly.api.toml)
+```toml
+app = "cursor-gemini-platform-api"
+primary_region = "iad"
+
+[build]
+  dockerfile = "api/Dockerfile"
+
+[env]
+  NODE_ENV = "production"
+  API_PORT = "4000"
+
+[http_service]
+  internal_port = 4000
+  force_https = true
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 1
+  processes = ["app"]
+
+[[http_service.checks]]
+  grace_period = "10s"
+  interval = "30s"
+  method = "GET"
+  timeout = "5s"
+  path = "/health"
+
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 1
+  memory_mb = 512
+
+[mounts]
+  source = "platform_data"
+  destination = "/data"
+
+[processes]
+  app = "npm start"
+
+[deploy]
+  release_command = "npm run migration:run"
+```
+
+### UI App Configuration (fly.ui.toml)
+```toml
+app = "cursor-gemini-webapp"
+primary_region = "iad"
+
+[build]
+  dockerfile = "webapp/Dockerfile"
+
+[env]
+  NODE_ENV = "production"
+  REACT_APP_API_URL = "https://cursor-gemini-platform-api.fly.dev"
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 1
+  processes = ["app"]
+
+[[http_service.checks]]
+  grace_period = "10s"
+  interval = "30s"
+  method = "GET"
+  timeout = "5s"
+  path = "/health"
+
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 1
+  memory_mb = 256
+
+[processes]
+  app = "nginx -g 'daemon off;'"
+
+[deploy]
+  strategy = "immediate"
+```
+
+## Deployment Scripts
+
+### Main Deployment Script (deploy.sh)
+```bash
+#!/bin/bash
+
+# Exit on any error
+set -e
+
+echo "🚀 Starting deployment..."
+
+# Check if flyctl is installed
+if ! command -v flyctl &> /dev/null; then
+    echo "❌ flyctl is not installed. Please install it first."
+    exit 1
+fi
+
+# Check if logged in to Fly.io
+if ! flyctl auth whoami &> /dev/null; then
+    echo "❌ Not logged in to Fly.io. Please run 'flyctl auth login' first."
+    exit 1
+fi
+
+# Deploy API
+echo "📦 Deploying API..."
+cd api
+flyctl deploy --config ../deploy/fly.api.toml
+cd ..
+
+# Deploy UI
+echo "📦 Deploying UI..."
+cd webapp
+flyctl deploy --config ../deploy/fly.ui.toml
+cd ..
+
+echo "✅ Deployment completed successfully!"
+echo "🌐 API: https://cursor-gemini-platform-api.fly.dev"
+echo "🌐 UI: https://cursor-gemini-webapp.fly.dev"
+```
+
+### Start Script (start.sh)
+```bash
+#!/bin/bash
+
+# Exit on any error
+set -e
+
+echo "🚀 Starting platform services..."
+
+# Check if Docker is running
+if ! docker info &> /dev/null; then
+    echo "❌ Docker is not running. Please start Docker first."
+    exit 1
+fi
+
+# Start all services
+echo "📦 Starting containers..."
+docker-compose up -d
+
+# Wait for services to be healthy
+echo "⏳ Waiting for services to be ready..."
+sleep 10
+
+# Check service health
+echo "🏥 Checking service health..."
+docker-compose ps
+
+# Run database migrations
+echo "🗄️ Running database migrations..."
+docker exec api npm run migration:run
+
+echo "✅ Platform is ready!"
+echo "🌐 API: http://localhost:4000"
+echo "🌐 UI: http://localhost:3000"
+echo "🗄️ Database: localhost:5433"
+echo "🔴 Redis: localhost:6379"
+```
+
+## Environment Management
+
+### Secrets Management
+```bash
+# Set secrets for API app
+flyctl secrets set \
+  JWT_SECRET="your-super-secret-jwt-key" \
+  DB_HOST="your-db-host" \
+  DB_PASSWORD="your-db-password" \
+  GEMINI_KEY="your-gemini-api-key" \
+  --app cursor-gemini-platform-api
+
+# Set secrets for UI app
+flyctl secrets set \
+  REACT_APP_API_URL="https://cursor-gemini-platform-api.fly.dev" \
+  --app cursor-gemini-webapp
+```
+
+### Environment Variables
+```bash
+# Set environment variables for API
+flyctl config set \
+  NODE_ENV=production \
+  API_PORT=4000 \
+  --app cursor-gemini-platform-api
+
+# Set environment variables for UI
+flyctl config set \
+  NODE_ENV=production \
+  --app cursor-gemini-webapp
+```
+
+## Scaling Patterns
+
+### Horizontal Scaling
+```bash
+# Scale API to 3 instances
+flyctl scale count 3 --app cursor-gemini-platform-api
+
+# Scale UI to 2 instances
+flyctl scale count 2 --app cursor-gemini-webapp
+```
+
+### Resource Scaling
+```bash
+# Scale API memory to 1GB
+flyctl scale memory 1024 --app cursor-gemini-platform-api
+
+# Scale UI memory to 512MB
+flyctl scale memory 512 --app cursor-gemini-webapp
+```
+
+## Monitoring and Logs
+
+### View Logs
+```bash
+# View API logs
+flyctl logs --app cursor-gemini-platform-api
+
+# View UI logs
+flyctl logs --app cursor-gemini-webapp
+
+# Follow logs in real-time
+flyctl logs --follow --app cursor-gemini-platform-api
+```
+
+### App Status
+```bash
+# Check app status
+flyctl status --app cursor-gemini-platform-api
+flyctl status --app cursor-gemini-webapp
+
+# List all apps
+flyctl apps list
+```
+
+## Database Deployment
+
+### External Database Setup
+```bash
+# Create PostgreSQL database
+flyctl postgres create --name platform-db --region iad
+
+# Attach database to API app
+flyctl postgres attach platform-db --app cursor-gemini-platform-api
+
+# Get database connection info
+flyctl postgres connect -a platform-db
+```
+
+### Database Migrations
+```bash
+# Run migrations on production
+flyctl ssh console --app cursor-gemini-platform-api
+npm run migration:run
+
+# Or run via deploy command
+flyctl deploy --config deploy/fly.api.toml --remote-only
+```
+
+## CI/CD Integration
+
+### GitHub Actions Workflow
+```yaml
+name: Deploy to Fly.io
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy-api:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install flyctl
+        uses: superfly/flyctl-actions/setup-flyctl@master
+
+      - name: Deploy API
+        run: |
+          flyctl deploy --config deploy/fly.api.toml --app cursor-gemini-platform-api
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+
+      - name: Run migrations
+        run: |
+          flyctl ssh console --app cursor-gemini-platform-api --command "npm run migration:run"
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+
+  deploy-ui:
+    runs-on: ubuntu-latest
+    needs: deploy-api
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install flyctl
+        uses: superfly/flyctl-actions/setup-flyctl@master
+
+      - name: Deploy UI
+        run: |
+          flyctl deploy --config deploy/fly.ui.toml --app cursor-gemini-webapp
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+```
+
+## Troubleshooting
+
+### Common Issues
+
+#### App Won't Start
+```bash
+# Check app status
+flyctl status --app cursor-gemini-platform-api
+
+# View recent logs
+flyctl logs --app cursor-gemini-platform-api
+
+# SSH into app for debugging
+flyctl ssh console --app cursor-gemini-platform-api
+```
+
+#### Database Connection Issues
+```bash
+# Check database status
+flyctl postgres status --app cursor-gemini-platform-api
+
+# Test database connection
+flyctl postgres connect -a platform-db
+
+# View database logs
+flyctl logs --app platform-db
+```
+
+#### Memory Issues
+```bash
+# Check memory usage
+flyctl status --app cursor-gemini-platform-api
+
+# Scale memory if needed
+flyctl scale memory 1024 --app cursor-gemini-platform-api
+```
+
+### Performance Monitoring
+```bash
+# Monitor app performance
+flyctl dashboard --app cursor-gemini-platform-api
+
+# View metrics
+flyctl metrics --app cursor-gemini-platform-api
+```
+
+## Security Patterns
+
+### SSL/TLS Configuration
+```toml
+# Automatic HTTPS is enabled by default
+[http_service]
+  force_https = true
+  auto_stop_machines = true
+  auto_start_machines = true
+```
+
+### Environment Variable Security
+```bash
+# Use secrets for sensitive data
+flyctl secrets set JWT_SECRET="your-secret-key" --app cursor-gemini-platform-api
+
+# Don't commit secrets to version control
+echo "*.env" >> .gitignore
+echo "secrets/" >> .gitignore
+```
+
+### Network Security
+```toml
+# Private networking between apps
+[[services]]
+  protocol = "tcp"
+  internal_port = 4000
+  processes = ["app"]
+
+  [[services.ports]]
+    port = 80
+    handlers = ["http"]
+    force_https = true
+
+  [[services.ports]]
+    port = 443
+    handlers = ["tls", "http"]
+```
+
+## Backup and Recovery
+
+### Database Backups
+```bash
+# Create database backup
+flyctl postgres backup create --app platform-db
+
+# List backups
+flyctl postgres backup list --app platform-db
+
+# Restore from backup
+flyctl postgres backup restore --app platform-db <backup-id>
+```
+
+### App Backups
+```bash
+# Create app backup
+flyctl backup create --app cursor-gemini-platform-api
+
+# List app backups
+flyctl backup list --app cursor-gemini-platform-api
+
+# Restore app from backup
+flyctl backup restore --app cursor-gemini-platform-api <backup-id>
+```
+
+## Cost Optimization
+
+### Auto-scaling Configuration
+```toml
+[http_service]
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 0
+  processes = ["app"]
+```
+
+### Resource Optimization
+```toml
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 1
+  memory_mb = 256  # Start with minimal resources
+```
+
+### Monitoring Costs
+```bash
+# Check current usage
+flyctl billing show
+
+# View app costs
+flyctl billing show --app cursor-gemini-platform-api
+```

@@ -1,6 +1,6 @@
 import request from 'supertest';
 import { AppDataSource } from '../config/database.js';
-import { Model } from '../entities/Model.js';
+import { Schema } from '../entities/Schema.js';
 import { Prompt } from '../entities/Prompt.js';
 import { PromptVersion } from '../entities/PromptVersion.js';
 
@@ -16,6 +16,7 @@ describe('Prompt API Integration Tests', () => {
     const res = await request(API_BASE_URL)
       .post('/api/users/login')
       .send({ email: 'admin@platform.com', password: 'admin123' });
+
     token = res.body.token;
     userId = res.body.user.id;
   });
