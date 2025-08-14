@@ -131,7 +131,7 @@
       "operations": [
         "list_applications", "get_application", "create_application", "update_application", "delete_application",
         "build_application", "deploy_application", "test_application", "monitor_application",
-        "list_models", "get_model", "create_model", "update_model", "delete_model",
+        "list_schemas", "get_schema", "create_schema", "update_schema", "delete_schema",
         "list_components", "get_component", "create_component", "update_component", "delete_component",
         "list_features", "get_feature", "create_feature", "update_feature", "delete_feature",
         "generate_code", "validate_schema", "create_dockerfile", "create_docker_compose",

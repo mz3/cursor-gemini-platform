@@ -4,7 +4,7 @@ import { Plus, Edit, Trash2, Database, Eye } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import api from '../utils/api';
 
-interface Model {
+interface Schema {
   id: string;
   name: string;
   displayName: string;
@@ -16,17 +16,17 @@ interface Model {
 
 const Schemas: React.FC = () => {
   const navigate = useNavigate();
-  const [models, setModels] = useState<Model[]>([]);
+  const [schemas, setSchemas] = useState<Schema[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchModels();
+    fetchSchemas();
   }, []);
 
-  const fetchModels = async () => {
+  const fetchSchemas = async () => {
     try {
       const response = await api.get('/schemas');
-      setModels(response.data);
+      setSchemas(response.data);
     } catch (error) {
               console.error('Error fetching schemas:', error);
     } finally {
@@ -34,11 +34,11 @@ const Schemas: React.FC = () => {
     }
   };
 
-  const handleDelete = async (modelId: string) => {
+  const handleDelete = async (schemaId: string) => {
           if (window.confirm('Are you sure you want to delete this schema? This action cannot be undone.')) {
       try {
-        await api.delete(`/schemas/${modelId}`);
-        fetchModels(); // Refresh the list
+        await api.delete(`/schemas/${schemaId}`);
+        fetchSchemas(); // Refresh the list
       } catch (error) {
         console.error('Error deleting schema:', error);
       }
@@ -65,11 +65,11 @@ const Schemas: React.FC = () => {
           className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
         >
           <Plus className="w-4 h-4 mr-2" />
-          New Model
+          New Schema
         </button>
       </div>
 
-      {models.length === 0 ? (
+      {schemas.length === 0 ? (
         <div className="text-center py-12">
           <Database className="mx-auto h-12 w-12 text-gray-400" />
           <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-gray-100">No schemas</h3>
@@ -87,8 +87,8 @@ const Schemas: React.FC = () => {
       ) : (
         <div className="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-md">
           <ul className="divide-y divide-gray-200">
-            {models.map((model) => (
-              <li key={model.id}>
+            {schemas.map((schema) => (
+              <li key={schema.id}>
                 <div className="px-4 py-4 flex items-center justify-between hover:bg-gray-50">
                   <div className="flex items-center">
                     <div className="flex-shrink-0">
@@ -98,40 +98,40 @@ const Schemas: React.FC = () => {
                     </div>
                     <div className="ml-4">
                       <div className="flex items-center">
-                        <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{model.displayName}</p>
-                        {model.isSystem && (
+                        <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{schema.displayName}</p>
+                        {schema.isSystem && (
                           <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
                             System
                           </span>
                         )}
                       </div>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">{model.name}</p>
-                      {model.description && (
-                        <p className="text-sm text-gray-400 mt-1">{model.description}</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">{schema.name}</p>
+                      {schema.description && (
+                        <p className="text-sm text-gray-400 mt-1">{schema.description}</p>
                       )}
                       <p className="text-xs text-gray-400 mt-1">
-                        {model.schema?.fields?.length || 0} fields • Created {new Date(model.createdAt).toLocaleDateString()}
+                        {schema.schema?.fields?.length || 0} fields • Created {new Date(schema.createdAt).toLocaleDateString()}
                       </p>
                     </div>
                   </div>
                   <div className="flex space-x-2">
                     <button
-                      onClick={() => navigate(`/schemas/${model.id}`)}
+                      onClick={() => navigate(`/schemas/${schema.id}`)}
                       className="text-gray-400 hover:text-blue-600 p-1 rounded"
                       title="View Schema"
                     >
                       <Eye className="h-4 w-4" />
                     </button>
                     <button
-                      onClick={() => navigate(`/schemas/${model.id}/edit`)}
+                      onClick={() => navigate(`/schemas/${schema.id}/edit`)}
                       className="text-gray-400 hover:text-gray-600 p-1 rounded"
                       title="Edit Schema"
                     >
                       <Edit className="h-4 w-4" />
                     </button>
-                    {!model.isSystem && (
+                    {!schema.isSystem && (
                       <button
-                        onClick={() => handleDelete(model.id)}
+                        onClick={() => handleDelete(schema.id)}
                         className="text-gray-400 hover:text-red-600 p-1 rounded"
                         title="Delete Schema"
                       >

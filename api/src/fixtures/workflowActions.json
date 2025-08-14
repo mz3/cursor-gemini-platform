@@ -10,13 +10,13 @@
     "workflowId": "build_application_id"
   },
   {
-    "name": "validate_model",
+    "name": "validate_schema",
     "type": "validation",
     "config": {
       "rules": ["required_fields", "data_types", "relationships"]
     },
     "order": 0,
-    "workflowId": "create_model_id"
+    "workflowId": "create_schema_id"
   },
   {
     "name": "build_docker_image",

@@ -10,11 +10,11 @@
     "isActive": true
   },
   {
-    "name": "create_model",
-    "displayName": "Create Model",
-    "description": "Create a new data model with relationships",
+    "name": "create_schema",
+    "displayName": "Create Schema",
+    "description": "Create a new data schema with relationships",
     "config": {
-      "queue": "model_creation",
+      "queue": "schema_creation",
       "steps": ["validate", "create", "generate-code"]
     },
     "isActive": true
@@ -32,7 +32,7 @@
   {
     "name": "generate_documentation",
     "displayName": "Generate Documentation",
-    "description": "Generate API documentation from models",
+    "description": "Generate API documentation from schemas",
     "config": {
       "queue": "documentation",
       "steps": ["analyze", "generate", "publish"]

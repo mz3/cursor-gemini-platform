@@ -16,12 +16,12 @@ describe('Entity Management Integration Tests', () => {
     testUserId = loginRes.body.user.id;
   });
 
-  describe('Model and Entity Creation Flow', () => {
+  describe('Schema and Entity Creation Flow', () => {
     it('should create a schema and then create entities of that schema type', async () => {
       // Step 1: Create a schema
-      const modelData = {
+      const schemaData = {
         name: 'Product',
-        displayName: 'Product Model',
+        displayName: 'Product Schema',
         schema: {
           fields: [
             { name: 'name', type: 'string', required: true },
@@ -33,16 +33,16 @@ describe('Entity Management Integration Tests', () => {
         userId: testUserId
       };
 
-      const modelResponse = await request(API_BASE_URL)
+      const schemaResponse = await request(API_BASE_URL)
         .post('/api/schemas')
         .set('Authorization', `Bearer ${authToken}`)
-        .send(modelData)
+        .send(schemaData)
         .expect(201);
 
-      testSchemaId = modelResponse.body.id;
-      expect(modelResponse.body.name).toBe('Product');
-      expect(modelResponse.body.displayName).toBe('Product Model');
-      expect(modelResponse.body.schema.fields).toHaveLength(4);
+      testSchemaId = schemaResponse.body.id;
+      expect(schemaResponse.body.name).toBe('Product');
+      expect(schemaResponse.body.displayName).toBe('Product Schema');
+      expect(schemaResponse.body.schema.fields).toHaveLength(4);
 
       // Step 2: Create an entity of the schema type
       const entityData = {
@@ -71,7 +71,7 @@ describe('Entity Management Integration Tests', () => {
       expect(createdEntity.data.price).toBe(1299.99);
       expect(createdEntity.data.inStock).toBe(true);
 
-      // Step 3: Create another entity of the same model type
+      // Step 3: Create another entity of the same schema type
       const entityData2 = {
         name: 'smartphone',
         displayName: 'Smartphone',
@@ -79,7 +79,7 @@ describe('Entity Management Integration Tests', () => {
         data: {
           name: 'iPhone 15 Pro',
           price: 999.99,
-          description: 'Latest smartphone model',
+          description: 'Latest smartphone schema',
           inStock: false
         }
       };
@@ -119,11 +119,11 @@ describe('Entity Management Integration Tests', () => {
       expect(retrievedEntity.data.name).toBe('Gaming Laptop Pro');
     });
 
-    it('should validate entity data against model schema', async () => {
+    it('should validate entity data against schema schema', async () => {
       // Create a schema first
-      const modelData = {
+      const schemaData = {
         name: 'User',
-        displayName: 'User Model',
+        displayName: 'User Schema',
         schema: {
           fields: [
             { name: 'name', type: 'string', required: true },
@@ -135,19 +135,19 @@ describe('Entity Management Integration Tests', () => {
         userId: testUserId
       };
 
-      const modelResponse = await request(API_BASE_URL)
+      const schemaResponse = await request(API_BASE_URL)
         .post('/api/schemas')
         .set('Authorization', `Bearer ${authToken}`)
-        .send(modelData)
+        .send(schemaData)
         .expect(201);
 
-      const model = modelResponse.body;
+      const schema = schemaResponse.body;
 
       // Try to create entity with invalid data (missing required field)
       const invalidEntityData = {
         name: 'john_doe',
         displayName: 'John Doe',
-        schemaId: model.id,
+        schemaId: schema.id,
         data: {
           name: 'John Doe',
           age: 30
@@ -165,7 +165,7 @@ describe('Entity Management Integration Tests', () => {
       const invalidTypeData = {
         name: 'jane_doe',
         displayName: 'Jane Doe',
-        schemaId: model.id,
+        schemaId: schema.id,
         data: {
           name: 'Jane Doe',
           age: 'thirty', // Should be number
@@ -184,7 +184,7 @@ describe('Entity Management Integration Tests', () => {
       const validEntityData = {
         name: 'john_doe',
         displayName: 'John Doe',
-        schemaId: model.id,
+        schemaId: schema.id,
         data: {
           name: 'John Doe',
           age: 30,
@@ -208,9 +208,9 @@ describe('Entity Management Integration Tests', () => {
 
     it('should update entity data', async () => {
       // Create a schema
-      const modelData = {
+      const schemaData = {
         name: 'Book',
-        displayName: 'Book Model',
+        displayName: 'Book Schema',
         schema: {
           fields: [
             { name: 'title', type: 'string', required: true },
@@ -221,19 +221,19 @@ describe('Entity Management Integration Tests', () => {
         userId: testUserId
       };
 
-      const modelResponse = await request(API_BASE_URL)
+      const schemaResponse = await request(API_BASE_URL)
         .post('/api/schemas')
         .set('Authorization', `Bearer ${authToken}`)
-        .send(modelData)
+        .send(schemaData)
         .expect(201);
 
-      const model = modelResponse.body;
+      const schema = schemaResponse.body;
 
       // Create an entity
       const entityData = {
         name: 'book1',
         displayName: 'Sample Book',
-        schemaId: model.id,
+        schemaId: schema.id,
         data: {
           title: 'The Great Gatsby',
           author: 'F. Scott Fitzgerald',
@@ -269,9 +269,9 @@ describe('Entity Management Integration Tests', () => {
 
     it('should delete an entity', async () => {
       // Create a schema
-      const modelData = {
+      const schemaData = {
         name: 'Task',
-        displayName: 'Task Model',
+        displayName: 'Task Schema',
         schema: {
           fields: [
             { name: 'title', type: 'string', required: true },
@@ -281,19 +281,19 @@ describe('Entity Management Integration Tests', () => {
         userId: testUserId
       };
 
-      const modelResponse = await request(API_BASE_URL)
+      const schemaResponse = await request(API_BASE_URL)
         .post('/api/schemas')
         .set('Authorization', `Bearer ${authToken}`)
-        .send(modelData)
+        .send(schemaData)
         .expect(201);
 
-      const model = modelResponse.body;
+      const schema = schemaResponse.body;
 
       // Create an entity
       const entityData = {
         name: 'task1',
         displayName: 'Sample Task',
-        schemaId: model.id,
+        schemaId: schema.id,
         data: {
           title: 'Complete project',
           completed: false

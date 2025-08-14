@@ -22,7 +22,7 @@ interface RelationshipForm {
   name: string;
   displayName: string;
   type: string;
-  targetModelId: string;
+  targetSchemaId: string;
   sourceField: string;
   targetField: string;
   cascade: boolean;
@@ -49,8 +49,8 @@ const CreateSchema: React.FC = () => {
     setError('');
 
     try {
-      // Create model
-      const modelData: any = {
+      // Create schema
+      const schemaData: any = {
         name: data.name,
         displayName: data.displayName,
         description: data.description,
@@ -64,12 +64,12 @@ const CreateSchema: React.FC = () => {
         userId: user?.id,
       };
       if (data.relationships && data.relationships.length > 0) {
-        modelData.relationships = data.relationships;
+        schemaData.relationships = data.relationships;
       }
-      await api.post('/schemas', modelData);
+      await api.post('/schemas', schemaData);
               navigate('/schemas');
     } catch (err: any) {
-      setError(err.response?.data?.error || err.message || 'Failed to create model');
+      setError(err.response?.data?.error || err.message || 'Failed to create schema');
       throw err; // Re-throw so the form can handle it
     } finally {
       setLoading(false);
@@ -84,10 +84,10 @@ const CreateSchema: React.FC = () => {
           className="flex items-center text-gray-600 hover:text-gray-900 mb-4"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to Models
+          Back to Schemas
         </button>
-        <h1 className="text-2xl font-bold text-gray-900">Create New Model</h1>
-        <p className="text-gray-600 mt-2">Design your data model with custom fields and properties</p>
+        <h1 className="text-2xl font-bold text-gray-900">Create New Schema</h1>
+        <p className="text-gray-600 mt-2">Design your data schema with custom fields and properties</p>
       </div>
 
               <SchemaForm

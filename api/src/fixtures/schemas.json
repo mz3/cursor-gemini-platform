@@ -30,16 +30,16 @@
     "userId": "system"
   },
   {
-    "name": "Model",
-    "displayName": "Models",
-    "description": "Data model definitions",
+    "name": "Schema",
+    "displayName": "Schemas",
+    "description": "Data schema definitions",
     "schema": {
       "fields": [
-        { "name": "name", "type": "string", "required": true, "label": "Model Name" },
+        { "name": "name", "type": "string", "required": true, "label": "Schema Name" },
         { "name": "displayName", "type": "string", "required": true, "label": "Display Name" },
         { "name": "description", "type": "text", "required": false, "label": "Description" },
         { "name": "schema", "type": "json", "required": true, "label": "Schema Definition" },
-        { "name": "isSystem", "type": "boolean", "required": true, "label": "System Model", "default": false }
+        { "name": "isSystem", "type": "boolean", "required": true, "label": "System Schema", "default": false }
       ]
     },
     "isSystem": true,
@@ -160,14 +160,14 @@
   {
     "name": "Relationship",
     "displayName": "Relationships",
-    "description": "Model relationships",
+    "description": "Schema relationships",
     "schema": {
       "fields": [
         { "name": "name", "type": "string", "required": true, "label": "Relationship Name" },
         { "name": "displayName", "type": "string", "required": true, "label": "Display Name" },
         { "name": "type", "type": "string", "required": true, "label": "Relationship Type", "options": ["one-to-one", "one-to-many", "many-to-one", "many-to-many"] },
-        { "name": "sourceModelId", "type": "uuid", "required": true, "label": "Source Model" },
-        { "name": "targetModelId", "type": "uuid", "required": true, "label": "Target Model" },
+        { "name": "sourceSchemaId", "type": "uuid", "required": true, "label": "Source Schema" },
+        { "name": "targetSchemaId", "type": "uuid", "required": true, "label": "Target Schema" },
         { "name": "sourceField", "type": "string", "required": true, "label": "Source Field" },
         { "name": "targetField", "type": "string", "required": true, "label": "Target Field" },
         { "name": "cascade", "type": "boolean", "required": true, "label": "Cascade Delete", "default": false },

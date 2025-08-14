@@ -19,13 +19,13 @@ const Dashboard: React.FC = () => {
 
   const fetchStats = async () => {
     try {
-      const [modelsRes, appsRes] = await Promise.all([
+      const [schemasRes, appsRes] = await Promise.all([
         api.get('/schemas'),
         api.get('/applications')
       ]);
 
       setStats({
-        schemas: modelsRes.data.length,
+        schemas: schemasRes.data.length,
         applications: appsRes.data.length,
         users: 1, // For demo
         builds: appsRes.data.filter((app: any) => app.status === 'built').length

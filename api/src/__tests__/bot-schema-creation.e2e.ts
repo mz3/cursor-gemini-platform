@@ -8,7 +8,7 @@ describe('Bot Schema Creation End-to-End Test', () => {
   let authToken: string;
   let testUserId: string;
   let metaPlatformBotId: string;
-  let createdModelId: string;
+  let createdSchemaId: string;
 
   beforeAll(async () => {
     // Step 1: Login to get auth token
@@ -96,7 +96,7 @@ describe('Bot Schema Creation End-to-End Test', () => {
     const createdSchema = schemasRes.body.find((schema: any) => schema.name === schemaName);
 
     if (createdSchema) {
-      createdModelId = createdSchema.id;
+      createdSchemaId = createdSchema.id;
       console.log('✅ Schema found in database:', createdSchema);
     } else {
       console.log('❌ Schema not found in database');
@@ -135,10 +135,10 @@ describe('Bot Schema Creation End-to-End Test', () => {
 
   afterAll(async () => {
     // Cleanup: Delete the test schema if it was created
-    if (createdModelId) {
+    if (createdSchemaId) {
       try {
         await request(API_BASE_URL)
-          .delete(`/api/schemas/${createdModelId}`)
+          .delete(`/api/schemas/${createdSchemaId}`)
           .set('Authorization', `Bearer ${authToken}`);
         console.log('✅ Test schema cleaned up');
       } catch (error) {

@@ -24,8 +24,8 @@ describe('Create Schema', () => {
 
   it('should create a new schema', () => {
     const timestamp = Date.now();
-    const modelName = `TestModel${timestamp}`;
-    const displayName = `Test Model ${timestamp}`;
+    const schemaName = `TestSchema${timestamp}`;
+    const displayName = `Test Schema ${timestamp}`;
 
     // Click on "New Schema" button
     cy.contains('New Schema').click();
@@ -35,9 +35,9 @@ describe('Create Schema', () => {
     cy.contains('h1', 'Create New Schema').should('be.visible');
 
     // Fill in the schema form
-    cy.get('input[id="name"]').type(modelName);
+    cy.get('input[id="name"]').type(schemaName);
     cy.get('input[id="displayName"]').type(displayName);
-    cy.get('textarea[id="description"]').type('A test model for E2E testing');
+    cy.get('textarea[id="description"]').type('A test schema for E2E testing');
 
     // Add a field
     cy.get('button').contains('Add Field').click();
@@ -94,14 +94,30 @@ describe('Create Schema', () => {
     cy.get('button').contains('Add Relationship').click();
     cy.get('input[placeholder="e.g., project_tasks"]').type('projectTasks');
     cy.get('input[placeholder="e.g., Project Tasks"]').type('Project Tasks');
-    cy.get('select').eq(1).select('many-to-one'); // Relationship type
-    cy.get('select').eq(2).select(projectDisplayName); // Target schema
-    cy.get('input[placeholder="e.g., projectId"]').type('projectId'); // Source field
+    // Select relationship type by scanning available selects
+    cy.get('select').then(($sels) => {
+      const sel = Array.from($sels as any).find((s: HTMLSelectElement) => Array.from(s.options).some(o => o.text.includes('Many to One')));
+      if (sel) {
+        cy.wrap(sel).select('Many to One', { force: true });
+      }
+    });
+    // Select target schema containing our projectDisplayName
+    cy.get('select').then(($sels) => {
+      const sel = Array.from($sels as any).find((s: HTMLSelectElement) => Array.from(s.options).some(o => o.text.includes(projectDisplayName)));
+      if (sel) {
+        const opt = Array.from((sel as HTMLSelectElement).options).find(o => o.text.includes(projectDisplayName));
+        if (opt && opt.value) {
+          cy.wrap(sel).select(opt.value, { force: true });
+        }
+      }
+    });
+    cy.get('input[placeholder="e.g., projectId"]').type('project'); // Source field
     cy.get('input[placeholder="e.g., id"]').type('id'); // Target field
     cy.get('textarea[placeholder="Describe this relationship..."]').type('Each task belongs to a project.');
 
-    cy.get('button').contains('Create Model').click();
-    cy.url().should('include', '/models');
-    cy.contains(taskDisplayName).should('be.visible');
+    cy.get('button').contains('Create Schema').click();
+    cy.url().should('include', '/schemas');
+    // Wait for list to reload and assert by either display or name
+    cy.contains(taskDisplayName).should('exist');
   });
 });

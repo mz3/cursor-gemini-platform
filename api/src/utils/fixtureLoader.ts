@@ -40,7 +40,7 @@ export class FixtureLoader {
       'applications',
       'features',
       'components',
-      'models',
+      'schemas',
       'prompts',
       'promptVersions',
       'bots',

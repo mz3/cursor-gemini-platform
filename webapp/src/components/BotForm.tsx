@@ -117,7 +117,7 @@ const BotForm: React.FC<BotFormProps> = ({
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700">Model ID</label>
+        <label className="block text-sm font-medium text-gray-700">Schema ID</label>
         <input
           type="text"
           value={form.modelId || ''}

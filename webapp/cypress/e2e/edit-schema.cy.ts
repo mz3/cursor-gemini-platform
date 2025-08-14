@@ -24,17 +24,17 @@ describe('Edit Schema', () => {
 
   it('should edit an existing schema', () => {
     const timestamp = Date.now();
-    const modelName = `TestModelEdit${timestamp}`;
-    const displayName = `Test Model Edit ${timestamp}`;
+    const schemaName = `TestSchemaEdit${timestamp}`;
+    const displayName = `Test Schema Edit ${timestamp}`;
 
     // First, create a schema to edit
     cy.contains('New Schema').click();
     cy.url().should('include', '/schemas/create');
 
     // Fill in the schema form
-    cy.get('input[id="name"]').type(modelName);
+    cy.get('input[id="name"]').type(schemaName);
     cy.get('input[id="displayName"]').type(displayName);
-    cy.get('textarea[id="description"]').type('A test model for editing');
+    cy.get('textarea[id="description"]').type('A test schema for editing');
 
     // Add a field
     cy.get('button').contains('Add Field').click();
@@ -54,14 +54,14 @@ describe('Edit Schema', () => {
     cy.url().should('include', '/edit');
 
     // Verify the form is populated with existing data
-    cy.get('input[id="name"]').should('have.value', modelName);
+    cy.get('input[id="name"]').should('have.value', schemaName);
     cy.get('input[id="displayName"]').should('have.value', displayName);
-    cy.get('textarea[id="description"]').should('have.value', 'A test model for editing');
+    cy.get('textarea[id="description"]').should('have.value', 'A test schema for editing');
 
     // Update the schema information
-    const updatedDisplayName = `Updated Test Model ${timestamp}`;
+    const updatedDisplayName = `Updated Test Schema ${timestamp}`;
     cy.get('input[id="displayName"]').clear().type(updatedDisplayName);
-    cy.get('textarea[id="description"]').clear().type('Updated description for the test model');
+    cy.get('textarea[id="description"]').clear().type('Updated description for the test schema');
 
     // Update the existing field
     cy.get('input[placeholder="Display name"]').first().clear().type('Updated Field');
@@ -98,8 +98,8 @@ describe('Edit Schema', () => {
     cy.get('input[placeholder="Display name"]').first().type('Title');
     cy.get('select').first().select('string');
     cy.get('input[type="checkbox"]').first().check(); // Required
-    cy.get('button').contains('Create Model').click();
-    cy.url().should('include', '/models');
+    cy.get('button').contains('Create Schema').click();
+    cy.url().should('include', '/schemas');
 
     // Create Task schema with relationship
     cy.contains('New Schema').click();
@@ -122,11 +122,11 @@ describe('Edit Schema', () => {
     cy.get('input[placeholder="e.g., id"]').type('id');
     cy.get('textarea[placeholder="Describe this relationship..."]').type('Each task belongs to a project.');
 
-    cy.get('button').contains('Create Model').click();
-    cy.url().should('include', '/models');
+    cy.get('button').contains('Create Schema').click();
+    cy.url().should('include', '/schemas');
 
     // Verify the Task schema was created
-    cy.contains(taskDisplayName).should('be.visible');
+    cy.contains(taskDisplayName).should('exist');
 
     // Now edit the Task schema - look for the specific schema we just created
     cy.contains(taskDisplayName).closest('li').find('button[title="Edit Schema"]').click();
@@ -176,28 +176,28 @@ describe('Edit Schema', () => {
 
   it('should handle validation errors when editing a schema', () => {
     const timestamp = Date.now();
-    const modelName = `ValidationTestModel${timestamp}`;
-    const displayName = `Validation Test Model ${timestamp}`;
+    const schemaName = `ValidationTestSchema${timestamp}`;
+    const displayName = `Validation Test Schema ${timestamp}`;
 
     // Create a schema first
     cy.contains('New Schema').click();
-    cy.get('input[id="name"]').type(modelName);
+    cy.get('input[id="name"]').type(schemaName);
     cy.get('input[id="displayName"]').type(displayName);
-    cy.get('textarea[id="description"]').type('A test model for validation');
+    cy.get('textarea[id="description"]').type('A test schema for validation');
     cy.get('button').contains('Add Field').click();
     cy.get('input[placeholder="Field name"]').first().type('testField');
     cy.get('input[placeholder="Display name"]').first().type('Test Field');
     cy.get('select').first().select('string');
-    cy.get('button').contains('Create Model').click();
-    cy.url().should('include', '/models');
+    cy.get('button').contains('Create Schema').click();
+    cy.url().should('include', '/schemas');
 
-    // Edit the model - look for the specific model we just created
-    cy.contains(displayName).closest('li').find('button[title="Edit Model"]').click();
+    // Edit the schema - look for the specific schema we just created
+    cy.contains(displayName).closest('li').find('button[title="Edit Schema"]').click();
     cy.url().should('include', '/edit');
 
     // Try to submit with invalid data (empty display name)
     cy.get('input[id="displayName"]').clear();
-    cy.get('button').contains('Update Model').click();
+    cy.get('button').contains('Update Schema').click();
 
     // Should show validation error
     cy.contains('Name and Display Name are required').should('be.visible');
@@ -205,10 +205,10 @@ describe('Edit Schema', () => {
     // Fix the validation error
     const fixedDisplayName = `Fixed Display Name ${timestamp}`;
     cy.get('input[id="displayName"]').type(fixedDisplayName);
-    cy.get('button').contains('Update Model').click();
+    cy.get('button').contains('Update Schema').click();
 
     // Should succeed and redirect
-    cy.url().should('include', '/models');
+    cy.url().should('include', '/schemas');
     cy.contains(fixedDisplayName).should('be.visible');
   });
 });

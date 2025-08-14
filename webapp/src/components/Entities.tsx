@@ -20,8 +20,9 @@ interface Entity {
   name: string;
   displayName: string;
   data: Record<string, any>;
-  modelId: string;
-  model: Schema;
+  schemaId: string;
+  schema?: Schema; // backward compatibility
+  schema?: Schema;
   createdAt: string;
 }
 
@@ -48,7 +49,7 @@ export const Entities: React.FC = () => {
   const [newEntity, setNewEntity] = useState({
     name: '',
     displayName: '',
-    modelId: '',
+    schemaId: '',
     data: {} as Record<string, any>
   });
 
@@ -118,7 +119,7 @@ export const Entities: React.FC = () => {
     try {
       const response = await api.post('/entities', newEntity);
       setEntities(prev => [...prev, response.data]);
-      setNewEntity({ name: '', displayName: '', modelId: '', data: {} });
+      setNewEntity({ name: '', displayName: '', schemaId: '', data: {} });
       alert('Entity created successfully!');
     } catch (error) {
       console.error('Error creating entity:', error);
@@ -209,7 +210,7 @@ export const Entities: React.FC = () => {
 
       {activeTab === 'schemas' && (
         <div className="space-y-8">
-          {/* Create Model Form */}
+          {/* Create Schema Form */}
           <div className="bg-white p-6 rounded-lg shadow-md">
             <h2 className="text-xl font-semibold mb-4">Create New Schema</h2>
             <div className="space-y-4">
@@ -298,13 +299,13 @@ export const Entities: React.FC = () => {
             </div>
           </div>
 
-          {/* Models List */}
+          {/* Schemas List */}
           <div className="bg-white p-6 rounded-lg shadow-md">
             <h2 className="text-xl font-semibold mb-4">Existing Schemas</h2>
             <div className="space-y-4">
               {schemas.map((schema) => (
                 <div key={schema.id} className="border border-gray-200 rounded-lg p-4">
-                  <h3 className="font-semibold text-lg">{schema.displayName}</h3>
+                  <h3 className="font-semibold text-lg">{schema.displayName || schema.name}</h3>
                   <p className="text-gray-600 text-sm">Name: {schema.name}</p>
                   <div className="mt-2">
                     <h4 className="font-medium text-sm text-gray-700">Fields:</h4>
@@ -360,10 +361,10 @@ export const Entities: React.FC = () => {
                       Schema Type
                     </label>
                     <select
-                      value={newEntity.modelId}
+                      value={newEntity.schemaId}
                       onChange={(e) => {
                         const schemaId = e.target.value;
-                        setNewEntity(prev => ({ ...prev, modelId: schemaId, data: {} }));
+                        setNewEntity(prev => ({ ...prev, schemaId, data: {} }));
                         const selectedSchema = schemas.find(s => s.id === schemaId);
                         setSelectedSchema(selectedSchema || null);
                       }}
@@ -402,7 +403,7 @@ export const Entities: React.FC = () => {
 
               <button
                 onClick={createEntity}
-                disabled={!newEntity.name || !newEntity.displayName || !newEntity.modelId}
+                disabled={!newEntity.name || !newEntity.displayName || !newEntity.schemaId}
                 className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
               >
                 Create Entity
@@ -418,7 +419,7 @@ export const Entities: React.FC = () => {
                 <div key={entity.id} className="border border-gray-200 rounded-lg p-4">
                   <h3 className="font-semibold text-lg">{entity.displayName}</h3>
                   <p className="text-gray-600 text-sm">Name: {entity.name}</p>
-                  <p className="text-gray-600 text-sm">Schema: {entity.model.displayName}</p>
+                  <p className="text-gray-600 text-sm">Schema: {entity.schema?.displayName || entity.schema?.name || entity.schema?.displayName || entity.schema?.name || ''}</p>
                   <div className="mt-2">
                     <h4 className="font-medium text-sm text-gray-700">Data:</h4>
                     <div className="mt-1 space-y-1">

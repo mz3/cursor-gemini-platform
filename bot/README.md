@@ -81,8 +81,8 @@ The worker listens to the `bot_messages` Redis queue for incoming bot messages:
 // Example message structure
 {
   botId: "uuid",
-  userId: "uuid", 
-  message: "list my models",
+  userId: "uuid",
+  message: "list my schemas",
   instanceId?: "uuid"
 }
 ```
@@ -93,7 +93,7 @@ The worker detects tool calls in user messages and executes them:
 
 ```typescript
 // Tool detection patterns
-- "list my models" → list_models operation
+- "list my schemas" → list_schemas operation
 - "show applications" → list_applications operation
 - "search for users" → search_platform operation
 ```
@@ -127,7 +127,7 @@ await publishEvent('bot_responses', {
 ## 🛠️ Tool Types Supported
 
 ### MCP Tools (Platform API SDK)
-- `list_models` - List user's data models
+- `list_schemas` - List user's data schemas
 - `list_applications` - List user's applications
 - `list_bots` - List user's bots
 - `list_prompts` - List user's prompts
@@ -160,9 +160,9 @@ await publishEvent('bot_responses', {
 The worker provides detailed logging:
 
 ```
-🤖 Processing message for bot abc-123: "list my models"
+🤖 Processing message for bot abc-123: "list my schemas"
 🔧 Tool detected: platform-api-sdk (mcp_tool)
-📝 Extracted params: {"operation":"list_models","userId":"user-456"}
+📝 Extracted params: {"operation":"list_schemas","userId":"user-456"}
 ✅ Bot message processed successfully
 ```
 

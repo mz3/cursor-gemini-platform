@@ -22,7 +22,7 @@ interface RelationshipForm {
   name: string;
   displayName: string;
   type: string; // one-to-one, one-to-many, many-to-one, many-to-many
-  targetModelId: string;
+  targetSchemaId: string;
   sourceField: string;
   targetField: string;
   cascade: boolean;
@@ -86,14 +86,14 @@ const SchemaForm: React.FC<SchemaFormProps> = ({
     fields: [],
     relationships: [],
   });
-  const [models, setModels] = useState<any[]>([]); // For dropdown
+  const [schemas, setSchemas] = useState<any[]>([]); // For dropdown
   const { user } = useAuth();
 
-  // Fetch models for relationship dropdown
+  // Fetch schemas for relationship dropdown
   useEffect(() => {
     api.get('/schemas')
-      .then(res => setModels(res.data))
-      .catch(() => setModels([]));
+      .then(res => setSchemas(res.data))
+      .catch(() => setSchemas([]));
   }, []);
 
   const addField = () => {
@@ -135,7 +135,7 @@ const SchemaForm: React.FC<SchemaFormProps> = ({
           name: '',
           displayName: '',
           type: 'one-to-many',
-          targetModelId: '',
+          targetSchemaId: '',
           sourceField: '',
           targetField: '',
           cascade: false,
@@ -185,8 +185,8 @@ const SchemaForm: React.FC<SchemaFormProps> = ({
     // Validate relationships
     if (form.relationships && form.relationships.length > 0) {
       for (const rel of form.relationships) {
-        if (!rel.name || !rel.displayName || !rel.type || !rel.targetModelId || !rel.sourceField || !rel.targetField) {
-          onError?.('All relationships must have name, display name, type, target model, source field, and target field');
+        if (!rel.name || !rel.displayName || !rel.type || !rel.targetSchemaId || !rel.sourceField || !rel.targetField) {
+          onError?.('All relationships must have name, display name, type, target schema, source field, and target field');
           return;
         }
       }
@@ -195,19 +195,19 @@ const SchemaForm: React.FC<SchemaFormProps> = ({
     try {
       await onSubmit(form);
     } catch (err: any) {
-      onError?.(err.message || 'An error occurred while saving the model');
+      onError?.(err.message || 'An error occurred while saving the schema');
     }
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
-      {/* Basic Model Information */}
+      {/* Basic Schema Information */}
       <div className="bg-white shadow rounded-lg p-6">
         <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">Basic Information</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Model Name *
+              Schema Name *
             </label>
             <input
               id="name"
@@ -244,7 +244,7 @@ const SchemaForm: React.FC<SchemaFormProps> = ({
             onChange={(e) => setForm(prev => ({ ...prev, description: e.target.value }))}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
             rows={3}
-            placeholder="Describe what this model represents..."
+            placeholder="Describe what this schema represents..."
           />
         </div>
       </div>
@@ -426,7 +426,7 @@ const SchemaForm: React.FC<SchemaFormProps> = ({
         </div>
         {(form.relationships?.length === 0) ? (
           <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-            <p>No relationships defined yet. Click "Add Relationship" to link this model to others.</p>
+            <p>No relationships defined yet. Click "Add Relationship" to link this schema to others.</p>
           </div>
         ) : (
           <div className="space-y-4">
@@ -476,15 +476,15 @@ const SchemaForm: React.FC<SchemaFormProps> = ({
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Target Model *</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Target Schema *</label>
                     <select
-                      value={rel.targetModelId}
-                      onChange={e => updateRelationship(idx, { targetModelId: e.target.value })}
+                      value={rel.targetSchemaId}
+                      onChange={e => updateRelationship(idx, { targetSchemaId: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
                     >
-                      <option value="">Select model...</option>
-                      {models.filter(m => m.name !== form.name).map(model => (
-                        <option key={model.id} value={model.id}>{model.displayName || model.name}</option>
+                      <option value="">Select schema...</option>
+                      {schemas.filter((m: any) => m.name !== form.name).map((schema: any) => (
+                        <option key={schema.id} value={schema.id}>{schema.displayName || schema.name}</option>
                       ))}
                     </select>
                   </div>

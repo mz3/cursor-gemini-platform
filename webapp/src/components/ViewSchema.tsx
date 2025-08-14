@@ -3,7 +3,7 @@ import { ArrowLeft, Edit, Database, Calendar, User, Settings } from 'lucide-reac
 import { useNavigate, useParams } from 'react-router-dom';
 import api from '../utils/api';
 
-interface Model {
+interface Schema {
   id: string;
   name: string;
   displayName: string;
@@ -35,37 +35,37 @@ interface Entity {
 const ViewSchema: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const [model, setModel] = useState<Model | null>(null);
+  const [Schema, setSchema] = useState<Schema | null>(null);
   const [entities, setEntities] = useState<Entity[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
     if (id) {
-      loadModelData();
+      loadSchemaData();
     }
   }, [id]);
 
-  const loadModelData = async () => {
+  const loadSchemaData = async () => {
     try {
       setLoading(true);
-      const [modelResponse, applicationsResponse, relationshipsResponse] = await Promise.all([
+      const [SchemaResponse, applicationsResponse, relationshipsResponse] = await Promise.all([
         api.get(`/schemas/${id}`),
         api.get('/applications'),
         api.get('/relationships')
       ]);
 
-      setModel(modelResponse.data);
+      setSchema(SchemaResponse.data);
 
-      // Get relationships where this model is involved
-      const modelRelationships = relationshipsResponse.data.filter((rel: any) =>
-        rel.sourceModelId === id || rel.targetModelId === id
+      // Get relationships where this Schema is involved
+      const SchemaRelationships = relationshipsResponse.data.filter((rel: any) =>
+        rel.sourceSchemaId === id || rel.targetSchemaId === id
       );
 
       // Transform into entities for display
       const entityList: Entity[] = [
-        // Relationships involving this model
-        ...modelRelationships.map((rel: any) => ({
+        // Relationships involving this Schema
+        ...SchemaRelationships.map((rel: any) => ({
           name: rel.name,
           displayName: rel.displayName,
           description: rel.description,
@@ -80,7 +80,7 @@ const ViewSchema: React.FC = () => {
 
       setEntities(entityList);
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to load model');
+      setError(err.response?.data?.error || 'Failed to load Schema');
     } finally {
       setLoading(false);
     }
@@ -165,7 +165,7 @@ const ViewSchema: React.FC = () => {
     );
   }
 
-  if (!model) {
+  if (!Schema) {
     return (
       <div className="max-w-6xl mx-auto p-6">
         <div className="text-center py-12">
@@ -195,12 +195,12 @@ const ViewSchema: React.FC = () => {
         </button>
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">{model.displayName}</h1>
-            <p className="text-gray-600 mt-2">{model.description || 'No description provided'}</p>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">{Schema.displayName}</h1>
+            <p className="text-gray-600 mt-2">{Schema.description || 'No description provided'}</p>
           </div>
           <div className="flex space-x-3">
             <button
-              onClick={() => navigate(`/schemas/${model.id}/edit`)}
+              onClick={() => navigate(`/schemas/${Schema.id}/edit`)}
               className="flex items-center bg-primary-500 text-white px-4 py-2 rounded-md hover:bg-primary-600 transition-colors"
             >
               <Edit className="w-4 h-4 mr-2" />
@@ -210,7 +210,7 @@ const ViewSchema: React.FC = () => {
         </div>
       </div>
 
-      {/* Model Information */}
+      {/* Schema Information */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
         <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
           <div className="flex items-center mb-4">
@@ -220,12 +220,12 @@ const ViewSchema: React.FC = () => {
           <dl className="space-y-3">
             <div>
               <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">Name</dt>
-              <dd className="text-sm text-gray-900 dark:text-gray-100 font-mono">{model.name}</dd>
+              <dd className="text-sm text-gray-900 dark:text-gray-100 font-mono">{Schema.name}</dd>
             </div>
             <div>
               <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">Type</dt>
               <dd className="text-sm text-gray-900 dark:text-gray-100">
-                {model.isSystem ? (
+                {Schema.isSystem ? (
                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                     System Schema
                   </span>
@@ -247,11 +247,11 @@ const ViewSchema: React.FC = () => {
           <dl className="space-y-3">
             <div>
               <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">User</dt>
-              <dd className="text-sm text-gray-900 dark:text-gray-100">{model.user?.firstName} {model.user?.lastName}</dd>
+              <dd className="text-sm text-gray-900 dark:text-gray-100">{Schema.user?.firstName} {Schema.user?.lastName}</dd>
             </div>
             <div>
               <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">Email</dt>
-              <dd className="text-sm text-gray-900 dark:text-gray-100">{model.user?.email}</dd>
+              <dd className="text-sm text-gray-900 dark:text-gray-100">{Schema.user?.email}</dd>
             </div>
           </dl>
         </div>
@@ -264,11 +264,11 @@ const ViewSchema: React.FC = () => {
           <dl className="space-y-3">
             <div>
               <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">Created</dt>
-              <dd className="text-sm text-gray-900 dark:text-gray-100">{formatDate(model.createdAt)}</dd>
+              <dd className="text-sm text-gray-900 dark:text-gray-100">{formatDate(Schema.createdAt)}</dd>
             </div>
             <div>
               <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">Last Updated</dt>
-              <dd className="text-sm text-gray-900 dark:text-gray-100">{formatDate(model.updatedAt)}</dd>
+              <dd className="text-sm text-gray-900 dark:text-gray-100">{formatDate(Schema.updatedAt)}</dd>
             </div>
           </dl>
         </div>
@@ -280,15 +280,15 @@ const ViewSchema: React.FC = () => {
           <Settings className="w-5 h-5 text-gray-400 mr-2" />
           <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Schema Definition</h3>
         </div>
-        {renderSchemaVisualization(model.schema)}
+        {renderSchemaVisualization(Schema.schema)}
       </div>
 
       {/* Entities Table */}
       <div className="bg-white shadow rounded-lg">
         <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-          <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Model Entities</h3>
+          <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Schema Entities</h3>
           <p className="text-sm text-gray-600 mt-1">
-            Entities and relationships defined by this model
+            Entities and relationships defined by this Schema
           </p>
         </div>
         <div className="overflow-x-auto">
@@ -355,7 +355,7 @@ const ViewSchema: React.FC = () => {
               ) : (
                 <tr>
                   <td colSpan={7} className="px-6 py-4 text-center text-sm text-gray-500 dark:text-gray-400">
-                    No entities found for this model
+                    No entities found for this Schema
                   </td>
                 </tr>
               )}

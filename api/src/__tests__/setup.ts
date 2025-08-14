@@ -18,7 +18,7 @@ console.log = (...args: any[]) => {
       !message.includes('Stopped existing bot instance') &&
       !message.includes('Started bot:') &&
       !message.includes('Stopped bot:') &&
-      !message.includes('Created test model:') &&
+      !message.includes('Created test schema:') &&
       !message.includes('Test setup:') &&
       !message.includes('Created application:') &&
       !message.includes('Started code-builder bot') &&
@@ -31,4 +31,4 @@ console.log = (...args: any[]) => {
   ) {
     originalConsoleLog(...args);
   }
-}; 
+};

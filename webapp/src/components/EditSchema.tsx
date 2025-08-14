@@ -23,7 +23,7 @@ interface RelationshipForm {
   name: string;
   displayName: string;
   type: string;
-  targetModelId: string;
+  targetSchemaId: string;
   sourceField: string;
   targetField: string;
   cascade: boolean;
@@ -48,35 +48,35 @@ const EditSchema: React.FC = () => {
   const [error, setError] = useState('');
   const { user } = useAuth();
 
-  // Load model data
+  // Load schema data
   useEffect(() => {
     if (id) {
-      loadModel();
+      loadSchema();
     }
   }, [id]);
 
-  const loadModel = async () => {
+  const loadSchema = async () => {
     try {
       setLoading(true);
-      const [modelResponse, relationshipsResponse] = await Promise.all([
+      const [schemaResponse, relationshipsResponse] = await Promise.all([
         api.get(`/schemas/${id}`),
         api.get(`/relationships`)
       ]);
 
-      const model = modelResponse.data;
-      const relationships = relationshipsResponse.data.filter((rel: any) => rel.sourceModelId === id);
+      const schema = schemaResponse.data;
+      const relationships = relationshipsResponse.data.filter((rel: any) => rel.sourceSchemaId === id);
 
       setFormData({
-        name: model.name,
-        displayName: model.displayName,
-        description: model.description || '',
-        fields: model.schema?.fields || [],
+        name: schema.name,
+        displayName: schema.displayName,
+        description: schema.description || '',
+        fields: schema.schema?.fields || [],
         relationships: relationships.map((rel: any) => ({
           id: rel.id,
           name: rel.name,
           displayName: rel.displayName,
           type: rel.type,
-          targetModelId: rel.targetModelId,
+          targetSchemaId: rel.targetSchemaId,
           sourceField: rel.sourceField,
           targetField: rel.targetField,
           cascade: rel.cascade,
@@ -85,7 +85,7 @@ const EditSchema: React.FC = () => {
         })),
       });
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to load model');
+      setError(err.response?.data?.error || 'Failed to load schema');
     } finally {
       setLoading(false);
     }
@@ -96,8 +96,8 @@ const EditSchema: React.FC = () => {
     setError('');
 
     try {
-      // Update model
-      const modelData: any = {
+      // Update schema
+      const schemaData: any = {
         name: data.name,
         displayName: data.displayName,
         description: data.description,
@@ -109,8 +109,8 @@ const EditSchema: React.FC = () => {
         },
       };
 
-      // Update model
-      await api.put(`/schemas/${id}`, modelData);
+      // Update schema
+      await api.put(`/schemas/${id}`, schemaData);
 
       // Update relationships
       if (data.relationships && data.relationships.length > 0) {
@@ -126,7 +126,7 @@ const EditSchema: React.FC = () => {
         for (const rel of data.relationships) {
           await api.post('/relationships', {
             ...rel,
-            sourceModelId: id,
+            sourceSchemaId: id,
             userId: user?.id,
           });
         }
@@ -134,7 +134,7 @@ const EditSchema: React.FC = () => {
 
               navigate('/schemas');
     } catch (err: any) {
-      setError(err.response?.data?.error || err.message || 'Failed to update model');
+      setError(err.response?.data?.error || err.message || 'Failed to update schema');
       throw err; // Re-throw so the form can handle it
     } finally {
       setSaving(false);
@@ -153,7 +153,7 @@ const EditSchema: React.FC = () => {
     return (
       <div className="max-w-4xl mx-auto p-6">
         <div className="bg-red-50 border border-red-200 rounded-md p-4">
-          <div className="text-sm text-red-700">Failed to load model data</div>
+          <div className="text-sm text-red-700">Failed to load schema data</div>
         </div>
       </div>
     );
@@ -167,10 +167,10 @@ const EditSchema: React.FC = () => {
           className="flex items-center text-gray-600 hover:text-gray-900 mb-4"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to Models
+          Back to Schemas
         </button>
-        <h1 className="text-2xl font-bold text-gray-900">Edit Model</h1>
-        <p className="text-gray-600 mt-2">Update your data model with custom fields and properties</p>
+        <h1 className="text-2xl font-bold text-gray-900">Edit Schema</h1>
+        <p className="text-gray-600 mt-2">Update your data schema with custom fields and properties</p>
       </div>
 
               <SchemaForm

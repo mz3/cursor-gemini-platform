@@ -226,7 +226,7 @@ export const seedDatabase = async (): Promise<void> => {
       { botName: 'code-builder', promptName: 'code-builder' },
       { botName: 'sysadmin', promptName: 'sysadmin' },
       { botName: 'code-generator', promptName: 'code-generation' },
-      { botName: 'model-assistant', promptName: 'model-creation' },
+      { botName: 'schema-assistant', promptName: 'schema-creation' },
       { botName: 'workflow-assistant', promptName: 'workflow-generation' },
       { botName: 'deployment-bot', promptName: 'code-builder' }
     ];

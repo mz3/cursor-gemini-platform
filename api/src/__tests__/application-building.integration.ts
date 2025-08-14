@@ -8,7 +8,7 @@ const execAsync = promisify(exec);
 describe('Application Building API Integration Tests', () => {
   let testUserId: string;
   let authToken: string;
-  let testModelId: string;
+  let testSchemaId: string;
   let testApplicationId: string;
   let codeBuilderBotId: string;
   let dockerAvailable: boolean = false;
@@ -57,11 +57,11 @@ describe('Application Building API Integration Tests', () => {
       }
     }
 
-    // Create a test model for the application
-    const modelData = {
+    // Create a test schema for the application
+    const schemaData = {
       name: 'test-user',
       displayName: 'Test User',
-      description: 'A test user model for application building',
+      description: 'A test user schema for application building',
       schema: {
         fields: [
           {
@@ -98,21 +98,21 @@ describe('Application Building API Integration Tests', () => {
       userId: testUserId
     };
 
-    const modelRes = await request(API_BASE_URL)
+    const schemaRes = await request(API_BASE_URL)
       .post('/api/schemas')
       .set('Authorization', `Bearer ${authToken}`)
-      .send(modelData);
+      .send(schemaData);
 
-    if (modelRes.status === 201) {
-      testModelId = modelRes.body.id;
-      console.log('Created test model:', testModelId);
+    if (schemaRes.status === 201) {
+      testSchemaId = schemaRes.body.id;
+      console.log('Created test schema:', testSchemaId);
     } else {
-      console.log('Failed to create test model:', modelRes.body);
+      console.log('Failed to create test schema:', schemaRes.body);
       // Use a fallback UUID
-      testModelId = '00000000-0000-0000-0000-000000000002';
+      testSchemaId = '00000000-0000-0000-0000-000000000002';
     }
 
-    console.log('Test setup:', { testUserId, testModelId, codeBuilderBotId });
+    console.log('Test setup:', { testUserId, testSchemaId, codeBuilderBotId });
   });
 
   describe('Application Creation and Building Workflow', () => {
@@ -134,7 +134,7 @@ describe('Application Building API Integration Tests', () => {
         config: {
           theme: 'light',
           features: ['user-crud', 'search', 'pagination'],
-          models: [testModelId],
+          schemas: [testSchemaId],
           framework: 'react',
           database: 'postgresql'
         }
@@ -241,7 +241,7 @@ describe('Application Building API Integration Tests', () => {
         config: {
           theme: 'dark',
           features: ['analytics', 'notifications', 'real-time-updates', 'export'],
-          models: [testModelId],
+          schemas: [testSchemaId],
           framework: 'react',
           database: 'postgresql',
           authentication: 'jwt',
@@ -377,7 +377,7 @@ describe('Application Building API Integration Tests', () => {
         config: {
           theme: 'light',
           features: ['basic-crud'],
-          models: [testModelId]
+          schemas: [testSchemaId]
         }
       };
 
@@ -486,7 +486,7 @@ describe('Application Building API Integration Tests', () => {
         config: {
           theme: 'dark',
           features: Array.from({ length: 100 }, (_, i) => `feature-${i}`),
-          models: [testModelId],
+          schemas: [testSchemaId],
           framework: 'react',
           database: 'postgresql',
           // Add a large nested configuration
@@ -547,14 +547,14 @@ describe('Application Building API Integration Tests', () => {
       }
     }
 
-    if (testModelId) {
+    if (testSchemaId) {
       try {
         await request(API_BASE_URL)
-          .delete(`/api/models/${testModelId}`)
+          .delete(`/api/schemas/${testSchemaId}`)
           .set('Authorization', `Bearer ${authToken}`);
-        console.log('Cleaned up test model');
+        console.log('Cleaned up test schema');
       } catch (error) {
-        console.log('Error cleaning up test model:', error);
+        console.log('Error cleaning up test schema:', error);
       }
     }
 
