@@ -21,7 +21,6 @@ interface Entity {
   displayName: string;
   data: Record<string, any>;
   schemaId: string;
-  schema?: Schema; // backward compatibility
   schema?: Schema;
   createdAt: string;
 }

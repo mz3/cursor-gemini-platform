@@ -29,6 +29,7 @@ export interface WebSocketEventHandlers {
   onStatusUpdate?: (status: BotStatusUpdate) => void;
   onTypingIndicator?: (indicator: TypingIndicator) => void;
   onConversationHistory?: (messages: ChatMessage[]) => void;
+  onConversationCleared?: (data: { botId: string; userId: string }) => void;
   onError?: (error: Error) => void;
   onConnect?: () => void;
   onDisconnect?: () => void;
