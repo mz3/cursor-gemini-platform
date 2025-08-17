@@ -321,11 +321,21 @@ export const seedDatabase = async (): Promise<void> => {
     console.log('Creating prompts...');
     // Create prompts from fixtures
     if (fixtures.prompts) {
+      // Find the system user for system prompts
+      const systemUser = await userRepository.findOne({
+        where: { email: 'system@platform.com' }
+      });
+
       for (const promptData of fixtures.prompts) {
         try {
+          // Handle system prompts - use system user ID if userId is "system"
+          const promptUserId = promptData.userId === 'system' && systemUser
+            ? systemUser.id
+            : savedUser!.id;
+
           const prompt = promptRepository.create({
             ...promptData,
-            userId: savedUser!.id
+            userId: promptUserId
           });
           await promptRepository.save(prompt);
         } catch (error) {
