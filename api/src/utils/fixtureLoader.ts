@@ -55,7 +55,8 @@ export class FixtureLoader {
       'roles',
       'permissions',
       'featureFlags',
-      'secrets'
+      'secrets',
+      'services'
     ];
 
     const fixtures: FixtureData = {};

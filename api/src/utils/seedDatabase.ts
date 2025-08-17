@@ -18,6 +18,7 @@ import { Role } from '../entities/Role.js';
 import { Permission, PermissionResource } from '../entities/Permission.js';
 import { FeatureFlag } from '../entities/FeatureFlag.js';
 import { Secret } from '../entities/Secret.js';
+import { Service } from '../entities/Service.js';
 import { FixtureLoader } from './fixtureLoader.js';
 import bcrypt from 'bcryptjs';
 
@@ -51,6 +52,7 @@ export const seedDatabase = async (): Promise<void> => {
     const permissionRepository = AppDataSource.getRepository(Permission);
     const featureFlagRepository = AppDataSource.getRepository(FeatureFlag);
     const secretRepository = AppDataSource.getRepository(Secret);
+    const serviceRepository = AppDataSource.getRepository(Service);
 
     // Add timeout to prevent hanging
     const timeout = setTimeout(() => {
@@ -589,6 +591,23 @@ export const seedDatabase = async (): Promise<void> => {
           await userSettingsRepository.save(userSettings);
         } catch (error) {
           console.error('Error creating user settings:', error);
+        }
+      }
+    }
+
+    console.log('Creating services...');
+    // Create services from fixtures
+    if (fixtures.services) {
+      for (const serviceData of fixtures.services) {
+        try {
+          const service = serviceRepository.create({
+            ...serviceData,
+            userId: savedUser!.id
+          });
+          await serviceRepository.save(service);
+          console.log(`✅ Created service: ${serviceData.name}`);
+        } catch (error) {
+          console.error('Error creating service:', error);
         }
       }
     }
