@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { Plus, Trash2, Edit, Play, Settings, Globe, Database, FileText, Terminal, Code, Workflow, Bot, Search, Eye, Key } from 'lucide-react';
 import api from '../utils/api';
 import { useAuth } from '../contexts/AuthContext';

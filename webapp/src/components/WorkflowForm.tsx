@@ -34,16 +34,7 @@ interface Workflow {
   name: string;
   displayName: string;
   description: string;
-  config: {
-    triggers: WorkflowTrigger[];
-    actions: WorkflowAction[];
-    settings: {
-      timeout: number;
-      retries: number;
-      parallel: boolean;
-      errorHandling: 'stop' | 'continue' | 'retry';
-    };
-  };
+  config: Record<string, any>;
   isActive: boolean;
   createdAt?: string;
   updatedAt?: string;
@@ -264,7 +255,7 @@ const WorkflowForm: React.FC<WorkflowFormProps> = ({
       ...prev,
       config: {
         ...prev.config,
-        triggers: prev.config.triggers.map(trigger =>
+        triggers: prev.config.triggers.map((trigger: any) =>
           trigger.id === triggerId ? { ...trigger, ...updates } : trigger
         ),
       },
@@ -276,7 +267,7 @@ const WorkflowForm: React.FC<WorkflowFormProps> = ({
       ...prev,
       config: {
         ...prev.config,
-        triggers: prev.config.triggers.filter(trigger => trigger.id !== triggerId),
+        triggers: prev.config.triggers.filter((trigger: any) => trigger.id !== triggerId),
       },
     }));
   };
@@ -306,7 +297,7 @@ const WorkflowForm: React.FC<WorkflowFormProps> = ({
       ...prev,
       config: {
         ...prev.config,
-        actions: prev.config.actions.map(action =>
+        actions: prev.config.actions.map((action: any) =>
           action.id === actionId ? { ...action, ...updates } : action
         ),
       },

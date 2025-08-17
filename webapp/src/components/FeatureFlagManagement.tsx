@@ -465,7 +465,7 @@ const CreateFeatureFlagModal: React.FC<CreateFeatureFlagModalProps> = ({ onSubmi
                 <option value="user_based">User Based</option>
               </select>
             </div>
-            {formData.type === 'percentage' && (
+            {(formData.type as string) === 'percentage' && (
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Percentage</label>
                 <input
@@ -597,7 +597,7 @@ const EditFeatureFlagModal: React.FC<EditFeatureFlagModalProps> = ({ flag, onSub
                 <option value="user_based">User Based</option>
               </select>
             </div>
-            {formData.type === 'percentage' && (
+            {(formData.type as string) === 'percentage' && (
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Percentage</label>
                 <input
