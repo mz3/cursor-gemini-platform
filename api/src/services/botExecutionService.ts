@@ -248,8 +248,9 @@ export class BotExecutionService {
       content: '',
       tokensUsed: 0,
       createdAt: new Date(),
+      updatedAt: new Date(),
       status: 'processing'
-    } as ChatMessage;
+    } as any; // Use any type since this is a temporary placeholder
 
     // Queue the message for async processing
     await publishEvent('bot_messages', {
