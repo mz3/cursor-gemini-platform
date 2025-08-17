@@ -409,7 +409,7 @@ const CreateFeatureFlagModal: React.FC<CreateFeatureFlagModalProps> = ({ onSubmi
     e.preventDefault();
     const flagData: Partial<FeatureFlag> = {
       ...formData,
-      percentage: formData.type === 'percentage' ? formData.percentage : undefined
+      percentage: (formData.type as any) === 'percentage' ? formData.percentage : undefined
     };
     onSubmit(flagData);
   };
@@ -545,7 +545,7 @@ const EditFeatureFlagModal: React.FC<EditFeatureFlagModalProps> = ({ flag, onSub
     e.preventDefault();
     const flagData: Partial<FeatureFlag> = {
       ...formData,
-      percentage: formData.type === 'percentage' ? formData.percentage : undefined
+      percentage: (formData.type as any) === 'percentage' ? formData.percentage : undefined
     };
     onSubmit(flagData);
   };

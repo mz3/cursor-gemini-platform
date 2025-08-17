@@ -309,7 +309,7 @@ const WorkflowForm: React.FC<WorkflowFormProps> = ({
       ...prev,
       config: {
         ...prev.config,
-        actions: prev.config.actions.filter(action => action.id !== actionId),
+        actions: prev.config.actions.filter((action: any) => action.id !== actionId),
       },
     }));
   };
@@ -601,7 +601,7 @@ const WorkflowForm: React.FC<WorkflowFormProps> = ({
           )}
 
           <div className="space-y-4">
-            {formData.config.triggers.map(trigger => renderTriggerConfig(trigger))}
+            {formData.config.triggers.map((trigger: any) => renderTriggerConfig(trigger))}
             {formData.config.triggers.length === 0 && (
               <div className="text-center py-8 text-gray-500 dark:text-gray-400">
                 No triggers configured. Add a trigger to get started.
@@ -637,7 +637,7 @@ const WorkflowForm: React.FC<WorkflowFormProps> = ({
           </div>
 
           <div className="space-y-4">
-            {formData.config.actions.map((action, index) => (
+            {formData.config.actions.map((action: any, index: number) => (
               <WorkflowActionConfig
                 key={action.id}
                 action={action}
