@@ -754,19 +754,19 @@ export class MCPToolService {
         endpoint = '/user/repos';
         break;
       case 'issues':
-        endpoint = `/repos/${owner}/${repo}/issues`;
+        endpoint = `/repos/${owner || ''}/${repo || ''}/issues`;
         break;
       case 'pull_requests':
-        endpoint = `/repos/${owner}/${repo}/pulls`;
+        endpoint = `/repos/${owner || ''}/${repo || ''}/pulls`;
         break;
       case 'workflows':
-        endpoint = `/repos/${owner}/${repo}/actions/workflows`;
+        endpoint = `/repos/${owner || ''}/${repo || ''}/actions/workflows`;
         break;
       case 'runs':
-        endpoint = `/repos/${owner}/${repo}/actions/runs`;
+        endpoint = `/repos/${owner || ''}/${repo || ''}/actions/runs`;
         break;
       case 'releases':
-        endpoint = `/repos/${owner}/${repo}/releases`;
+        endpoint = `/repos/${owner || ''}/${repo || ''}/releases`;
         break;
       default:
         throw new Error(`Unknown GitHub resource: ${resource}`);
@@ -802,22 +802,22 @@ export class MCPToolService {
     let endpoint = '';
     switch (resource) {
       case 'repository':
-        endpoint = `/repos/${owner}/${repo}`;
+        endpoint = `/repos/${owner || ''}/${repo || ''}`;
         break;
       case 'issue':
-        endpoint = `/repos/${owner}/${repo}/issues/${id}`;
+        endpoint = `/repos/${owner || ''}/${repo || ''}/issues/${id || ''}`;
         break;
       case 'pull_request':
-        endpoint = `/repos/${owner}/${repo}/pulls/${id}`;
+        endpoint = `/repos/${owner || ''}/${repo || ''}/pulls/${id || ''}`;
         break;
       case 'workflow':
-        endpoint = `/repos/${owner}/${repo}/actions/workflows/${id}`;
+        endpoint = `/repos/${owner || ''}/${repo || ''}/actions/workflows/${id || ''}`;
         break;
       case 'run':
-        endpoint = `/repos/${owner}/${repo}/actions/runs/${id}`;
+        endpoint = `/repos/${owner || ''}/${repo || ''}/actions/runs/${id || ''}`;
         break;
       case 'release':
-        endpoint = `/repos/${owner}/${repo}/releases/${id}`;
+        endpoint = `/repos/${owner || ''}/${repo || ''}/releases/${id || ''}`;
         break;
       default:
         throw new Error(`Unknown GitHub resource: ${resource}`);
@@ -846,13 +846,13 @@ export class MCPToolService {
     let endpoint = '';
     switch (resource) {
       case 'issue':
-        endpoint = `/repos/${owner}/${repo}/issues`;
+        endpoint = `/repos/${owner || ''}/${repo || ''}/issues`;
         break;
       case 'pull_request':
-        endpoint = `/repos/${owner}/${repo}/pulls`;
+        endpoint = `/repos/${owner || ''}/${repo || ''}/pulls`;
         break;
       case 'release':
-        endpoint = `/repos/${owner}/${repo}/releases`;
+        endpoint = `/repos/${owner || ''}/${repo || ''}/releases`;
         break;
       default:
         throw new Error(`Unknown GitHub resource: ${resource}`);
@@ -884,13 +884,13 @@ export class MCPToolService {
     let endpoint = '';
     switch (resource) {
       case 'issue':
-        endpoint = `/repos/${owner}/${repo}/issues/${id}`;
+        endpoint = `/repos/${owner || ''}/${repo || ''}/issues/${id || ''}`;
         break;
       case 'pull_request':
-        endpoint = `/repos/${owner}/${repo}/pulls/${id}`;
+        endpoint = `/repos/${owner || ''}/${repo || ''}/pulls/${id || ''}`;
         break;
       case 'release':
-        endpoint = `/repos/${owner}/${repo}/releases/${id}`;
+        endpoint = `/repos/${owner || ''}/${repo || ''}/releases/${id || ''}`;
         break;
       default:
         throw new Error(`Unknown GitHub resource: ${resource}`);
@@ -922,7 +922,7 @@ export class MCPToolService {
     let endpoint = '';
     switch (resource) {
       case 'release':
-        endpoint = `/repos/${owner}/${repo}/releases/${id}`;
+        endpoint = `/repos/${owner || ''}/${repo || ''}/releases/${id || ''}`;
         break;
       default:
         throw new Error(`Unknown GitHub resource: ${resource}`);
