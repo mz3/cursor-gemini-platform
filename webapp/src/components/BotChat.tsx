@@ -168,7 +168,19 @@ export const BotChat: React.FC<BotChatProps> = ({ botId, userId, botName }) => {
       const newMessages = response.data;
 
       if (newMessages.length > 0) {
-        setMessages(newMessages);
+        // Process bot messages to extract insights, just like in live chat
+        const processedMessages = newMessages.map(message => {
+          if (message.role === 'bot' && message.content) {
+            const parsed = extractAgentInsights(message.content, message.id);
+            if (parsed.thoughts.length || parsed.toolEvents.length) {
+              setInsightsByMessageId(prev => ({ ...prev, [message.id]: { thoughts: parsed.thoughts, toolEvents: parsed.toolEvents } }));
+            }
+            return { ...message, content: parsed.remainingContent };
+          }
+          return message;
+        });
+
+        setMessages(processedMessages);
         scrollToBottom();
       }
     } catch (error) {
