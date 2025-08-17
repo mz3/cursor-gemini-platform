@@ -184,6 +184,7 @@ export class EntityService {
   private static validateFieldType(fieldName: string, value: any, expectedType: string): string | null {
     switch (expectedType.toLowerCase()) {
       case 'string':
+      case 'text':
         if (typeof value !== 'string') {
           return `Field '${fieldName}' must be a string, got ${typeof value}`;
         }
@@ -210,8 +211,14 @@ export class EntityService {
         }
         break;
       case 'object':
+      case 'json':
         if (typeof value !== 'object' || value === null || Array.isArray(value)) {
           return `Field '${fieldName}' must be an object, got ${typeof value}`;
+        }
+        break;
+      case 'uuid':
+        if (typeof value !== 'string' || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value)) {
+          return `Field '${fieldName}' must be a valid UUID`;
         }
         break;
       default:

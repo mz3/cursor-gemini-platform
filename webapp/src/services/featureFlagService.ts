@@ -25,7 +25,7 @@ class FeatureFlagService {
   // Initialize feature flags for the current user
   async initialize(): Promise<void> {
     try {
-      const response = await api.get('/api/users/feature-flags');
+      const response = await api.get('/users/feature-flags');
       this.featureFlags = response.data;
       this.initialized = true;
     } catch (error) {
@@ -57,7 +57,7 @@ class FeatureFlagService {
   // Admin functions (require admin role)
   async getAllFeatureFlags(): Promise<FeatureFlag[]> {
     try {
-      const response = await api.get('/api/admin/feature-flags');
+      const response = await api.get('/admin/feature-flags');
       return response.data;
     } catch (error) {
       console.error('Failed to load admin feature flags:', error);
@@ -67,7 +67,7 @@ class FeatureFlagService {
 
   async createFeatureFlag(data: Partial<FeatureFlag>): Promise<FeatureFlag> {
     try {
-      const response = await api.post('/api/admin/feature-flags', data);
+      const response = await api.post('/admin/feature-flags', data);
       return response.data;
     } catch (error) {
       console.error('Failed to create feature flag:', error);
@@ -77,7 +77,7 @@ class FeatureFlagService {
 
   async updateFeatureFlag(key: string, data: Partial<FeatureFlag>): Promise<FeatureFlag> {
     try {
-      const response = await api.put(`/api/admin/feature-flags/${key}`, data);
+      const response = await api.put(`/admin/feature-flags/${key}`, data);
       return response.data;
     } catch (error) {
       console.error('Failed to update feature flag:', error);
@@ -87,7 +87,7 @@ class FeatureFlagService {
 
   async deleteFeatureFlag(key: string): Promise<void> {
     try {
-      await api.delete(`/api/admin/feature-flags/${key}`);
+      await api.delete(`/admin/feature-flags/${key}`);
     } catch (error) {
       console.error('Failed to delete feature flag:', error);
       throw error;
@@ -97,7 +97,7 @@ class FeatureFlagService {
   // Seed database (admin only)
   async seedDatabase(): Promise<void> {
     try {
-      await api.post('/api/admin/seed');
+      await api.post('/admin/seed');
     } catch (error) {
       console.error('Failed to seed database:', error);
       throw error;

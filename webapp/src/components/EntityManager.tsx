@@ -116,9 +116,11 @@ export const Entities: React.FC = () => {
 
   const createEntity = async () => {
     try {
+      console.log('Creating entity with data:', newEntity);
       const response = await api.post('/entities', newEntity);
       setEntities(prev => [...prev, response.data]);
       setNewEntity({ name: '', displayName: '', schemaId: '', data: {} });
+      setSelectedSchema(null);
       alert('Entity created successfully!');
     } catch (error) {
       console.error('Error creating entity:', error);
@@ -127,21 +129,27 @@ export const Entities: React.FC = () => {
   };
 
   const handleEntityDataChange = (fieldName: string, value: any) => {
-    setNewEntity(prev => ({
-      ...prev,
-      data: { ...prev.data, [fieldName]: value }
-    }));
+    console.log(`handleEntityDataChange: ${fieldName} = ${value}`);
+    setNewEntity(prev => {
+      const newData = { ...prev.data, [fieldName]: value };
+      console.log('Updated entity data:', newData);
+      return {
+        ...prev,
+        data: newData
+      };
+    });
   };
 
   const renderFieldInput = (field: any, value: any, onChange: (value: any) => void) => {
     switch (field.type) {
       case 'string':
+      case 'text':
         return (
           <input
             type="text"
             value={value || ''}
             onChange={(e) => onChange(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder={`Enter ${field.name}`}
           />
         );
@@ -151,16 +159,16 @@ export const Entities: React.FC = () => {
             type="number"
             value={value || ''}
             onChange={(e) => onChange(Number(e.target.value))}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder={`Enter ${field.name}`}
           />
         );
       case 'boolean':
         return (
           <select
-            value={value?.toString() || 'true'}
+            value={value?.toString() || (field.default !== undefined ? field.default.toString() : 'true')}
             onChange={(e) => onChange(e.target.value === 'true')}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="true">True</option>
             <option value="false">False</option>
@@ -172,7 +180,7 @@ export const Entities: React.FC = () => {
             type="text"
             value={value || ''}
             onChange={(e) => onChange(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder={`Enter ${field.name}`}
           />
         );
@@ -181,7 +189,7 @@ export const Entities: React.FC = () => {
 
   return (
     <div className="max-w-6xl mx-auto p-6">
-      <h1 className="text-3xl font-bold mb-8">Entities</h1>
+      <h1 className="text-3xl font-bold mb-8 text-gray-900 dark:text-gray-100">Entities</h1>
 
       {/* Tab Navigation */}
       <div className="flex space-x-4 mb-6">
@@ -190,7 +198,7 @@ export const Entities: React.FC = () => {
           className={`px-4 py-2 rounded-lg font-medium ${
             activeTab === 'schemas'
               ? 'bg-blue-600 text-white'
-              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
           }`}
         >
           Schemas
@@ -200,7 +208,7 @@ export const Entities: React.FC = () => {
           className={`px-4 py-2 rounded-lg font-medium ${
             activeTab === 'entities'
               ? 'bg-blue-600 text-white'
-              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
           }`}
         >
           Entities
@@ -210,37 +218,37 @@ export const Entities: React.FC = () => {
       {activeTab === 'schemas' && (
         <div className="space-y-8">
           {/* Create Schema Form */}
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <h2 className="text-xl font-semibold mb-4">Create New Schema</h2>
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+            <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">Create New Schema</h2>
             <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Schema Name
-                </label>
-                <input
-                  type="text"
-                  value={newSchema.name}
-                  onChange={(e) => setNewSchema(prev => ({ ...prev, name: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="e.g., Dog, Product, User"
-                />
-              </div>
+                              <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Schema Name
+                  </label>
+                  <input
+                    type="text"
+                    value={newSchema.name}
+                    onChange={(e) => setNewSchema(prev => ({ ...prev, name: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="e.g., Dog, Product, User"
+                  />
+                </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Display Name
                 </label>
                 <input
                   type="text"
                   value={newSchema.displayName}
                   onChange={(e) => setNewSchema(prev => ({ ...prev, displayName: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="e.g., Dog Schema, Product Schema"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Fields
                 </label>
                 <div className="space-y-3">
@@ -250,19 +258,19 @@ export const Entities: React.FC = () => {
                         type="text"
                         value={field.name}
                         onChange={(e) => updateField(index, { name: e.target.value })}
-                        className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="Field name"
                       />
                       <select
                         value={field.type}
                         onChange={(e) => updateField(index, { type: e.target.value })}
-                        className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       >
                         <option value="string">String</option>
                         <option value="number">Number</option>
                         <option value="boolean">Boolean</option>
                       </select>
-                      <label className="flex items-center">
+                      <label className="flex items-center text-gray-700 dark:text-gray-300">
                         <input
                           type="checkbox"
                           checked={field.required}
@@ -299,18 +307,18 @@ export const Entities: React.FC = () => {
           </div>
 
           {/* Schemas List */}
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <h2 className="text-xl font-semibold mb-4">Existing Schemas</h2>
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+            <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">Existing Schemas</h2>
             <div className="space-y-4">
               {schemas.map((schema) => (
-                <div key={schema.id} className="border border-gray-200 rounded-lg p-4">
-                  <h3 className="font-semibold text-lg">{schema.displayName || schema.name}</h3>
-                  <p className="text-gray-600 text-sm">Name: {schema.name}</p>
+                <div key={schema.id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                  <h3 className="font-semibold text-lg text-gray-900 dark:text-gray-100">{schema.displayName || schema.name}</h3>
+                  <p className="text-gray-600 dark:text-gray-400 text-sm">Name: {schema.name}</p>
                   <div className="mt-2">
-                    <h4 className="font-medium text-sm text-gray-700">Fields:</h4>
+                    <h4 className="font-medium text-sm text-gray-700 dark:text-gray-300">Fields:</h4>
                     <div className="mt-1 space-y-1">
                       {schema.schema.fields.map((field, index) => (
-                        <div key={index} className="text-sm text-gray-600">
+                        <div key={index} className="text-sm text-gray-600 dark:text-gray-400">
                           • {field.name} ({field.type}) {field.required ? '(required)' : '(optional)'}
                         </div>
                       ))}
@@ -326,48 +334,61 @@ export const Entities: React.FC = () => {
       {activeTab === 'entities' && (
         <div className="space-y-8">
           {/* Create Entity Form */}
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <h2 className="text-xl font-semibold mb-4">Create New Entity</h2>
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+            <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">Create New Entity</h2>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Entity Name
                 </label>
                 <input
                   type="text"
                   value={newEntity.name}
                   onChange={(e) => setNewEntity(prev => ({ ...prev, name: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="e.g., spot, laptop, john"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Display Name
                 </label>
                 <input
                   type="text"
                   value={newEntity.displayName}
                   onChange={(e) => setNewEntity(prev => ({ ...prev, displayName: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="e.g., Spot the Dog, Gaming Laptop"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Schema Type
                 </label>
                 <select
                   value={newEntity.schemaId}
                   onChange={(e) => {
                     const schemaId = e.target.value;
-                    setNewEntity(prev => ({ ...prev, schemaId, data: {} }));
                     const selectedSchema = schemas.find(m => m.id === schemaId);
                     setSelectedSchema(selectedSchema || null);
+
+                    // Initialize data with default values from schema
+                    const initialData: Record<string, any> = {};
+                    if (selectedSchema) {
+                      console.log('Selected schema fields:', selectedSchema.schema.fields);
+                      selectedSchema.schema.fields.forEach((field: any) => {
+                        console.log(`Field ${field.name}: default = ${field.default}, required = ${field.required}`);
+                        if (field.default !== undefined) {
+                          initialData[field.name] = field.default;
+                        }
+                      });
+                    }
+                    console.log('Initial data:', initialData);
+                    setNewEntity(prev => ({ ...prev, schemaId, data: initialData }));
                   }}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="">Select a schema</option>
                   {schemas.map((schema) => (
@@ -380,13 +401,13 @@ export const Entities: React.FC = () => {
 
               {selectedSchema && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Entity Data
                   </label>
                   <div className="space-y-3">
                     {selectedSchema.schema.fields.map((field) => (
                       <div key={field.name}>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                           {field.name} {field.required && <span className="text-red-500">*</span>}
                         </label>
                         {renderFieldInput(
@@ -411,19 +432,19 @@ export const Entities: React.FC = () => {
           </div>
 
           {/* Entities List */}
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <h2 className="text-xl font-semibold mb-4">Existing Entities</h2>
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+            <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">Existing Entities</h2>
             <div className="space-y-4">
               {entities.map((entity) => (
-                <div key={entity.id} className="border border-gray-200 rounded-lg p-4">
-                  <h3 className="font-semibold text-lg">{entity.displayName}</h3>
-                  <p className="text-gray-600 text-sm">Name: {entity.name}</p>
-                  <p className="text-gray-600 text-sm">Schema: {entity.schema?.displayName || entity.schema?.name}</p>
+                <div key={entity.id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                  <h3 className="font-semibold text-lg text-gray-900 dark:text-gray-100">{entity.displayName}</h3>
+                  <p className="text-gray-600 dark:text-gray-400 text-sm">Name: {entity.name}</p>
+                  <p className="text-gray-600 dark:text-gray-400 text-sm">Schema: {entity.schema?.displayName || entity.schema?.name}</p>
                   <div className="mt-2">
-                    <h4 className="font-medium text-sm text-gray-700">Data:</h4>
+                    <h4 className="font-medium text-sm text-gray-700 dark:text-gray-300">Data:</h4>
                     <div className="mt-1 space-y-1">
                       {Object.entries(entity.data).map(([key, value]) => (
-                        <div key={key} className="text-sm text-gray-600">
+                        <div key={key} className="text-sm text-gray-600 dark:text-gray-400">
                           • {key}: {String(value)}
                         </div>
                       ))}
