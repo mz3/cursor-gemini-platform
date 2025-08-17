@@ -46,8 +46,21 @@ export class BotExecutionService {
       throw new Error('Bot not found or not active');
     }
 
-    // Check if user owns the bot
-    if (bot.userId !== userId) {
+    // Check if user owns the bot or has admin role
+    const user = await AppDataSource.getRepository('User').findOne({
+      where: { id: userId },
+      relations: ['role']
+    });
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    const isOwner = bot.userId === userId;
+    const isAdmin = user.role?.name === 'admin';
+    const isSystemBot = bot.userId === '825395ea-e87d-4024-b4a5-3e2e454a2e13'; // System user ID
+
+    if (!isOwner && !(isAdmin && isSystemBot)) {
       throw new Error('Unauthorized to start this bot');
     }
 
@@ -163,8 +176,21 @@ export class BotExecutionService {
       throw new Error('Bot not found or not active');
     }
 
-    // Check if user owns the bot
-    if (bot.userId !== userId) {
+    // Check if user owns the bot or has admin role
+    const user = await AppDataSource.getRepository('User').findOne({
+      where: { id: userId },
+      relations: ['role']
+    });
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    const isOwner = bot.userId === userId;
+    const isAdmin = user.role?.name === 'admin';
+    const isSystemBot = bot.userId === '825395ea-e87d-4024-b4a5-3e2e454a2e13'; // System user ID
+
+    if (!isOwner && !(isAdmin && isSystemBot)) {
       throw new Error('Unauthorized to use this bot');
     }
 
