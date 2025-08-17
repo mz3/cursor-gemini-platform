@@ -152,7 +152,13 @@ export const BotChat: React.FC<BotChatProps> = ({ botId, userId, botName }) => {
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
-    scrollToBottom();
+    // Only scroll if we have messages and this isn't the initial load
+    if (messages.length > 0) {
+      // Add a small delay to ensure all content is rendered
+      setTimeout(() => {
+        scrollToBottom();
+      }, 50);
+    }
   }, [messages]);
 
   // Join bot room when connected
@@ -181,7 +187,7 @@ export const BotChat: React.FC<BotChatProps> = ({ botId, userId, botName }) => {
         });
 
         setMessages(processedMessages);
-        scrollToBottom();
+        // The useEffect will handle scrolling when messages change
       }
     } catch (error) {
       console.error('Failed to load conversation history:', error);
