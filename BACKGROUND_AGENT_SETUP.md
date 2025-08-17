@@ -78,7 +78,7 @@ The native setup uses PostgreSQL with these settings:
 ## Environment Variables
 
 The background agent will need these environment variables:
-- `GEMINI_API_KEY` - For Gemini LLM integration
+- `GEMINI_KEY` - For Gemini LLM integration
 - `DB_HOST=localhost` - Database host
 - `DB_PORT=5432` - Database port (PostgreSQL default)
 - `REDIS_HOST=localhost` - Redis host

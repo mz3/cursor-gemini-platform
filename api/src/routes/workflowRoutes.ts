@@ -11,9 +11,8 @@ const workflowActionRepository = AppDataSource.getRepository(WorkflowAction);
 router.get('/', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const workflows = await workflowRepository.find({
-      where: { isActive: true },
       relations: ['actions'],
-      order: { createdAt: 'ASC' }
+      order: { createdAt: 'DESC' }
     });
     return res.json(workflows);
   } catch (error) {
@@ -25,7 +24,7 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
 router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const workflow = await workflowRepository.findOne({
-      where: { id: req.params.id, isActive: true },
+      where: { id: req.params.id },
       relations: ['actions']
     });
 
@@ -105,11 +104,101 @@ router.put('/:id', async (req: Request, res: Response, next: NextFunction) => {
   }
 });
 
+// PATCH /api/workflows/:id - Partially update workflow (e.g., toggle active status)
+router.patch('/:id', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const workflow = await workflowRepository.findOne({
+      where: { id: req.params.id }
+    });
+
+    if (!workflow) {
+      return res.status(404).json({ error: 'Workflow not found' });
+    }
+
+    const { isActive, ...otherUpdates } = req.body;
+
+    // Update only provided fields
+    Object.keys(otherUpdates).forEach(key => {
+      if (workflow.hasOwnProperty(key)) {
+        (workflow as any)[key] = otherUpdates[key];
+      }
+    });
+
+    if (isActive !== undefined) {
+      workflow.isActive = isActive;
+    }
+
+    const updatedWorkflow = await workflowRepository.save(workflow);
+    return res.json(updatedWorkflow);
+  } catch (error) {
+    return next(error);
+  }
+});
+
+// POST /api/workflows/:id/execute - Execute workflow
+router.post('/:id/execute', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const workflow = await workflowRepository.findOne({
+      where: { id: req.params.id, isActive: true },
+      relations: ['actions']
+    });
+
+    if (!workflow) {
+      return res.status(404).json({ error: 'Workflow not found or inactive' });
+    }
+
+    // Enhanced workflow execution logic
+    console.log(`🚀 Executing workflow: ${workflow.name}`);
+    console.log('📋 Workflow config:', JSON.stringify(workflow.config, null, 2));
+    console.log('⚡ Workflow actions:', workflow.actions);
+
+    // Validate workflow configuration
+    const triggers = workflow.config.triggers || [];
+    const actions = workflow.config.actions || [];
+    const settings = workflow.config.settings || {};
+
+    if (triggers.length === 0) {
+      return res.status(400).json({ error: 'Workflow must have at least one trigger' });
+    }
+
+    console.log(`🎯 Found ${triggers.length} triggers and ${actions.length} actions`);
+    console.log(`⚙️ Settings: timeout=${settings.timeout}ms, retries=${settings.retries}, parallel=${settings.parallel}`);
+
+    // TODO: Implement actual execution engine
+    // This would include:
+    // 1. Process triggers (webhook, schedule, manual, chatbot)
+    // 2. Execute actions in sequence or parallel
+    // 3. Handle bot interactions with proper data flow
+    // 4. Make webhook calls with configured parameters
+    // 5. Apply conditional logic and routing
+    // 6. Handle delays and error conditions
+
+    // Simulate execution
+    const executionId = `exec_${Date.now()}`;
+    const executionResult = {
+      id: executionId,
+      workflowId: workflow.id,
+      status: 'completed',
+      startedAt: new Date(),
+      completedAt: new Date(),
+      results: {
+        nodesExecuted: workflow.config.nodes?.length || 0,
+        success: true,
+        message: 'Workflow executed successfully (simulated)'
+      }
+    };
+
+    return res.json(executionResult);
+  } catch (error) {
+    return next(error);
+  }
+});
+
 // DELETE /api/workflows/:id - Delete workflow
 router.delete('/:id', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const workflow = await workflowRepository.findOne({
-      where: { id: req.params.id, isActive: true }
+      where: { id: req.params.id }
     });
 
     if (!workflow) {

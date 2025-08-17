@@ -2,15 +2,34 @@ import { Router, Request, Response, NextFunction } from 'express';
 import { AppDataSource } from '../config/database.js';
 import { Bot } from '../entities/Bot.js';
 import { Prompt } from '../entities/Prompt.js';
+import { User } from '../entities/User.js';
+import { authenticate } from '../middleware/auth.js';
 
 const router = Router();
 const botRepository = AppDataSource.getRepository(Bot);
 const promptRepository = AppDataSource.getRepository(Prompt);
 
-// GET /api/bots - Get all bots
-router.get('/', async (req: Request, res: Response, next: NextFunction) => {
+// GET /api/bots - Get all bots for the authenticated user (including system bots)
+router.get('/', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
+    const userId = (req as any).user.userId;
+
+    // Find system user for system bots
+    const systemUser = await AppDataSource.getRepository(User).findOne({
+      where: { email: 'system@platform.com' }
+    });
+
+    const whereConditions = [
+      { userId } // User's own bots
+    ];
+
+    // Add system bots if system user exists
+    if (systemUser) {
+      whereConditions.push({ userId: systemUser.id });
+    }
+
     const bots = await botRepository.find({
+      where: whereConditions,
       relations: ['prompts'],
       order: { createdAt: 'DESC' }
     });
@@ -20,11 +39,27 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
   }
 });
 
-// GET /api/bots/:id - Get bot by ID
-router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
+// GET /api/bots/:id - Get bot by ID (user-specific or system bot)
+router.get('/:id', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
+    const userId = (req as any).user.userId;
+
+    // Find system user for system bots
+    const systemUser = await AppDataSource.getRepository(User).findOne({
+      where: { email: 'system@platform.com' }
+    });
+
+    const whereConditions = [
+      { id: req.params.id, userId } // User's own bot
+    ];
+
+    // Add system bot condition if system user exists
+    if (systemUser) {
+      whereConditions.push({ id: req.params.id, userId: systemUser.id });
+    }
+
     const bot = await botRepository.findOne({
-      where: { id: req.params.id },
+      where: whereConditions,
       relations: ['prompts']
     });
 
@@ -39,11 +74,12 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
 });
 
 // POST /api/bots - Create new bot
-router.post('/', async (req: Request, res: Response, next: NextFunction) => {
+router.post('/', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { name, displayName, description, userId, promptIds } = req.body;
+    const userId = (req as any).user.userId;
+    const { name, displayName, description, promptIds } = req.body;
 
-    if (!name || !displayName || !userId) {
+    if (!name || !displayName) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
@@ -69,10 +105,11 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
 });
 
 // PUT /api/bots/:id - Update bot
-router.put('/:id', async (req: Request, res: Response, next: NextFunction) => {
+router.put('/:id', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
+    const userId = (req as any).user.userId;
     const bot = await botRepository.findOne({
-      where: { id: req.params.id },
+      where: { id: req.params.id, userId },
       relations: ['prompts']
     });
 
@@ -105,10 +142,11 @@ router.put('/:id', async (req: Request, res: Response, next: NextFunction) => {
 });
 
 // DELETE /api/bots/:id - Delete bot
-router.delete('/:id', async (req: Request, res: Response, next: NextFunction) => {
+router.delete('/:id', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
+    const userId = (req as any).user.userId;
     const bot = await botRepository.findOne({
-      where: { id: req.params.id }
+      where: { id: req.params.id, userId }
     });
 
     if (!bot) {
@@ -123,8 +161,9 @@ router.delete('/:id', async (req: Request, res: Response, next: NextFunction) =>
 });
 
 // POST /api/bots/:id/prompts - Add prompts to bot
-router.post('/:id/prompts', async (req: Request, res: Response, next: NextFunction) => {
+router.post('/:id/prompts', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
+    const userId = (req as any).user.userId;
     const { promptIds } = req.body;
 
     if (!promptIds || !Array.isArray(promptIds)) {
@@ -132,7 +171,7 @@ router.post('/:id/prompts', async (req: Request, res: Response, next: NextFuncti
     }
 
     const bot = await botRepository.findOne({
-      where: { id: req.params.id },
+      where: { id: req.params.id, userId },
       relations: ['prompts']
     });
 
@@ -151,10 +190,11 @@ router.post('/:id/prompts', async (req: Request, res: Response, next: NextFuncti
 });
 
 // DELETE /api/bots/:id/prompts/:promptId - Remove prompt from bot
-router.delete('/:id/prompts/:promptId', async (req: Request, res: Response, next: NextFunction) => {
+router.delete('/:id/prompts/:promptId', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
+    const userId = (req as any).user.userId;
     const bot = await botRepository.findOne({
-      where: { id: req.params.id },
+      where: { id: req.params.id, userId },
       relations: ['prompts']
     });
 

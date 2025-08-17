@@ -12,9 +12,9 @@
     "userId": "system"
   },
   {
-    "name": "data-modeling",
-    "displayName": "Data Modeling",
-    "description": "Visual data model creation and management",
+    "name": "data-schemaing",
+    "displayName": "Data Schemaing",
+    "description": "Visual data schema creation and management",
     "config": {
       "type": "core",
       "dependencies": ["typeorm", "postgresql"]
@@ -53,16 +53,16 @@
     "description": "Main application dashboard with widgets",
     "config": {
       "type": "ui",
-      "widgets": ["models", "applications", "users", "builds"]
+      "widgets": ["schemas", "applications", "users", "builds"]
     },
     "isActive": true,
     "status": "active",
     "userId": "system"
   },
   {
-    "name": "model-builder",
-    "displayName": "Model Builder",
-    "description": "Visual model creation interface",
+    "name": "schema-builder",
+    "displayName": "Schema Builder",
+    "description": "Visual schema creation interface",
     "config": {
       "type": "ui",
       "components": ["field-editor", "relationship-builder"]

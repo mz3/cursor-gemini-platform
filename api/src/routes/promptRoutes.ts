@@ -18,7 +18,7 @@ const authenticateUser = async (req: Request, res: Response, next: Function) => 
       return res.status(401).json({ error: 'No token provided' });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-in-production') as any;
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret') as any;
     const user = await userRepository.findOne({ where: { id: decoded.userId } });
 
     if (!user) {
@@ -177,8 +177,6 @@ router.put('/:id', authenticateUser, async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'No active version found' });
     }
 
-    console.log('DEBUG currentVersion:', { id: currentVersion.id, version: currentVersion.version, isActive: currentVersion.isActive, name: currentVersion.name });
-
     // Deactivate ALL existing versions first
     for (const version of prompt.versions) {
       version.isActive = false;
@@ -194,8 +192,6 @@ router.put('/:id', authenticateUser, async (req: Request, res: Response) => {
     newVersion.version = currentVersion.version + 1;
     newVersion.isActive = true;
     newVersion.promptId = prompt.id;
-
-    console.log('DEBUG newVersion:', { version: newVersion.version, name: newVersion.name, content: newVersion.content });
 
     const savedVersion = await promptVersionRepository.save(newVersion);
 

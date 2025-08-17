@@ -1,0 +1,79 @@
+---
+description: github cli instructions, github actions, pull requests, pr feedback
+alwaysApply: false
+---
+# GitHub CLI Usage Patterns
+
+- Always use the GitHub CLI (`gh`) for interacting with GitHub repositories, issues, pull requests, and workflows.
+- To authenticate, run:
+  ```bash
+  gh auth login
+  ```
+- To create a new pull request from your current branch:
+  ```bash
+  gh pr create --fill
+  ```
+- To check out a pull request locally:
+  ```bash
+  gh pr checkout <pr-number>
+  ```
+- To view the status of GitHub Actions workflows for the current branch:
+  ```bash
+  gh run list
+  ```
+- To view the latest workflow run status (no manual selection required):
+  ```bash
+  export GH_PAGER=cat && gh run list --limit 1
+  ```
+- To watch a workflow run in real time (preferred for monitoring CI):
+  ```bash
+  gh run watch <run-id>
+  ```
+- To monitor a specific run without manual intervention:
+  ```bash
+  export GH_PAGER=cat && gh run watch <run-id>
+  ```
+- To fetch logs for a specific workflow run:
+  ```bash
+  gh run view <run-id> --log
+  ```
+- To get detailed status of a specific run (no manual selection):
+  ```bash
+  export GH_PAGER=cat && gh run view <run-id>
+  ```
+- To get failed logs for a specific run (no manual selection):
+  ```bash
+  export GH_PAGER=cat && gh run view <run-id> --log-failed
+  ```
+- To leave feedback or comments on a pull request:
+  ```bash
+  gh pr comment <pr-number> --body "Your feedback here"
+  ```
+- Always check the status of your PRs and CI runs before merging.
+- Use `gh pr merge <pr-number>` to merge pull requests, and prefer the "squash and merge" strategy unless otherwise specified.
+
+## Preferred CI Monitoring Workflow
+
+When monitoring GitHub Actions builds, use this sequence to avoid manual intervention:
+
+1. **Check latest run status:**
+   ```bash
+   export GH_PAGER=cat && gh run list --limit 1
+   ```
+
+2. **Get detailed status of specific run:**
+   ```bash
+   export GH_PAGER=cat && gh run view <run-id>
+   ```
+
+3. **Monitor run in real-time (no manual selection):**
+   ```bash
+   export GH_PAGER=cat && gh run watch <run-id>
+   ```
+
+4. **Get failed logs if needed:**
+   ```bash
+   export GH_PAGER=cat && gh run view <run-id> --log-failed
+   ```
+
+**Note:** Always set `export GH_PAGER=cat` before GitHub CLI commands to prevent pager prompts that require manual intervention.

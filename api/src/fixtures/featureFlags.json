@@ -1,0 +1,30 @@
+[
+  {
+    "key": "admin_database_seed",
+    "name": "Admin Database Seeding",
+    "description": "Allow administrators to seed the database through the API",
+    "type": "role_based",
+    "enabled": true,
+    "isSystem": true,
+    "isActive": true
+  },
+  {
+    "key": "admin_dashboard",
+    "name": "Admin Dashboard",
+    "description": "Show admin dashboard and management features",
+    "type": "role_based",
+    "enabled": true,
+    "isSystem": true,
+    "isActive": true
+  },
+  {
+    "key": "beta_features",
+    "name": "Beta Features",
+    "description": "Access to experimental and beta features",
+    "type": "percentage",
+    "enabled": true,
+    "percentage": 10,
+    "isSystem": false,
+    "isActive": true
+  }
+]

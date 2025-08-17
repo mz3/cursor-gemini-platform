@@ -40,16 +40,22 @@ export class FixtureLoader {
       'applications',
       'features',
       'components',
-      'models',
+      'schemas',
       'prompts',
+      'promptVersions',
       'bots',
+      'botTools',
       'workflows',
       'workflowActions',
       'templates',
       'codeTemplates',
       'relationships',
       'users',
-      'userSettings'
+      'userSettings',
+      'roles',
+      'permissions',
+      'featureFlags',
+      'secrets'
     ];
 
     const fixtures: FixtureData = {};

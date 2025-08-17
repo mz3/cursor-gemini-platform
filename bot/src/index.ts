@@ -1,28 +1,28 @@
 import 'reflect-metadata';
 import dotenv from 'dotenv';
-import { initializeDatabase } from './config/database';
-import { initializeRedis } from './config/redis';
-import { startBot } from './services/botService';
+import { initializeDatabase } from './config/database.js';
+import { initializeRedis } from './config/redis.js';
+import { startBotWorker } from './services/botWorkerService.js';
 
 dotenv.config();
 
 async function main() {
   try {
-    console.log('Starting platform bot...');
+    console.log('🚀 Starting Bot Processing Worker...');
 
     // Initialize database connection
     await initializeDatabase();
-    console.log('Database connection established');
+    console.log('✅ Database connection established');
 
     // Initialize Redis connection
     await initializeRedis();
-    console.log('Redis connection established');
+    console.log('✅ Redis connection established');
 
-    // Start the bot
-    await startBot();
-    console.log('Bot started successfully');
+    // Start the bot processing worker
+    await startBotWorker();
+    console.log('✅ Bot processing worker started successfully');
   } catch (error) {
-    console.error('Failed to start bot:', error);
+    console.error('❌ Failed to start bot worker:', error);
     process.exit(1);
   }
 }

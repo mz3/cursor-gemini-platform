@@ -11,7 +11,7 @@ const CreateBot: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const handleSubmit = async (data: { name: string; displayName: string; description: string; isActive: boolean; promptIds: string[] }) => {
+  const handleSubmit = async (data: { name: string; displayName: string; description: string; isActive: boolean; modelId?: string }) => {
     setLoading(true);
     setError('');
     try {
@@ -45,8 +45,6 @@ const CreateBot: React.FC = () => {
         onSubmit={handleSubmit}
         loading={loading}
         error={error}
-        submitLabel="Create Bot"
-        onCancel={() => navigate('/bots')}
       />
     </div>
   );

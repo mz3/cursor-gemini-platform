@@ -4,7 +4,7 @@
 
 set -e
 
-echo "🚀 Starting Fly.io deployment for cursor-gemini-platform..."
+echo "🚀 Starting Fly.io deployment for cursor-gemini-api..."
 
 # Colors for output
 RED='\033[0;31m'
@@ -60,35 +60,35 @@ fi
 
 # Check if database exists
 print_status "Checking database..."
-if ! fly postgres list | grep -q "cursor-gemini-platform-db"; then
-    print_warning "Database 'cursor-gemini-platform-db' does not exist. Creating..."
-    fly postgres create --name cursor-gemini-platform-db --region sea
+if ! fly postgres list | grep -q "meta-platform-mz3"; then
+    print_warning "Database 'meta-platform-mz3' does not exist. Creating..."
+    fly postgres create --name meta-platform-mz3 --region sea
     print_status "Database created. Please note the connection details above."
     print_warning "You may need to update the fly.toml with the correct database credentials."
 else
-    print_status "Database 'cursor-gemini-platform-db' already exists."
+    print_status "Database 'meta-platform-mz3' already exists."
 fi
 
 # Check if Redis exists
 print_status "Checking Redis..."
-if ! fly redis list | grep -q "cursor-gemini-platform-redis"; then
-    print_warning "Redis 'cursor-gemini-platform-redis' does not exist. Creating..."
-    fly redis create --name cursor-gemini-platform-redis --region sea
+if ! fly redis list | grep -q "meta-platform-redis"; then
+    print_warning "Redis 'meta-platform-redis' does not exist. Creating..."
+    fly redis create --name meta-platform-redis --region sea
     print_status "Redis created. Please note the connection details above."
     print_warning "You may need to update the fly.toml with the correct Redis credentials."
 else
-    print_status "Redis 'cursor-gemini-platform-redis' already exists."
+    print_status "Redis 'meta-platform-redis' already exists."
 fi
 
 # Attach database to API app
 print_status "Attaching database to API app..."
-if ! fly postgres attach cursor-gemini-platform-db --app cursor-gemini-api --force 2>/dev/null; then
+if ! fly postgres attach meta-platform-mz3 --app cursor-gemini-api --force 2>/dev/null; then
     print_warning "Database may already be attached or there was an issue. Continuing..."
 fi
 
 # Attach Redis to API app
 print_status "Attaching Redis to API app..."
-if ! fly redis attach cursor-gemini-platform-redis --app cursor-gemini-api --force 2>/dev/null; then
+if ! fly redis attach meta-platform-redis --app cursor-gemini-api --force 2>/dev/null; then
     print_warning "Redis may already be attached or there was an issue. Continuing..."
 fi
 

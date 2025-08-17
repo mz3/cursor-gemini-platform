@@ -24,13 +24,13 @@ const EditApplication: React.FC = () => {
     }
   }, [id]);
 
-  const handleSubmit = async (data: { name: string; displayName: string; description: string; config: string }) => {
+  const handleSubmit = async (data: { name: string; displayName: string; description: string }) => {
     setSaving(true);
     setError('');
     try {
       await api.put(`/applications/${id}` , {
         ...data,
-        config: data.config ? JSON.parse(data.config) : {},
+        config: application.config ? JSON.parse(application.config) : {},
       });
       navigate('/applications');
     } catch (err: any) {
@@ -68,8 +68,6 @@ const EditApplication: React.FC = () => {
         onSubmit={handleSubmit}
         loading={saving}
         error={error}
-        submitLabel="Update Application"
-        onCancel={() => navigate('/applications')}
       />
     </div>
   );

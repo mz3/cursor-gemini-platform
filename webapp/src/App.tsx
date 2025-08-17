@@ -1,13 +1,14 @@
 /// <reference types="vite/client" />
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, Link, useLocation } from 'react-router-dom';
-import { Home, Database, AppWindow, Settings as SettingsIcon, Plus, LogOut, User, MessageSquare, Bot, Zap } from 'lucide-react';
+import { Home, Database, AppWindow, Settings as SettingsIcon, Plus, LogOut, User, MessageSquare, Bot, Zap, Wrench, Layers, Workflow as WorkflowIcon, Shield, Key } from 'lucide-react';
+import { initializeSentry, SentryErrorBoundary } from './config/sentry';
 import Login from './components/Login';
 import Dashboard from './components/Dashboard';
-import Models from './components/Models';
-import CreateModel from './components/CreateModel';
-import EditModel from './components/EditModel';
-import ViewModel from './components/ViewModel';
+import Schemas from './components/Schemas';
+import CreateSchema from './components/CreateSchema';
+import EditSchema from './components/EditSchema';
+import ViewSchema from './components/ViewSchema';
 import Applications from './components/Applications';
 import Prompts from './components/Prompts';
 import CreatePrompt from './components/CreatePrompt';
@@ -25,17 +26,30 @@ import CreateFeature from './components/CreateFeature';
 import EditFeature from './components/EditFeature';
 import ViewFeature from './components/ViewFeature';
 import Settings from './components/Settings';
-import ChatSidebar from './components/ChatSidebar';
+import Tools from './components/Tools';
+import { Entities } from './components/Entities';
+import Workflows from './components/Workflows';
+import CreateWorkflow from './components/CreateWorkflow';
+import EditWorkflow from './components/EditWorkflow';
+import ViewWorkflow from './components/ViewWorkflow';
+import WorkflowDesigner from './components/WorkflowDesigner';
+
+import AdminDashboard from './components/AdminDashboard';
+import Secrets from './components/Secrets';
+import CreateSecret from './components/CreateSecret';
+import EditSecret from './components/EditSecret';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { cn } from './utils/cn';
+
+// Initialize Sentry
+initializeSentry();
 
 // Debug: Log all environment variables at startup
 console.log('VITE ENV:', import.meta.env);
 
 const AppContent: React.FC = () => {
-  const { user, logout, loading, darkMode } = useAuth();
+  const { user, logout, loading, darkMode, hasRole, isFeatureEnabled } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [chatOpen, setChatOpen] = useState(true); // Default to open
   const location = useLocation();
 
   useEffect(() => {
@@ -59,13 +73,21 @@ const AppContent: React.FC = () => {
   }
 
   const navigation = [
-    { name: 'Dashboard', href: '/', icon: Home },
-    { name: 'Models', href: '/models', icon: Database },
     { name: 'Applications', href: '/applications', icon: AppWindow },
+    { name: 'Bots', href: '/bots', icon: Bot },
+    { name: 'Dashboard', href: '/', icon: Home },
+    { name: 'Entities', href: '/entity-manager', icon: Layers },
     { name: 'Features', href: '/features', icon: Zap },
     { name: 'Prompts', href: '/prompts', icon: MessageSquare },
-    { name: 'Bots', href: '/bots', icon: Bot },
+    { name: 'Schemas', href: '/schemas', icon: Database },
+    { name: 'Secrets', href: '/secrets', icon: Key },
     { name: 'Settings', href: '/settings', icon: SettingsIcon },
+    { name: 'Tools', href: '/tools', icon: Wrench },
+    { name: 'Workflows', href: '/workflows', icon: WorkflowIcon },
+    // Admin navigation - only show if user has admin role and feature is enabled
+    ...(hasRole('admin') && isFeatureEnabled('admin_dashboard') ? [
+      { name: 'Admin', href: '/admin', icon: Shield }
+    ] : [])
   ];
 
   return (
@@ -149,10 +171,10 @@ const AppContent: React.FC = () => {
         <div className="p-4 sm:p-6 lg:p-8">
           <Routes>
             <Route path="/" element={<Dashboard />} />
-            <Route path="/models" element={<Models />} />
-            <Route path="/models/create" element={<CreateModel />} />
-            <Route path="/models/:id" element={<ViewModel />} />
-            <Route path="/models/:id/edit" element={<EditModel />} />
+            <Route path="/schemas" element={<Schemas />} />
+            <Route path="/schemas/create" element={<CreateSchema />} />
+            <Route path="/schemas/:id" element={<ViewSchema />} />
+            <Route path="/schemas/:id/edit" element={<EditSchema />} />
             <Route path="/applications" element={<Applications />} />
             <Route path="/applications/create" element={<CreateApplication />} />
             <Route path="/applications/:id" element={<ViewApplication />} />
@@ -168,22 +190,28 @@ const AppContent: React.FC = () => {
             <Route path="/bots" element={<Bots />} />
             <Route path="/bots/create" element={<CreateBot />} />
             <Route path="/bots/:id" element={<ViewBot />} />
+            <Route path="/bots/:id/details" element={<ViewBot />} />
+            <Route path="/bots/:id/chat" element={<ViewBot />} />
+            <Route path="/bots/:id/tools" element={<ViewBot />} />
             <Route path="/bots/:id/edit" element={<EditBot />} />
+            <Route path="/workflows" element={<Workflows />} />
+            <Route path="/workflows/create" element={<CreateWorkflow />} />
+            <Route path="/workflows/:id" element={<ViewWorkflow />} />
+            <Route path="/workflows/:id/edit" element={<EditWorkflow />} />
+            <Route path="/workflows/:id/designer" element={<WorkflowDesigner />} />
+            <Route path="/secrets" element={<Secrets />} />
+            <Route path="/secrets/create" element={<CreateSecret />} />
+            <Route path="/secrets/:id/edit" element={<EditSecret />} />
+            <Route path="/tools" element={<Tools />} />
             <Route path="/settings" element={<Settings />} />
+            <Route path="/entity-manager" element={<Entities />} />
+            <Route path="/admin" element={<AdminDashboard />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </div>
       </main>
 
-      {/* Right Chat Sidebar - Fixed part of layout */}
-      <aside className={cn(
-        "w-80 h-screen bg-white dark:bg-gray-800 shadow-lg flex flex-col",
-        "fixed inset-y-0 right-0 z-50 transform transition-transform duration-300 ease-in-out",
-        chatOpen ? "translate-x-0" : "translate-x-full",
-        "lg:translate-x-0 lg:static lg:inset-0"
-      )}>
-        <ChatSidebar isOpen={chatOpen} onToggle={() => setChatOpen(!chatOpen)} />
-      </aside>
+
 
       {/* Mobile overlay */}
       {sidebarOpen && (
@@ -198,11 +226,13 @@ const AppContent: React.FC = () => {
 
 const App: React.FC = () => {
   return (
-    <AuthProvider>
-      <Router>
-        <AppContent />
-      </Router>
-    </AuthProvider>
+    <SentryErrorBoundary fallback={<div>Something went wrong. Please refresh the page.</div>}>
+      <AuthProvider>
+        <Router>
+          <AppContent />
+        </Router>
+      </AuthProvider>
+    </SentryErrorBoundary>
   );
 };
 

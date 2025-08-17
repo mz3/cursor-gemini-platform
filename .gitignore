@@ -151,6 +151,11 @@ dump.rdb
 config.local.js
 config.local.json
 
+# Sensitive fixture files
+api/src/fixtures/gemini-key.json
+api/src/fixtures/github-key.json
+api/src/fixtures/secrets.json
+
 # Sentry
 .sentryclirc
 

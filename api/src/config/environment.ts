@@ -15,7 +15,10 @@ export interface EnvironmentConfig {
   NODE_ENV: string;
 
   // Gemini AI
-  GEMINI_API_KEY: string;
+  GEMINI_KEY: string;
+
+  // Sentry
+  SENTRY_DSN: string;
 }
 
 export const config: EnvironmentConfig = {
@@ -35,7 +38,10 @@ export const config: EnvironmentConfig = {
   NODE_ENV: process.env.NODE_ENV || 'development',
 
   // Gemini AI
-  GEMINI_API_KEY: process.env.GEMINI_API_KEY || '',
+  GEMINI_KEY: process.env.GEMINI_KEY || '',
+
+  // Sentry
+  SENTRY_DSN: process.env.SENTRY_DSN || 'https://f82f1699af07069af82167a32b2500ac@o4509857517731841.ingest.us.sentry.io/4509857533132800',
 };
 
 export default config;

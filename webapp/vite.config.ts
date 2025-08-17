@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react';
 
 // Use VITE_DOCKER env var for Docker Compose detection
 const isDocker = process.env.VITE_DOCKER === 'true';
-const apiTarget = isDocker ? 'http://api:4000' : 'http://localhost:4000';
+const apiTarget = isDocker ? 'http://api:4000' : 'http://localhost:4001';
 
 console.log('apiTarget', apiTarget);
 
@@ -21,6 +21,11 @@ export default defineConfig({
         target: apiTarget,
         changeOrigin: true,
       },
+      '/socket.io': {
+        target: apiTarget,
+        changeOrigin: true,
+        ws: true,
+      },
     },
   },
   preview: {
@@ -35,6 +40,12 @@ export default defineConfig({
       '/api': {
         target: apiTarget,
         changeOrigin: true,
+        secure: false,
+      },
+      '/socket.io': {
+        target: apiTarget,
+        changeOrigin: true,
+        ws: true,
         secure: false,
       },
     },

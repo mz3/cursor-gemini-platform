@@ -1,4 +1,4 @@
-import { MigrationInterface, QueryRunner } from "typeorm";
+import type { MigrationInterface, QueryRunner } from "typeorm";
 
 export class AddBotInstancesAndChatMessages1753435000000 implements MigrationInterface {
     name = 'AddBotInstancesAndChatMessages1753435000000'

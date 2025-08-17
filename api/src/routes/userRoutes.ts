@@ -1,13 +1,48 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { AppDataSource } from '../config/database.js';
 import { User } from '../entities/User.js';
+import { Role } from '../entities/Role.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { UserSettings } from '../entities/UserSettings.js';
+import { featureFlagService } from '../services/featureFlagService.js';
+import {
+  ValidationError,
+  AuthenticationError,
+  NotFoundError,
+  ConflictError,
+  DatabaseError
+} from '../middleware/errorHandler.js';
 
 const router = Router();
 const userRepository = AppDataSource.getRepository(User);
+const roleRepository = AppDataSource.getRepository(Role);
 const userSettingsRepository = AppDataSource.getRepository(UserSettings);
+
+// Helper function to extract user from token
+const extractUserFromToken = (req: Request): { userId: string; email: string; role: string } => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    throw new AuthenticationError('No authentication token provided');
+  }
+
+  try {
+    const token = authHeader.substring(7);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret') as any;
+    return {
+      userId: decoded.userId,
+      email: decoded.email,
+      role: decoded.role
+    };
+  } catch (error) {
+    if (error instanceof jwt.TokenExpiredError) {
+      throw new AuthenticationError('Authentication token has expired');
+    } else if (error instanceof jwt.JsonWebTokenError) {
+      throw new AuthenticationError('Invalid authentication token');
+    }
+    throw new AuthenticationError('Authentication failed');
+  }
+};
 
 // POST /api/users/login - User login
 router.post('/login', async (req: Request, res: Response, next: NextFunction) => {
@@ -15,23 +50,26 @@ router.post('/login', async (req: Request, res: Response, next: NextFunction) =>
     const { email, password } = req.body;
 
     if (!email || !password) {
-      return res.status(400).json({ error: 'Email and password are required' });
+      throw new ValidationError('Email and password are required');
     }
 
-    const user = await userRepository.findOne({ where: { email } });
+    const user = await userRepository.findOne({
+      where: { email },
+      relations: ['role']
+    });
 
     if (!user || !user.isActive) {
-      return res.status(401).json({ error: 'Invalid credentials' });
+      throw new AuthenticationError('Invalid email or password');
     }
 
     const isValidPassword = await bcrypt.compare(password, user.password);
 
     if (!isValidPassword) {
-      return res.status(401).json({ error: 'Invalid credentials' });
+      throw new AuthenticationError('Invalid email or password');
     }
 
     const token = jwt.sign(
-      { userId: user.id, email: user.email, role: user.role },
+      { userId: user.id, email: user.email, role: user.role?.name || user.legacyRole || 'user' },
       process.env.JWT_SECRET || 'fallback-secret',
       { expiresIn: '24h' }
     );
@@ -43,7 +81,7 @@ router.post('/login', async (req: Request, res: Response, next: NextFunction) =>
         email: user.email,
         firstName: user.firstName,
         lastName: user.lastName,
-        role: user.role
+        role: user.role?.name || user.legacyRole || 'user'
       }
     });
   } catch (error) {
@@ -57,29 +95,50 @@ router.post('/register', async (req: Request, res: Response, next: NextFunction)
     const { email, password, firstName, lastName } = req.body;
 
     if (!email || !password || !firstName || !lastName) {
-      return res.status(400).json({ error: 'All fields are required' });
+      throw new ValidationError('All fields (email, password, firstName, lastName) are required');
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      throw new ValidationError('Please provide a valid email address');
+    }
+
+    // Validate password strength
+    if (password.length < 6) {
+      throw new ValidationError('Password must be at least 6 characters long');
     }
 
     const existingUser = await userRepository.findOne({ where: { email } });
 
     if (existingUser) {
-      return res.status(400).json({ error: 'User already exists' });
+      throw new ConflictError('A user with this email already exists');
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Get the default user role
+    const userRole = await roleRepository.findOne({ where: { name: 'user' } });
 
     const user = userRepository.create({
       email,
       password: hashedPassword,
       firstName,
       lastName,
-      role: 'user'
+      roleId: userRole?.id,
+      legacyRole: 'user'
     });
 
     const savedUser = await userRepository.save(user);
 
+    // Fetch the user with role relationship
+    const userWithRole = await userRepository.findOne({
+      where: { id: savedUser.id },
+      relations: ['role']
+    });
+
     const token = jwt.sign(
-      { userId: savedUser.id, email: savedUser.email, role: savedUser.role },
+      { userId: savedUser.id, email: savedUser.email, role: userWithRole?.role?.name || 'user' },
       process.env.JWT_SECRET || 'fallback-secret',
       { expiresIn: '24h' }
     );
@@ -91,7 +150,7 @@ router.post('/register', async (req: Request, res: Response, next: NextFunction)
         email: savedUser.email,
         firstName: savedUser.firstName,
         lastName: savedUser.lastName,
-        role: savedUser.role
+        role: userWithRole?.role?.name || 'user'
       }
     });
   } catch (error) {
@@ -102,19 +161,15 @@ router.post('/register', async (req: Request, res: Response, next: NextFunction)
 // GET /api/users/profile - Get user profile
 router.get('/profile', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const authHeader = req.headers.authorization;
+    const { userId } = extractUserFromToken(req);
 
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({ error: 'No token provided' });
-    }
-
-    const token = authHeader.substring(7);
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret') as any;
-
-    const user = await userRepository.findOne({ where: { id: decoded.userId } });
+    const user = await userRepository.findOne({
+      where: { id: userId },
+      relations: ['role']
+    });
 
     if (!user || !user.isActive) {
-      return res.status(401).json({ error: 'Invalid token' });
+      throw new NotFoundError('User profile');
     }
 
     return res.json({
@@ -122,7 +177,7 @@ router.get('/profile', async (req: Request, res: Response, next: NextFunction) =
       email: user.email,
       firstName: user.firstName,
       lastName: user.lastName,
-      role: user.role
+      role: user.role?.name || user.legacyRole || 'user'
     });
   } catch (error) {
     return next(error);
@@ -132,21 +187,19 @@ router.get('/profile', async (req: Request, res: Response, next: NextFunction) =
 // GET /api/users/settings - Get user settings (dark mode)
 router.get('/settings', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({ error: 'No token provided' });
-    }
-    const token = authHeader.substring(7);
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret') as any;
-    const user = await userRepository.findOne({ where: { id: decoded.userId } });
+    const { userId } = extractUserFromToken(req);
+
+    const user = await userRepository.findOne({ where: { id: userId } });
     if (!user || !user.isActive) {
-      return res.status(401).json({ error: 'Invalid token' });
+      throw new NotFoundError('User');
     }
-    let settings = await userSettingsRepository.findOne({ where: { user: { id: user.id } } });
+
+    let settings = await userSettingsRepository.findOne({ where: { user: { id: userId } } });
     if (!settings) {
       settings = userSettingsRepository.create({ user, darkMode: false });
       await userSettingsRepository.save(settings);
     }
+
     return res.json({ darkMode: settings.darkMode });
   } catch (error) {
     return next(error);
@@ -156,25 +209,47 @@ router.get('/settings', async (req: Request, res: Response, next: NextFunction) 
 // PUT /api/users/settings - Update user settings (dark mode)
 router.put('/settings', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({ error: 'No token provided' });
-    }
-    const token = authHeader.substring(7);
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret') as any;
-    const user = await userRepository.findOne({ where: { id: decoded.userId } });
+    const { userId } = extractUserFromToken(req);
+
+    const user = await userRepository.findOne({ where: { id: userId } });
     if (!user || !user.isActive) {
-      return res.status(401).json({ error: 'Invalid token' });
+      throw new NotFoundError('User');
     }
-    let settings = await userSettingsRepository.findOne({ where: { user: { id: user.id } } });
+
+    if (typeof req.body.darkMode !== 'boolean') {
+      throw new ValidationError('darkMode must be a boolean value');
+    }
+
+    let settings = await userSettingsRepository.findOne({ where: { user: { id: userId } } });
     if (!settings) {
       settings = userSettingsRepository.create({ user, darkMode: false });
     }
-    if (typeof req.body.darkMode === 'boolean') {
-      settings.darkMode = req.body.darkMode;
-    }
+
+    settings.darkMode = req.body.darkMode;
     await userSettingsRepository.save(settings);
+
     return res.json({ darkMode: settings.darkMode });
+  } catch (error) {
+    return next(error);
+  }
+});
+
+// GET /api/users/feature-flags - Get feature flags for the current user
+router.get('/feature-flags', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { userId } = extractUserFromToken(req);
+
+    const user = await userRepository.findOne({
+      where: { id: userId },
+      relations: ['role']
+    });
+
+    if (!user || !user.isActive) {
+      throw new NotFoundError('User');
+    }
+
+    const featureFlags = await featureFlagService.getUserFeatureFlags(user);
+    return res.json(featureFlags);
   } catch (error) {
     return next(error);
   }

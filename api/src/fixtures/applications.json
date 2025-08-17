@@ -5,7 +5,7 @@
     "description": "Backend API service with TypeORM, Express, and JWT authentication",
     "config": {
       "port": 4000,
-      "features": ["authentication", "data-modeling", "crud-operations", "workflows"],
+      "features": ["authentication", "data-schemaing", "crud-operations", "workflows"],
       "technologies": ["nodejs", "typescript", "express", "typeorm", "postgresql"]
     },
     "status": "active",
@@ -17,7 +17,7 @@
     "description": "React frontend with TypeScript and Tailwind CSS",
     "config": {
       "port": 3000,
-      "features": ["dashboard", "model-builder", "prompt-management", "workflow-designer"],
+      "features": ["dashboard", "schema-builder", "prompt-management", "workflow-designer"],
       "technologies": ["react", "typescript", "tailwind", "vite"]
     },
     "status": "active",

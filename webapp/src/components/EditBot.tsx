@@ -37,7 +37,7 @@ const EditBot: React.FC = () => {
     }
   };
 
-  const handleSubmit = async (data: { name: string; displayName: string; description: string; isActive: boolean; promptIds: string[] }) => {
+  const handleSubmit = async (data: { name: string; displayName: string; description: string; isActive: boolean; modelId?: string }) => {
     setSaving(true);
     setError('');
     try {
@@ -95,13 +95,10 @@ const EditBot: React.FC = () => {
           displayName: bot.displayName,
           description: bot.description,
           isActive: bot.isActive,
-          promptIds: bot.prompts.map(p => p.id),
         }}
         onSubmit={handleSubmit}
         loading={saving}
         error={error}
-        submitLabel="Update Bot"
-        onCancel={() => navigate('/bots')}
       />
     </div>
   );

@@ -1,10 +1,26 @@
 [
   {
+    "email": "michael@tunnel.ninja",
+    "password": "hashed_password_here",
+    "firstName": "Michael",
+    "lastName": "Zandstra",
+    "role": "admin",
+    "isActive": true
+  },
+  {
     "email": "admin@platform.com",
     "password": "hashed_password_here",
     "firstName": "Admin",
     "lastName": "User",
     "role": "admin",
+    "isActive": true
+  },
+  {
+    "email": "system@platform.com",
+    "password": "system_password_here",
+    "firstName": "System",
+    "lastName": "Bot",
+    "role": "system",
     "isActive": true
   }
 ]

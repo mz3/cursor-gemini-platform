@@ -1,0 +1,23 @@
+[
+  {
+    "name": "admin",
+    "displayName": "Administrator",
+    "description": "Full system access with all permissions",
+    "isSystem": true,
+    "isActive": true
+  },
+  {
+    "name": "user",
+    "displayName": "Regular User",
+    "description": "Standard user with basic permissions",
+    "isSystem": true,
+    "isActive": true
+  },
+  {
+    "name": "system",
+    "displayName": "System",
+    "description": "System-level access for automated processes",
+    "isSystem": true,
+    "isActive": true
+  }
+]

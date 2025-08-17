@@ -1,26 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import api from '../utils/api';
+import ErrorDisplay from './ErrorDisplay';
 
-interface Prompt {
-  id: string;
+interface Bot {
+  id?: string;
   name: string;
-  description?: string;
+  displayName: string;
+  description: string;
+  isActive: boolean;
+  modelId?: string;
 }
 
 interface BotFormProps {
-  initialData?: {
-    name: string;
-    displayName: string;
-    description: string;
-    isActive: boolean;
-    promptIds: string[];
-  };
-  onSubmit?: (data: { name: string; displayName: string; description: string; isActive: boolean; promptIds: string[] }) => Promise<void>;
+  initialData?: Bot;
+  onSubmit: (data: Bot) => Promise<void>;
   loading?: boolean;
   error?: string;
   readOnly?: boolean;
-  onCancel?: () => void;
-  submitLabel?: string;
 }
 
 const BotForm: React.FC<BotFormProps> = ({
@@ -28,75 +23,60 @@ const BotForm: React.FC<BotFormProps> = ({
   onSubmit,
   loading = false,
   error = '',
-  readOnly = false,
-  onCancel,
-  submitLabel = 'Save',
+  readOnly = false
 }) => {
-  const [form, setForm] = useState({
-    name: initialData?.name || '',
-    displayName: initialData?.displayName || '',
-    description: initialData?.description || '',
-    isActive: initialData?.isActive ?? true,
-    promptIds: initialData?.promptIds || [],
+  const [form, setForm] = useState<Bot>({
+    name: '',
+    displayName: '',
+    description: '',
+    isActive: true,
+    modelId: ''
   });
-  const [prompts, setPrompts] = useState<Prompt[]>([]);
-  const [localError, setLocalError] = useState('');
+  const [localError, setLocalError] = useState<string>('');
 
   useEffect(() => {
-    fetchPrompts();
-  }, []);
-
-  useEffect(() => {
-    setForm({
-      name: initialData?.name || '',
-      displayName: initialData?.displayName || '',
-      description: initialData?.description || '',
-      isActive: initialData?.isActive ?? true,
-      promptIds: initialData?.promptIds || [],
-    });
+    if (initialData) {
+      setForm(initialData);
+    }
   }, [initialData]);
 
-  const fetchPrompts = async () => {
-    try {
-      const response = await api.get('/prompts');
-      setPrompts(response.data);
-    } catch (error) {
-      console.error('Error fetching prompts:', error);
-    }
-  };
-
-  const handleChange = (field: string, value: string | boolean | string[]) => {
+  const handleChange = (field: keyof Bot, value: string | boolean) => {
     setForm(prev => ({ ...prev, [field]: value }));
-  };
-
-  const handlePromptToggle = (promptId: string) => {
-    setForm(prev => ({
-      ...prev,
-      promptIds: prev.promptIds.includes(promptId)
-        ? prev.promptIds.filter(id => id !== promptId)
-        : [...prev.promptIds, promptId]
-    }));
+    // Clear local error when user starts typing
+    if (localError) {
+      setLocalError('');
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLocalError('');
-    if (!form.name || !form.displayName) {
-      setLocalError('Name and Display Name are required');
+
+    if (!form.name.trim()) {
+      setLocalError('Name is required');
       return;
     }
-    if (onSubmit) {
-      try {
-        await onSubmit(form);
-      } catch (err: any) {
-        setLocalError(err.message || 'Failed to save bot');
-      }
+
+    if (!form.displayName.trim()) {
+      setLocalError('Display name is required');
+      return;
+    }
+
+    try {
+      await onSubmit(form);
+    } catch (err: any) {
+      setLocalError(err.message || 'Failed to save bot');
     }
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {(error || localError) && <div className="bg-red-50 border border-red-200 rounded-md p-4 text-sm text-red-700">{error || localError}</div>}
+      <ErrorDisplay
+        error={error || localError}
+        onDismiss={() => {
+          setLocalError('');
+        }}
+      />
 
       <div>
         <label className="block text-sm font-medium text-gray-700">Name *</label>
@@ -137,59 +117,38 @@ const BotForm: React.FC<BotFormProps> = ({
       </div>
 
       <div>
+        <label className="block text-sm font-medium text-gray-700">Schema ID</label>
+        <input
+          type="text"
+          value={form.modelId || ''}
+          onChange={e => handleChange('modelId', e.target.value)}
+          disabled={readOnly}
+          className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+          placeholder="Optional model ID"
+        />
+      </div>
+
+      <div>
         <label className="flex items-center">
           <input
             type="checkbox"
             checked={form.isActive}
             onChange={e => handleChange('isActive', e.target.checked)}
             disabled={readOnly}
-            className="rounded border-gray-300 text-primary-600 shadow-sm focus:border-primary-300 focus:ring focus:ring-primary-200 focus:ring-opacity-50"
+            className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
           />
-          <span className="ml-2 text-sm font-medium text-gray-700">Active</span>
+          <span className="ml-2 block text-sm text-gray-900">Active</span>
         </label>
       </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Associated Prompts</label>
-        <div className="space-y-2 max-h-48 overflow-y-auto border border-gray-300 rounded-md p-3">
-          {prompts.map((prompt) => (
-            <label key={prompt.id} className="flex items-center">
-              <input
-                type="checkbox"
-                checked={form.promptIds.includes(prompt.id)}
-                onChange={() => handlePromptToggle(prompt.id)}
-                disabled={readOnly}
-                className="rounded border-gray-300 text-primary-600 shadow-sm focus:border-primary-300 focus:ring focus:ring-primary-200 focus:ring-opacity-50"
-              />
-              <span className="ml-2 text-sm text-gray-700">{prompt.name}</span>
-              {prompt.description && (
-                <span className="ml-2 text-xs text-gray-500">- {prompt.description}</span>
-              )}
-            </label>
-          ))}
-          {prompts.length === 0 && (
-            <p className="text-sm text-gray-500">No prompts available</p>
-          )}
-        </div>
-      </div>
-
       {!readOnly && (
-        <div className="flex justify-end space-x-3">
-          {onCancel && (
-            <button
-              type="button"
-              onClick={onCancel}
-              className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
-            >
-              Cancel
-            </button>
-          )}
+        <div className="flex justify-end">
           <button
             type="submit"
             disabled={loading}
-            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 disabled:opacity-50"
+            className="bg-primary-600 text-white px-4 py-2 rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50"
           >
-            {loading ? 'Saving...' : submitLabel}
+            {loading ? 'Saving...' : 'Save'}
           </button>
         </div>
       )}
