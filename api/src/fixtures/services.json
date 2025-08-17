@@ -1,0 +1,52 @@
+[
+  {
+    "name": "user-service",
+    "displayName": "User Management Service",
+    "description": "Handles user authentication, profiles, and permissions",
+    "isActive": true,
+    "type": "http",
+    "endpoint": "https://api.users.example.com",
+    "status": "active",
+    "userId": "system"
+  },
+  {
+    "name": "notification-service",
+    "displayName": "Notification Service",
+    "description": "Handles email, SMS, and push notifications",
+    "isActive": true,
+    "type": "http",
+    "endpoint": "https://api.notifications.example.com",
+    "status": "active",
+    "userId": "system"
+  },
+  {
+    "name": "payment-service",
+    "displayName": "Payment Processing Service",
+    "description": "Handles payment processing and billing",
+    "isActive": true,
+    "type": "http",
+    "endpoint": "https://api.payments.example.com",
+    "status": "active",
+    "userId": "system"
+  },
+  {
+    "name": "analytics-service",
+    "displayName": "Analytics Service",
+    "description": "Collects and processes analytics data",
+    "isActive": true,
+    "type": "http",
+    "endpoint": "https://api.analytics.example.com",
+    "status": "active",
+    "userId": "system"
+  },
+  {
+    "name": "file-storage-service",
+    "displayName": "File Storage Service",
+    "description": "Handles file uploads, storage, and retrieval",
+    "isActive": true,
+    "type": "http",
+    "endpoint": "https://api.storage.example.com",
+    "status": "active",
+    "userId": "system"
+  }
+]

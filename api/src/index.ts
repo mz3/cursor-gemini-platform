@@ -24,6 +24,7 @@ import { featureRoutes } from './routes/featureRoutes.js';
 import entityRoutes from './routes/entityRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import { secretRoutes } from './routes/secretRoutes.js';
+import { serviceRoutes } from './routes/serviceRoutes.js';
 import { errorHandler } from './middleware/errorHandler.js';
 
 import ChatWebSocketServer from './websocket/chatServer.js';
@@ -87,6 +88,7 @@ app.use('/api/features', featureRoutes);
 app.use('/api/entities', entityRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/secrets', secretRoutes);
+app.use('/api/services', serviceRoutes);
 
 console.log('✅ API routes configured');
 

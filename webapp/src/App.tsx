@@ -1,7 +1,7 @@
 /// <reference types="vite/client" />
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, Link, useLocation } from 'react-router-dom';
-import { Home, Database, AppWindow, Settings as SettingsIcon, Plus, LogOut, User, MessageSquare, Bot, Zap, Wrench, Layers, Workflow as WorkflowIcon, Shield, Key } from 'lucide-react';
+import { Home, Database, AppWindow, Settings as SettingsIcon, Plus, LogOut, User, MessageSquare, Bot, Zap, Wrench, Layers, Workflow as WorkflowIcon, Shield, Key, Server } from 'lucide-react';
 import { initializeSentry, SentryErrorBoundary } from './config/sentry';
 import Login from './components/Login';
 import Dashboard from './components/Dashboard';
@@ -33,6 +33,10 @@ import CreateWorkflow from './components/CreateWorkflow';
 import EditWorkflow from './components/EditWorkflow';
 import ViewWorkflow from './components/ViewWorkflow';
 import WorkflowDesigner from './components/WorkflowDesigner';
+import Services from './components/Services';
+import CreateService from './components/CreateService';
+import EditService from './components/EditService';
+import ViewService from './components/ViewService';
 
 import AdminDashboard from './components/AdminDashboard';
 import Secrets from './components/Secrets';
@@ -80,6 +84,7 @@ const AppContent: React.FC = () => {
     { name: 'Features', href: '/features', icon: Zap },
     { name: 'Prompts', href: '/prompts', icon: MessageSquare },
     { name: 'Schemas', href: '/schemas', icon: Database },
+    { name: 'Services', href: '/services', icon: Server },
     { name: 'Secrets', href: '/secrets', icon: Key },
     { name: 'Settings', href: '/settings', icon: SettingsIcon },
     { name: 'Tools', href: '/tools', icon: Wrench },
@@ -202,6 +207,10 @@ const AppContent: React.FC = () => {
             <Route path="/secrets" element={<Secrets />} />
             <Route path="/secrets/create" element={<CreateSecret />} />
             <Route path="/secrets/:id/edit" element={<EditSecret />} />
+            <Route path="/services" element={<Services />} />
+            <Route path="/services/create" element={<CreateService />} />
+            <Route path="/services/:id" element={<ViewService />} />
+            <Route path="/services/:id/edit" element={<EditService />} />
             <Route path="/tools" element={<Tools />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/entity-manager" element={<Entities />} />
