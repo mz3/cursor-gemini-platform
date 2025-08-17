@@ -112,7 +112,7 @@
     "description": "Looks up user account information and subscription status",
     "type": "database_query",
     "config": {
-      "query": "SELECT id, email, firstName, lastName, role, isActive, createdAt FROM users WHERE email = '${email}' OR id = '${userId}'",
+      "query": "SELECT id, email, firstName, lastName, role, isActive, createdAt FROM users WHERE email = \"${email}\" OR id = \"${userId}\"",
       "type": "select"
     },
     "isActive": true,
@@ -218,7 +218,7 @@
     "description": "Checks server health and status",
     "type": "shell_command",
     "config": {
-      "command": "ping -c 3 ${host} && curl -f ${url}/health || echo 'Health check failed'",
+      "command": "ping -c 3 ${host} && curl -f ${url}/health || echo \\\"Health check failed\\\"",
       "timeout": 30
     },
     "isActive": true,
@@ -337,7 +337,7 @@
     "description": "Analyzes log files for errors and patterns",
     "type": "shell_command",
     "config": {
-      "command": "tail -n ${lines} ${logFile} | grep -i '${searchTerm}'",
+      "command": "tail -n ${lines} ${logFile} | grep -i \\\"${searchTerm}\\\"",
       "timeout": 30
     },
     "isActive": true,
@@ -574,7 +574,7 @@
     "description": "Creates a new GitHub issue with title and body",
     "type": "shell_command",
     "config": {
-      "command": "export GH_PAGER=cat && gh issue create --title \"${title}\" --body \"${body}\" ${assignee ? '--assignee ' + assignee : ''} ${labels ? '--label ' + labels : ''}",
+      "command": "export GH_PAGER=cat && gh issue create --title \"${title}\" --body \"${body}\" ${assignee ? \"--assignee \" + assignee : \"\"} ${labels ? \"--label \" + labels : \"\"}",
       "timeout": 30,
       "env": {
         "GH_PAGER": "cat"
@@ -590,7 +590,7 @@
     "description": "Closes a GitHub issue with optional comment",
     "type": "shell_command",
     "config": {
-      "command": "export GH_PAGER=cat && gh issue close ${issueNumber} ${comment ? '--comment \"' + comment + '\"' : ''}",
+      "command": "export GH_PAGER=cat && gh issue close ${issueNumber} ${comment ? \"--comment \"\" + comment + \"\"\" : \"\"}",
       "timeout": 30,
       "env": {
         "GH_PAGER": "cat"
@@ -638,7 +638,7 @@
     "description": "Creates a new GitHub pull request with title and body",
     "type": "shell_command",
     "config": {
-      "command": "export GH_PAGER=cat && gh pr create --title \"${title}\" --body \"${body}\" --base ${baseBranch} ${headBranch ? '--head ' + headBranch : ''} ${draft ? '--draft' : ''}",
+      "command": "export GH_PAGER=cat && gh pr create --title \"${title}\" --body \"${body}\" --base ${baseBranch} ${headBranch ? \"--head \" + headBranch : \"\"} ${draft ? \"--draft\" : \"\"}",
       "timeout": 30,
       "env": {
         "GH_PAGER": "cat"
@@ -654,7 +654,7 @@
     "description": "Merges a GitHub pull request with specified merge strategy",
     "type": "shell_command",
     "config": {
-      "command": "export GH_PAGER=cat && gh pr merge ${prNumber} --${mergeStrategy} ${deleteBranch ? '--delete-branch' : ''}",
+      "command": "export GH_PAGER=cat && gh pr merge ${prNumber} --${mergeStrategy} ${deleteBranch ? \"--delete-branch\" : \"\"}",
       "timeout": 30,
       "env": {
         "GH_PAGER": "cat"
@@ -686,7 +686,7 @@
     "description": "Triggers a GitHub Actions workflow manually",
     "type": "shell_command",
     "config": {
-      "command": "export GH_PAGER=cat && gh workflow run ${workflowFile} --ref ${ref} ${inputs ? '--field ' + inputs : ''}",
+      "command": "export GH_PAGER=cat && gh workflow run ${workflowFile} --ref ${ref} ${inputs ? \"--field \" + inputs : \"\"}",
       "timeout": 30,
       "env": {
         "GH_PAGER": "cat"
@@ -766,7 +766,7 @@
     "description": "Lists branches in a GitHub repository",
     "type": "shell_command",
     "config": {
-      "command": "export GH_PAGER=cat && gh api repos/:owner/:repo/branches --paginate --jq '.[] | {name: .name, commit: .commit.sha, protection: .protection.enabled}',
+      "command": "export GH_PAGER=cat && gh api repos/:owner/:repo/branches --paginate --jq \\\".[] | {name: .name, commit: .commit.sha, protection: .protection.enabled}\\\"",
       "timeout": 30,
       "env": {
         "GH_PAGER": "cat"
@@ -830,7 +830,7 @@
     "description": "Creates a new GitHub release",
     "type": "shell_command",
     "config": {
-      "command": "export GH_PAGER=cat && gh release create ${tag} --title \"${title}\" --notes \"${notes}\" ${draft ? '--draft' : ''} ${prerelease ? '--prerelease' : ''}",
+      "command": "export GH_PAGER=cat && gh release create ${tag} --title \\\"${title}\\\" --notes \\\"${notes}\\\" ${draft ? \"--draft\" : \"\"} ${prerelease ? \"--prerelease\" : \"\"}",
       "timeout": 30,
       "env": {
         "GH_PAGER": "cat"
@@ -846,7 +846,7 @@
     "description": "Lists GitHub deployments with status information",
     "type": "shell_command",
     "config": {
-      "command": "export GH_PAGER=cat && gh api repos/:owner/:repo/deployments --paginate --jq '.[] | {id: .id, environment: .environment, ref: .ref, task: .task, status: .status, created_at: .created_at}',
+      "command": "export GH_PAGER=cat && gh api repos/:owner/:repo/deployments --paginate --jq \\\".[] | {id: .id, environment: .environment, ref: .ref, task: .task, status: .status, created_at: .created_at}\\\"",
       "timeout": 30,
       "env": {
         "GH_PAGER": "cat"
@@ -862,7 +862,7 @@
     "description": "Gets status information for a specific GitHub deployment",
     "type": "shell_command",
     "config": {
-      "command": "export GH_PAGER=cat && gh api repos/:owner/:repo/deployments/${deploymentId}/statuses --jq '.[] | {id: .id, state: .state, description: .description, environment: .environment, created_at: .created_at}',
+      "command": "export GH_PAGER=cat && gh api repos/:owner/:repo/deployments/${deploymentId}/statuses --jq \\\".[] | {id: .id, state: .state, description: .description, environment: .environment, created_at: .created_at}\\\"",
       "timeout": 30,
       "env": {
         "GH_PAGER": "cat"
@@ -974,7 +974,7 @@
     "description": "Checks the status of CI builds across multiple platforms and reports on failures",
     "type": "shell_command",
     "config": {
-      "command": "curl -s -H \"Authorization: Bearer ${CI_TOKEN}\" ${CI_API_URL}/builds/${buildId} | jq '.status, .result, .duration, .started_at, .finished_at'",
+      "command": "curl -s -H \"Authorization: Bearer ${CI_TOKEN}\" ${CI_API_URL}/builds/${buildId} | jq \".status, .result, .duration, .started_at, .finished_at\"",
       "timeout": 30
     },
     "isActive": true,
@@ -1000,7 +1000,7 @@
     "description": "Checks deployment status across different environments and platforms",
     "type": "shell_command",
     "config": {
-      "command": "curl -s -H \"Authorization: Bearer ${DEPLOY_TOKEN}\" ${DEPLOY_API_URL}/deployments/${deploymentId} | jq '.status, .environment, .created_at, .updated_at, .url'",
+      "command": "curl -s -H \"Authorization: Bearer ${DEPLOY_TOKEN}\" ${DEPLOY_API_URL}/deployments/${deploymentId} | jq \".status, .environment, .created_at, .updated_at, .url\"",
       "timeout": 30
     },
     "isActive": true,
@@ -1026,7 +1026,7 @@
     "description": "Collects performance metrics from CI/CD builds and deployments",
     "type": "shell_command",
     "config": {
-      "command": "curl -s ${metricsUrl}/api/v1/query?query=${query} | jq '.data.result[0].value[1]'",
+      "command": "curl -s ${metricsUrl}/api/v1/query?query=${query} | jq \".data.result[0].value[1]\"",
       "timeout": 30
     },
     "isActive": true,
@@ -1039,7 +1039,7 @@
     "description": "Retrieves and analyzes security scan results from CI/CD pipelines",
     "type": "shell_command",
     "config": {
-      "command": "curl -s -H \"Authorization: Bearer ${SECURITY_TOKEN}\" ${SECURITY_API_URL}/scans/${scanId}/results | jq '.vulnerabilities | length, .severity_counts'",
+      "command": "curl -s -H \"Authorization: Bearer ${SECURITY_TOKEN}\" ${SECURITY_API_URL}/scans/${scanId}/results | jq \".vulnerabilities | length, .severity_counts\"",
       "timeout": 60
     },
     "isActive": true,
@@ -1052,7 +1052,7 @@
     "description": "Reports on code coverage metrics from test runs",
     "type": "shell_command",
     "config": {
-      "command": "find ${coveragePath} -name \"coverage.json\" -exec jq '.total.lines.pct, .total.functions.pct, .total.branches.pct' {} \\;",
+      "command": "find ${coveragePath} -name \"coverage.json\" -exec jq \".total.lines.pct, .total.functions.pct, .total.branches.pct\" {} \\;",
       "timeout": 30
     },
     "isActive": true,
@@ -1078,7 +1078,7 @@
     "description": "Performs health checks on deployment environments",
     "type": "shell_command",
     "config": {
-      "command": "curl -f ${healthCheckUrl}/health || echo 'Health check failed' && curl -s ${healthCheckUrl}/metrics | jq '.status'",
+      "command": "curl -f ${healthCheckUrl}/health || echo \"Health check failed\" && curl -s ${healthCheckUrl}/metrics | jq \".status\"",
       "timeout": 30
     },
     "isActive": true,
@@ -1091,7 +1091,7 @@
     "description": "Triggers rollback procedures for failed deployments",
     "type": "shell_command",
     "config": {
-      "command": "curl -X POST -H \"Authorization: Bearer ${ROLLBACK_TOKEN}\" ${ROLLBACK_API_URL}/rollback/${deploymentId} -d '{\"reason\": \"${reason}\", \"version\": \"${previousVersion}\"}'",
+      "command": "curl -X POST -H \"Authorization: Bearer ${ROLLBACK_TOKEN}\" ${ROLLBACK_API_URL}/rollback/${deploymentId} -d \"{\"reason\": \"${reason}\", \"version\": \"${previousVersion}\"}\"",
       "timeout": 60
     },
     "isActive": true,
@@ -1104,7 +1104,7 @@
     "description": "Sends notifications about CI/CD events to various channels",
     "type": "shell_command",
     "config": {
-      "command": "curl -X POST -H \"Content-Type: application/json\" ${WEBHOOK_URL} -d '{\"text\": \"${message}\", \"channel\": \"${channel}\", \"username\": \"CI/CD Bot\"}'",
+      "command": "curl -X POST -H \"Content-Type: application/json\" ${WEBHOOK_URL} -d \"{\"text\": \"${message}\", \"channel\": \"${channel}\", \"username\": \"CI/CD Bot\"}\"",
       "timeout": 30
     },
     "isActive": true,
@@ -1117,7 +1117,7 @@
     "description": "Analyzes build times and identifies optimization opportunities",
     "type": "shell_command",
     "config": {
-      "command": "gh run list --limit 50 --json id,status,conclusion,workflowName,createdAt,updatedAt,duration | jq '[.[] | select(.duration != null)] | sort_by(.duration) | reverse | .[0:10] | .[] | {id: .id, workflow: .workflowName, duration: .duration, status: .status}'",
+      "command": "gh run list --limit 50 --json id,status,conclusion,workflowName,createdAt,updatedAt,duration | jq \"[.[] | select(.duration != null)] | sort_by(.duration) | reverse | .[0:10] | .[] | {id: .id, workflow: .workflowName, duration: .duration, status: .status}\"",
       "timeout": 30,
       "env": {
         "GH_PAGER": "cat"
@@ -1133,7 +1133,7 @@
     "description": "Checks for outdated dependencies and security updates",
     "type": "shell_command",
     "config": {
-      "command": "npm outdated --json || echo '{}' && npm audit --json | jq '.vulnerabilities | keys | length'",
+      "command": "npm outdated --json || echo \"{}\" && npm audit --json | jq \".vulnerabilities | keys | length\"",
       "timeout": 60
     },
     "isActive": true,
@@ -1146,7 +1146,7 @@
     "description": "Generates release notes from commits and pull requests",
     "type": "shell_command",
     "config": {
-      "command": "gh pr list --state merged --base ${baseBranch} --limit 100 --json title,number,author,mergedAt | jq '[.[] | select(.mergedAt >= \"${sinceDate}\")] | .[] | \"- #\" + (.number | tostring) + \" \" + .title + \" (@\" + .author.login + \")\"'",
+      "command": "gh pr list --state merged --base ${baseBranch} --limit 100 --json title,number,author,mergedAt | jq \"[.[] | select(.mergedAt >= \"${sinceDate}\")] | .[] | \"- #\" + (.number | tostring) + \" \" + .title + \" (@\" + .author.login + \")\"\"",
       "timeout": 30,
       "env": {
         "GH_PAGER": "cat"

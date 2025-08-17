@@ -58,20 +58,28 @@ export const seedDatabase = async (): Promise<void> => {
       process.exit(1);
     }, 30000);
 
-    // Check if data already exists - check all tables
-    const existingUsers = await userRepository.find();
-    const existingFeatures = await featureRepository.find();
-    const existingApplications = await applicationRepository.find();
-    const existingSchemas = await schemaRepository.find();
-    const existingPrompts = await promptRepository.find();
-    const existingBots = await botRepository.find();
-    const existingWorkflows = await workflowRepository.find();
+    // Check if this is a sync operation (NODE_ENV=seeding) or initial seeding
+    const isSyncOperation = process.env.NODE_ENV === 'seeding';
 
-    if (existingUsers.length > 0 || existingFeatures.length > 0 || existingApplications.length > 0 ||
-        existingSchemas.length > 0 || existingPrompts.length > 0 || existingBots.length > 0 || existingWorkflows.length > 0) {
-      console.log('Database already seeded with data, skipping...');
-      clearTimeout(timeout);
-      return;
+    if (isSyncOperation) {
+      console.log('🔄 Running in sync mode - will update existing data and add new fixtures');
+    } else {
+      // Check if data already exists - check all tables
+      const existingUsers = await userRepository.find();
+      const existingFeatures = await featureRepository.find();
+      const existingApplications = await applicationRepository.find();
+      const existingSchemas = await schemaRepository.find();
+      const existingPrompts = await promptRepository.find();
+      const existingBots = await botRepository.find();
+      const existingWorkflows = await botRepository.find();
+
+      if (existingUsers.length > 0 || existingFeatures.length > 0 || existingApplications.length > 0 ||
+          existingSchemas.length > 0 || existingPrompts.length > 0 || existingBots.length > 0 || existingWorkflows.length > 0) {
+        console.log('Database already seeded with data, skipping...');
+        console.log('💡 Use "npm run seed:sync" to sync fixtures with existing data');
+        clearTimeout(timeout);
+        return;
+      }
     }
 
     console.log('Creating roles and permissions...');
@@ -333,13 +341,32 @@ export const seedDatabase = async (): Promise<void> => {
             ? systemUser.id
             : savedUser!.id;
 
-          const prompt = promptRepository.create({
-            ...promptData,
-            userId: promptUserId
+          // Check if prompt already exists (for sync mode)
+          const existingPrompt = await promptRepository.findOne({
+            where: { name: promptData.name }
           });
-          await promptRepository.save(prompt);
+
+          if (existingPrompt && isSyncOperation) {
+            // Update existing prompt
+            Object.assign(existingPrompt, {
+              ...promptData,
+              userId: promptUserId
+            });
+            await promptRepository.save(existingPrompt);
+            console.log(`🔄 Updated prompt: ${promptData.name}`);
+          } else if (!existingPrompt) {
+            // Create new prompt
+            const prompt = promptRepository.create({
+              ...promptData,
+              userId: promptUserId
+            });
+            await promptRepository.save(prompt);
+            console.log(`✅ Created prompt: ${promptData.name}`);
+          } else {
+            console.log(`⏭️  Skipped existing prompt: ${promptData.name}`);
+          }
         } catch (error) {
-          console.error('Error creating prompt:', error);
+          console.error(`❌ Error creating/updating prompt ${promptData.name}:`, error);
         }
       }
     }

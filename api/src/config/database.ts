@@ -38,7 +38,7 @@ export const AppDataSource = new DataSource({
   password: process.env.DB_PASSWORD || 'platform_password',
   database: process.env.DB_NAME || 'platform_db',
   synchronize: false, // Disabled for production - use migrations instead
-  logging: process.env.NODE_ENV === 'development',
+  logging: process.env.NODE_ENV === 'development' && process.env.NODE_ENV !== 'seeding',
   entities: [
     User,
     UserSettings,
