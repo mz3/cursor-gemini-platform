@@ -43,6 +43,17 @@ export class AuthorizationError extends Error implements AppError {
   }
 }
 
+export class ForbiddenError extends Error implements AppError {
+  statusCode = 403;
+  isOperational = true;
+  code = 'FORBIDDEN';
+
+  constructor(message: string = 'Access forbidden') {
+    super(message);
+    this.name = 'ForbiddenError';
+  }
+}
+
 export class NotFoundError extends Error implements AppError {
   statusCode = 404;
   isOperational = true;

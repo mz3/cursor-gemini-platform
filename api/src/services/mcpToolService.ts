@@ -652,7 +652,7 @@ export class MCPToolService {
         email: user.email,
         firstName: user.firstName,
         lastName: user.lastName,
-        role: user.role,
+        role: user.role?.name || user.legacyRole || 'user',
         isActive: user.isActive,
         createdAt: user.createdAt
       }

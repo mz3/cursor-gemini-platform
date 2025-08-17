@@ -13,6 +13,7 @@ import { PromptVersion } from '../entities/PromptVersion.js';
 import { Entity } from '../entities/Entity.js';
 import { Workflow } from '../entities/Workflow.js';
 import { WorkflowAction } from '../entities/WorkflowAction.js';
+import { Secret } from '../entities/Secret.js';
 
 export const AppDataSource = new DataSource({
   type: 'postgres',
@@ -37,7 +38,8 @@ export const AppDataSource = new DataSource({
     PromptVersion,
     Entity,
     Workflow,
-    WorkflowAction
+    WorkflowAction,
+    Secret
   ],
   migrations: [],
   subscribers: [],

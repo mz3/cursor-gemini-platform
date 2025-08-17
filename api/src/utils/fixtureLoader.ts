@@ -51,7 +51,11 @@ export class FixtureLoader {
       'codeTemplates',
       'relationships',
       'users',
-      'userSettings'
+      'userSettings',
+      'roles',
+      'permissions',
+      'featureFlags',
+      'secrets'
     ];
 
     const fixtures: FixtureData = {};

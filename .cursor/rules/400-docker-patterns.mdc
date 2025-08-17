@@ -35,6 +35,15 @@ docker exec api npm run migration:revert
 docker exec api npm run migration:show
 ```
 
+### Database Seeding Commands
+```bash
+# Seed database with initial data (development mode)
+docker exec api npm run seed
+
+# Seed database with built artifacts (production-like)
+docker exec api npm run seed:build
+```
+
 ### Logging and Debugging
 ```bash
 # View recent logs for specific service

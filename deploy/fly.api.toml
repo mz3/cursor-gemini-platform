@@ -1,35 +1,40 @@
 # fly.toml for cursor-gemini-api (API service only)
+# Updated for hybrid approach with managed PostgreSQL and Redis
 
 app = "cursor-gemini-api"
 primary_region = "sea"
 
 [build]
-  dockerfile = "Dockerfile.api"
+  dockerfile = "../docker/Dockerfile.api"
 
 [processes]
   app = "npm start"
 
 [env]
   NODE_ENV = "production"
-  # Database configuration
-  DB_HOST = "cursor-gemini-platform-db.internal"
+
+  # Database configuration - Using Fly's managed PostgreSQL
+  DB_HOST = "meta-platform-mz3.internal"
   DB_PORT = "5432"
   DB_NAME = "postgres"
   DB_USER = "postgres"
-  DB_PASSWORD = "MnhrpJSzpoqmWiP"
+  # DB_PASSWORD will be set via fly secrets
 
-  # Redis configuration
-  REDIS_HOST = "fly-cursor-gemini-platform-redis.upstash.io"
+  # Redis configuration - Using Fly's managed Redis (Upstash)
+  REDIS_HOST = "fly-meta-platform-redis.upstash.io"
   REDIS_PORT = "6379"
-  REDIS_PASSWORD = "091e53933b3e4e0cad027c396bf5f17d"
+  # REDIS_PASSWORD will be set via fly secrets
 
   # JWT configuration
   JWT_SECRET = "your-jwt-secret-key"
   JWT_EXPIRES_IN = "24h"
 
-  # API configuration - Updated to use port 4000
+  # API configuration
   API_PORT = "4000"
   API_URL = "https://cursor-gemini-api.fly.dev"
+
+  # Gemini configuration
+  # GEMINI_KEY will be set via fly secrets
 
 [[services]]
   processes = ["app"]
@@ -64,7 +69,12 @@ primary_region = "sea"
   port = 9091
   path = "/metrics"
 
-# Scaling configuration
+# Scaling configuration - Free tier: 1 VM
 [scale]
   min = 1
-  max = 3
+  max = 1
+
+[[vm]]
+  memory = "256mb"
+  cpu_kind = "shared"
+  cpus = 1

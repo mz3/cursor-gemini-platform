@@ -48,6 +48,7 @@ services:
       API_PORT: 4000
       JWT_SECRET: your-super-secret-jwt-key-change-in-production
       GEMINI_KEY: ${GEMINI_KEY}
+      SENTRY_DSN: ${SENTRY_DSN}
     ports:
       - "4001:4000"
     depends_on:
@@ -68,8 +69,9 @@ services:
     container_name: webapp
     environment:
       - VITE_DOCKER=true
-      - REACT_APP_API_URL=http://api:4000
-      - REACT_APP_WS_URL=ws://api:4000
+      - VITE_API_URL=/api
+      - VITE_WS_URL=ws://localhost:4001
+      - VITE_SENTRY_DSN=${SENTRY_DSN}
     ports:
       - "3000:3000"
     depends_on:

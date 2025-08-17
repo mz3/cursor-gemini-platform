@@ -130,6 +130,19 @@ jobs:
           DB_PASSWORD: platform_password
           DB_NAME: platform_db
 
+      - name: Seed database with test data
+        run: |
+          echo "Seeding database with test data..."
+          cd api
+          npm run seed
+        env:
+          NODE_ENV: test
+          DB_HOST: localhost
+          DB_PORT: 5433
+          DB_USER: platform_user
+          DB_PASSWORD: platform_password
+          DB_NAME: platform_db
+
       - name: Build API
         run: npm run build
         working-directory: ./api

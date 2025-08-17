@@ -6,6 +6,12 @@ alwaysApply: true
 
 A highly dynamic Platform-as-a-Service (PaaS) where users visually design and model their own applications powered by ai bots.
 
+## Cursor Rules / Documentation
+
+Make sure to keep cursor rules short and simple, using effective rules only and no unnecessary detail.
+
+Update cursor rules and documentation as you learn. For example, when running docker commands, if you use an unsupported flag or run the command from the wrong dir, add the correct command to the documentatin for next time.
+
 ## Tech Stack
 
 ### Backend (API)

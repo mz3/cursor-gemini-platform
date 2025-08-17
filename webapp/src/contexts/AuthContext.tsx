@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import api from '../utils/api';
 import { handleError, isAuthError } from '../utils/errorHandler';
+import { featureFlagService, UserFeatureFlags } from '../services/featureFlagService';
 
 interface User {
   id: string;
@@ -23,6 +24,10 @@ interface AuthContextType {
   darkMode: boolean;
   setDarkMode: (value: boolean) => Promise<void>;
   clearError: () => void;
+  featureFlags: UserFeatureFlags;
+  isFeatureEnabled: (key: string) => boolean;
+  hasRole: (role: string) => boolean;
+  refreshFeatureFlags: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -44,6 +49,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [darkMode, setDarkModeState] = useState(false);
+  const [featureFlags, setFeatureFlags] = useState<UserFeatureFlags>({});
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -64,6 +70,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const response = await api.get('/users/profile');
       setUser(response.data);
       setError(null);
+
+      // Initialize feature flags after successful user fetch
+      await initializeFeatureFlags();
     } catch (error: any) {
       const processedError = handleError(error, 'Fetch User Profile');
 
@@ -102,6 +111,33 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  const initializeFeatureFlags = async () => {
+    try {
+      await featureFlagService.initialize();
+      setFeatureFlags(featureFlagService.getAll());
+    } catch (error) {
+      console.error('Failed to initialize feature flags:', error);
+      setFeatureFlags({});
+    }
+  };
+
+  const refreshFeatureFlags = async () => {
+    try {
+      await featureFlagService.refresh();
+      setFeatureFlags(featureFlagService.getAll());
+    } catch (error) {
+      console.error('Failed to refresh feature flags:', error);
+    }
+  };
+
+  const isFeatureEnabled = (key: string): boolean => {
+    return featureFlagService.isEnabled(key);
+  };
+
+  const hasRole = (role: string): boolean => {
+    return user?.role === role;
+  };
+
   const login = async (email: string, password: string) => {
     try {
       setError(null);
@@ -111,8 +147,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setUser(user);
       setError(null);
 
-      // Fetch settings after successful login
+      // Fetch settings and feature flags after successful login
       await fetchSettings();
+      await initializeFeatureFlags();
     } catch (error: any) {
       const processedError = handleError(error, 'User Login');
       setError(processedError.message);
@@ -124,6 +161,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     localStorage.removeItem('token');
     setUser(null);
     setError(null);
+    setFeatureFlags({});
   };
 
   const value = {
@@ -134,7 +172,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     error,
     darkMode,
     setDarkMode,
-    clearError
+    clearError,
+    featureFlags,
+    isFeatureEnabled,
+    hasRole,
+    refreshFeatureFlags
   };
 
   return (

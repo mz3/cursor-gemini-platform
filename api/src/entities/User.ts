@@ -1,7 +1,6 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany, Relation, OneToOne } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany, ManyToOne, JoinColumn, Relation } from 'typeorm';
 import { Application } from './Application.js';
-
-// No reference to UserSettings here
+import { Role } from './Role.js';
 
 @Entity('users')
 export class User {
@@ -20,8 +19,16 @@ export class User {
   @Column()
   lastName!: string;
 
-  @Column({ default: 'user' })
-  role!: string;
+  @Column({ nullable: true })
+  roleId?: string;
+
+  @ManyToOne(() => Role, (role: Role) => role.users)
+  @JoinColumn({ name: 'roleId' })
+  role?: Relation<Role>;
+
+  // Legacy role field for backward compatibility during migration
+  @Column({ default: 'user', nullable: true })
+  legacyRole?: string;
 
   @Column({ default: true })
   isActive!: boolean;

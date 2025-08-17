@@ -1,24 +1,45 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import config from '../config/environment.js';
 import { GeminiResponse } from '../types/gemini.js';
+import { SecretService } from './secretService.js';
 
 export class GeminiService {
-  private genAI: GoogleGenerativeAI;
-  private model: any;
+  private secretService: SecretService;
 
   constructor() {
-    const apiKey = config.GEMINI_KEY || process.env.GEMINI_KEY;
-    if (!apiKey) {
-      throw new Error('Gemini API key not configured (GEMINI_KEY)');
+    this.secretService = new SecretService();
+  }
+
+  private async getApiKey(userId?: string): Promise<string> {
+    // Try to get user-specific API key first if userId is provided
+    if (userId) {
+      const userApiKey = await this.secretService.getSecretValueByKey('GEMINI_API_KEY', userId) ||
+                         await this.secretService.getSecretValueByKey('GOOGLE_API_KEY', userId);
+      if (userApiKey) {
+        return userApiKey;
+      }
     }
-    this.genAI = new GoogleGenerativeAI(apiKey);
-    this.model = this.genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+
+    // Fall back to system-wide API key
+    const systemApiKey = config.GEMINI_KEY || process.env.GEMINI_KEY;
+    if (!systemApiKey) {
+      throw new Error('Gemini API key not configured. Please add GEMINI_KEY environment variable or create a GEMINI_API_KEY secret.');
+    }
+
+    return systemApiKey;
+  }
+
+  private async getModelInstance(userId?: string, modelName: string = 'gemini-2.5-flash') {
+    const apiKey = await this.getApiKey(userId);
+    const genAI = new GoogleGenerativeAI(apiKey);
+    return genAI.getGenerativeModel({ model: modelName });
   }
 
   async generateResponse(
     promptContext: string,
     conversationHistory: string,
-    userMessage: string
+    userMessage: string,
+    userId?: string
   ): Promise<GeminiResponse> {
     // Check if we're in test environment to provide mock response
     if (process.env.NODE_ENV === 'test') {
@@ -26,11 +47,6 @@ export class GeminiService {
       const mockResponse = this.generateMockResponse(userMessage);
       const tokensUsed = this.estimateTokenCount(promptContext + conversationHistory + userMessage + mockResponse);
       return { response: mockResponse, tokensUsed };
-    }
-
-    const apiKey = config.GEMINI_KEY || process.env.GEMINI_KEY;
-    if (!apiKey) {
-      throw new Error('Gemini API key not configured (GEMINI_KEY)');
     }
 
     const systemPrompt = `You are a helpful AI assistant. Use the following context to guide your responses:
@@ -44,7 +60,8 @@ User: ${userMessage}
 Assistant:`;
 
     try {
-      const result = await this.model.generateContent(systemPrompt);
+      const model = await this.getModelInstance(userId);
+      const result = await model.generateContent(systemPrompt);
       const response = result.response.text();
 
       if (!response) {

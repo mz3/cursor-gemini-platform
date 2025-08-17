@@ -19,6 +19,10 @@ import { BotTool } from '../entities/BotTool.js';
 import { ChatMessage } from '../entities/ChatMessage.js';
 import { Feature } from '../entities/Feature.js';
 import { Entity } from '../entities/Entity.js';
+import { Role } from '../entities/Role.js';
+import { Permission } from '../entities/Permission.js';
+import { FeatureFlag } from '../entities/FeatureFlag.js';
+import { Secret } from '../entities/Secret.js';
 
 // Helper to determine if running from dist (production build), ESM compatible
 // Use a different approach for test environment to avoid import.meta issues
@@ -53,7 +57,11 @@ export const AppDataSource = new DataSource({
     BotTool,
     ChatMessage,
     Feature,
-    Entity
+    Entity,
+    Role,
+    Permission,
+    FeatureFlag,
+    Secret
   ],
   migrations: [
     isDist ? 'dist/migrations/*.js' : 'src/migrations/*.ts'

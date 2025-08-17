@@ -1,0 +1,362 @@
+[
+  {
+    "name": "admin:manage",
+    "displayName": "Manage Admin Functions",
+    "description": "Full administrative access",
+    "resource": "admin",
+    "action": "manage",
+    "isSystem": true,
+    "isActive": true
+  },
+  {
+    "name": "system:manage",
+    "displayName": "Manage System Functions",
+    "description": "System-level management access",
+    "resource": "system",
+    "action": "manage",
+    "isSystem": true,
+    "isActive": true
+  },
+  {
+    "name": "user:create",
+    "displayName": "Create Users",
+    "description": "Create new user accounts",
+    "resource": "user",
+    "action": "create",
+    "isSystem": true,
+    "isActive": true
+  },
+  {
+    "name": "user:read",
+    "displayName": "Read Users",
+    "description": "View user information",
+    "resource": "user",
+    "action": "read",
+    "isSystem": true,
+    "isActive": true
+  },
+  {
+    "name": "user:update",
+    "displayName": "Update Users",
+    "description": "Modify user accounts",
+    "resource": "user",
+    "action": "update",
+    "isSystem": true,
+    "isActive": true
+  },
+  {
+    "name": "user:delete",
+    "displayName": "Delete Users",
+    "description": "Remove user accounts",
+    "resource": "user",
+    "action": "delete",
+    "isSystem": true,
+    "isActive": true
+  },
+  {
+    "name": "schema:create",
+    "displayName": "Create Schemas",
+    "description": "Create new schemas",
+    "resource": "schema",
+    "action": "create",
+    "isSystem": true,
+    "isActive": true
+  },
+  {
+    "name": "schema:read",
+    "displayName": "Read Schemas",
+    "description": "View schemas",
+    "resource": "schema",
+    "action": "read",
+    "isSystem": true,
+    "isActive": true
+  },
+  {
+    "name": "schema:update",
+    "displayName": "Update Schemas",
+    "description": "Modify schemas",
+    "resource": "schema",
+    "action": "update",
+    "isSystem": true,
+    "isActive": true
+  },
+  {
+    "name": "schema:delete",
+    "displayName": "Delete Schemas",
+    "description": "Remove schemas",
+    "resource": "schema",
+    "action": "delete",
+    "isSystem": true,
+    "isActive": true
+  },
+  {
+    "name": "entity:create",
+    "displayName": "Create Entities",
+    "description": "Create new entities",
+    "resource": "entity",
+    "action": "create",
+    "isSystem": true,
+    "isActive": true
+  },
+  {
+    "name": "entity:read",
+    "displayName": "Read Entities",
+    "description": "View entities",
+    "resource": "entity",
+    "action": "read",
+    "isSystem": true,
+    "isActive": true
+  },
+  {
+    "name": "entity:update",
+    "displayName": "Update Entities",
+    "description": "Modify entities",
+    "resource": "entity",
+    "action": "update",
+    "isSystem": true,
+    "isActive": true
+  },
+  {
+    "name": "entity:delete",
+    "displayName": "Delete Entities",
+    "description": "Remove entities",
+    "resource": "entity",
+    "action": "delete",
+    "isSystem": true,
+    "isActive": true
+  },
+  {
+    "name": "application:create",
+    "displayName": "Create Applications",
+    "description": "Create new applications",
+    "resource": "application",
+    "action": "create",
+    "isSystem": true,
+    "isActive": true
+  },
+  {
+    "name": "application:read",
+    "displayName": "Read Applications",
+    "description": "View applications",
+    "resource": "application",
+    "action": "read",
+    "isSystem": true,
+    "isActive": true
+  },
+  {
+    "name": "application:update",
+    "displayName": "Update Applications",
+    "description": "Modify applications",
+    "resource": "application",
+    "action": "update",
+    "isSystem": true,
+    "isActive": true
+  },
+  {
+    "name": "application:delete",
+    "displayName": "Delete Applications",
+    "description": "Remove applications",
+    "resource": "application",
+    "action": "delete",
+    "isSystem": true,
+    "isActive": true
+  },
+  {
+    "name": "bot:create",
+    "displayName": "Create Bots",
+    "description": "Create new bots",
+    "resource": "bot",
+    "action": "create",
+    "isSystem": true,
+    "isActive": true
+  },
+  {
+    "name": "bot:read",
+    "displayName": "Read Bots",
+    "description": "View bots",
+    "resource": "bot",
+    "action": "read",
+    "isSystem": true,
+    "isActive": true
+  },
+  {
+    "name": "bot:update",
+    "displayName": "Update Bots",
+    "description": "Modify bots",
+    "resource": "bot",
+    "action": "update",
+    "isSystem": true,
+    "isActive": true
+  },
+  {
+    "name": "bot:delete",
+    "displayName": "Delete Bots",
+    "description": "Remove bots",
+    "resource": "bot",
+    "action": "delete",
+    "isSystem": true,
+    "isActive": true
+  },
+  {
+    "name": "bot:execute",
+    "displayName": "Execute Bots",
+    "description": "Run and execute bots",
+    "resource": "bot",
+    "action": "execute",
+    "isSystem": true,
+    "isActive": true
+  },
+  {
+    "name": "feature:create",
+    "displayName": "Create Features",
+    "description": "Create new features",
+    "resource": "feature",
+    "action": "create",
+    "isSystem": true,
+    "isActive": true
+  },
+  {
+    "name": "feature:read",
+    "displayName": "Read Features",
+    "description": "View features",
+    "resource": "feature",
+    "action": "read",
+    "isSystem": true,
+    "isActive": true
+  },
+  {
+    "name": "feature:update",
+    "displayName": "Update Features",
+    "description": "Modify features",
+    "resource": "feature",
+    "action": "update",
+    "isSystem": true,
+    "isActive": true
+  },
+  {
+    "name": "feature:delete",
+    "displayName": "Delete Features",
+    "description": "Remove features",
+    "resource": "feature",
+    "action": "delete",
+    "isSystem": true,
+    "isActive": true
+  },
+  {
+    "name": "workflow:create",
+    "displayName": "Create Workflows",
+    "description": "Create new workflows",
+    "resource": "workflow",
+    "action": "create",
+    "isSystem": true,
+    "isActive": true
+  },
+  {
+    "name": "workflow:read",
+    "displayName": "Read Workflows",
+    "description": "View workflows",
+    "resource": "workflow",
+    "action": "read",
+    "isSystem": true,
+    "isActive": true
+  },
+  {
+    "name": "workflow:update",
+    "displayName": "Update Workflows",
+    "description": "Modify workflows",
+    "resource": "workflow",
+    "action": "update",
+    "isSystem": true,
+    "isActive": true
+  },
+  {
+    "name": "workflow:delete",
+    "displayName": "Delete Workflows",
+    "description": "Remove workflows",
+    "resource": "workflow",
+    "action": "delete",
+    "isSystem": true,
+    "isActive": true
+  },
+  {
+    "name": "workflow:execute",
+    "displayName": "Execute Workflows",
+    "description": "Run and execute workflows",
+    "resource": "workflow",
+    "action": "execute",
+    "isSystem": true,
+    "isActive": true
+  },
+  {
+    "name": "prompt:create",
+    "displayName": "Create Prompts",
+    "description": "Create new prompts",
+    "resource": "prompt",
+    "action": "create",
+    "isSystem": true,
+    "isActive": true
+  },
+  {
+    "name": "prompt:read",
+    "displayName": "Read Prompts",
+    "description": "View prompts",
+    "resource": "prompt",
+    "action": "read",
+    "isSystem": true,
+    "isActive": true
+  },
+  {
+    "name": "prompt:update",
+    "displayName": "Update Prompts",
+    "description": "Modify prompts",
+    "resource": "prompt",
+    "action": "update",
+    "isSystem": true,
+    "isActive": true
+  },
+  {
+    "name": "prompt:delete",
+    "displayName": "Delete Prompts",
+    "description": "Remove prompts",
+    "resource": "prompt",
+    "action": "delete",
+    "isSystem": true,
+    "isActive": true
+  },
+  {
+    "name": "template:create",
+    "displayName": "Create Templates",
+    "description": "Create new templates",
+    "resource": "template",
+    "action": "create",
+    "isSystem": true,
+    "isActive": true
+  },
+  {
+    "name": "template:read",
+    "displayName": "Read Templates",
+    "description": "View templates",
+    "resource": "template",
+    "action": "read",
+    "isSystem": true,
+    "isActive": true
+  },
+  {
+    "name": "template:update",
+    "displayName": "Update Templates",
+    "description": "Modify templates",
+    "resource": "template",
+    "action": "update",
+    "isSystem": true,
+    "isActive": true
+  },
+  {
+    "name": "template:delete",
+    "displayName": "Delete Templates",
+    "description": "Remove templates",
+    "resource": "template",
+    "action": "delete",
+    "isSystem": true,
+    "isActive": true
+  }
+]

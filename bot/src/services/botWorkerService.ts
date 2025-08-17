@@ -43,9 +43,9 @@ const processBotMessages = async (): Promise<void> => {
 };
 
 const processBotMessage = async (
-  botId: string, 
-  userId: string, 
-  message: string, 
+  botId: string,
+  userId: string,
+  message: string,
   instanceId?: string
 ): Promise<void> => {
   try {
@@ -111,7 +111,7 @@ const processBotMessage = async (
     console.log(`✅ Bot message processed successfully for bot ${botId}`);
   } catch (error) {
     console.error(`❌ Error processing bot message for bot ${botId}:`, error);
-    
+
     // Publish error event
     await publishEvent('bot_errors', {
       botId,
@@ -123,12 +123,12 @@ const processBotMessage = async (
 };
 
 const processMessage = async (
-  instance: BotInstance, 
-  message: string, 
+  instance: BotInstance,
+  message: string,
   bot: Bot
 ): Promise<ChatMessage> => {
   console.log(`🤔 Processing message: "${message}"`);
-  
+
   // Build context from prompts
   const promptContext = buildPromptContext(bot);
 
@@ -137,15 +137,15 @@ const processMessage = async (
 
   let toolResults = '';
   let thoughts = '';
-  
+
   if (toolCalls.length > 0) {
     console.log(`🔧 Found ${toolCalls.length} tool calls to execute`);
     thoughts += `I detected ${toolCalls.length} tool(s) that I can use to help you:\n`;
-    
+
     for (const { tool, params } of toolCalls) {
       thoughts += `- ${tool.displayName}: ${tool.description}\n`;
     }
-    
+
     toolResults = await executeToolCalls(toolCalls, instance);
     thoughts += `\nTool execution results:\n${toolResults}\n`;
   } else {
@@ -165,7 +165,8 @@ const processMessage = async (
     const geminiResult = await geminiService.generateResponse(
       enhancedContext,
       conversationHistory,
-      message
+      message,
+      instance.userId
     );
 
     // Combine thoughts with the response
@@ -203,21 +204,21 @@ const buildPromptContext = (bot: Bot): string => {
 };
 
 const detectToolCalls = async (
-  message: string, 
-  tools: BotTool[], 
+  message: string,
+  tools: BotTool[],
   instance: BotInstance
 ): Promise<Array<{tool: BotTool, params: Record<string, any>}>> => {
   const intentDetectionService = new IntentDetectionService();
-  
+
   try {
     console.log(`🔍 Using LLM to detect intent for message: "${message}"`);
     const toolCalls = await intentDetectionService.detectToolCalls(message, tools, instance.userId);
-    
+
     console.log(`🔧 LLM detected ${toolCalls.length} tool call(s)`);
     for (const toolCall of toolCalls) {
       console.log(`📝 Tool: ${toolCall.tool.name}, Operation: ${toolCall.params.operation}, Params:`, JSON.stringify(toolCall.params));
     }
-    
+
     return toolCalls;
   } catch (error) {
     console.error('❌ Error detecting tool calls with LLM:', error);
@@ -235,7 +236,7 @@ const executeToolCalls = async (
     try {
       console.log(`🔧 Executing tool: ${tool.displayName} with params:`, JSON.stringify(params));
       const result = await ToolExecutionService.executeTool(tool, params);
-      
+
       if (result && typeof result === 'object' && result.success !== undefined) {
         if (result.success) {
           results.push(`✅ ${tool.displayName}: Successfully executed`);
@@ -279,4 +280,4 @@ const getConversationHistoryForContext = async (instanceId: string): Promise<str
 const estimateTokenCount = (text: string): number => {
   // Simple estimation: ~4 characters per token
   return Math.ceil(text.length / 4);
-}; 
+};
