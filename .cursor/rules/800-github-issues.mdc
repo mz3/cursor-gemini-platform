@@ -2,7 +2,8 @@
 description: issue, ticket, task
 alwaysApply: false
 ---
-# GitHub Issue Creation Process
+
+# GitHub Issues
 
 ## Issue Creation Steps
 
@@ -33,12 +34,20 @@ What needs to be done
 
 ## Labels
 - `enhancement` - New features/improvements
-- `dev1` - Dev1 environment specific
-- `dev2` - Dev2 environment specific
+- `dev1` - Dev1 environment specific (assigned to developer 1)
+- `dev2` - Dev2 environment specific (assigned to developer 2)
 - `bug` - Something broken
 - `documentation` - Docs updates
 
+## Issue Assignment Convention
+- Issues with `dev1` label = assigned to developer 1
+- Issues with `dev2` label = assigned to developer 2
+- Use `gh issue list --label dev1` to see your assigned issues (use dev2 if you're dev2)
+
 ## Commands
+
+Make sure to replace dev1 with dev2 in all commands below if you are dev2 and not dev1.
+
 ```bash
 # Create issue
 gh issue create --title "Title" --body-file issue.md --label "enhancement,dev1"
@@ -48,10 +57,12 @@ gh issue edit #N --add-label "label"
 
 # List labels
 gh label list
-```
-# GitHub Issue Creation Process
 
-## Issue Creation Steps
+# List your assigned issues
+gh issue list --label dev1 # or dev2
+```
+
+When creating issues, use this workflow:
 
 1. **Create markdown file** with issue content
 2. **Use gh CLI** to create issue: `gh issue create --title "Title" --body-file filename.md --label "label1,label2"`
@@ -76,23 +87,4 @@ What needs to be done
 
 ### Priority
 **High/Medium/Low** - Brief justification
-```
-
-## Labels
-- `enhancement` - New features/improvements
-- `dev1` - Dev1 environment specific
-- `dev2` - Dev2 environment specific
-- `bug` - Something broken
-- `documentation` - Docs updates
-
-## Commands
-```bash
-# Create issue
-gh issue create --title "Title" --body-file issue.md --label "enhancement,dev1"
-
-# Add labels
-gh issue edit #N --add-label "label"
-
-# List labels
-gh label list
 ```
