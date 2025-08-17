@@ -27,6 +27,7 @@
   },
   "scripts": {
     "dev": "vite",
+    "dev:dev2": "vite --config vite.config.dev2.ts",
     "build": "vite build",
     "preview": "vite preview",
     "start": "serve dist -l 3000",

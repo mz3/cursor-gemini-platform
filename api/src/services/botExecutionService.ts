@@ -58,7 +58,7 @@ export class BotExecutionService {
 
     const isOwner = bot.userId === userId;
     const isAdmin = user.role?.name === 'admin';
-    const isSystemBot = bot.userId === '825395ea-e87d-4024-b4a5-3e2e454a2e13'; // System user ID
+    const isSystemBot = bot.userId === 'b881aae8-8828-43a5-9aad-4e0703a46c59'; // System user ID
 
     if (!isOwner && !(isAdmin && isSystemBot)) {
       throw new Error('Unauthorized to start this bot');
@@ -188,7 +188,7 @@ export class BotExecutionService {
 
     const isOwner = bot.userId === userId;
     const isAdmin = user.role?.name === 'admin';
-    const isSystemBot = bot.userId === '825395ea-e87d-4024-b4a5-3e2e454a2e13'; // System user ID
+    const isSystemBot = bot.userId === 'b881aae8-8828-43a5-9aad-4e0703a46c59'; // System user ID
 
     if (!isOwner && !(isAdmin && isSystemBot)) {
       throw new Error('Unauthorized to use this bot');

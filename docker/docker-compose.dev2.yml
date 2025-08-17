@@ -65,7 +65,7 @@ services:
   webapp:
     build:
       context: ../webapp
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev2
     container_name: webapp-dev2
     environment:
       - VITE_DOCKER=true

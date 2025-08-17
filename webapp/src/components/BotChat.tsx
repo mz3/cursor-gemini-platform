@@ -264,7 +264,7 @@ export const BotChat: React.FC<BotChatProps> = ({ botId, userId, botName }) => {
         if (inputRef.current) inputRef.current.value = '';
         // Optimistically render user message so ellipsis shows beneath it
         const now = new Date().toISOString();
-        const ellipsisTime = new Date(Date.now() + 1).toISOString(); // Ensure ellipsis comes after
+        const ellipsisTime = new Date(Date.now() + 1).toISOString(); // Ensure ellipsis comes after user message
         const tempId = `local-${Date.now()}`;
         const pendingId = `pending-${Date.now()}-bot`;
         tempUserMessageIdRef.current = tempId;
@@ -290,11 +290,12 @@ export const BotChat: React.FC<BotChatProps> = ({ botId, userId, botName }) => {
         const pendingId = `pending-${Date.now()}-bot`;
         pendingBotMessageIdRef.current = pendingId;
         const now = new Date().toISOString();
+        const ellipsisTime = new Date(Date.now() + 1).toISOString(); // Ensure ellipsis comes after user message
         setMessages(prev => {
           const newMessages = [
             ...prev,
             { ...response.data.userMessage, createdAt: now },
-            { id: pendingId, role: 'bot', content: '…', createdAt: now, status: 'processing' } as ChatMessage,
+            { id: pendingId, role: 'bot', content: '…', createdAt: ellipsisTime, status: 'processing' } as ChatMessage,
           ];
           // Ensure proper ordering by timestamp
           return newMessages.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
