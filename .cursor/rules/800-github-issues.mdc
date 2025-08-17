@@ -1,0 +1,98 @@
+---
+description: issue, ticket, task
+alwaysApply: false
+---
+# GitHub Issue Creation Process
+
+## Issue Creation Steps
+
+1. **Create markdown file** with issue content
+2. **Use gh CLI** to create issue: `gh issue create --title "Title" --body-file filename.md --label "label1,label2"`
+3. **Add labels** if needed: `gh issue edit #N --add-label "label"`
+4. **Delete temp file** after issue is created
+
+## Issue Template
+
+```markdown
+## Problem
+Brief description of the issue
+
+## Solution
+What needs to be done
+
+### Scope
+- Key tasks
+- Files affected
+
+### Benefits
+- Why this matters
+
+### Priority
+**High/Medium/Low** - Brief justification
+```
+
+## Labels
+- `enhancement` - New features/improvements
+- `dev1` - Dev1 environment specific
+- `dev2` - Dev2 environment specific
+- `bug` - Something broken
+- `documentation` - Docs updates
+
+## Commands
+```bash
+# Create issue
+gh issue create --title "Title" --body-file issue.md --label "enhancement,dev1"
+
+# Add labels
+gh issue edit #N --add-label "label"
+
+# List labels
+gh label list
+```
+# GitHub Issue Creation Process
+
+## Issue Creation Steps
+
+1. **Create markdown file** with issue content
+2. **Use gh CLI** to create issue: `gh issue create --title "Title" --body-file filename.md --label "label1,label2"`
+3. **Add labels** if needed: `gh issue edit #N --add-label "label"`
+4. **Delete temp file** after issue is created
+
+## Issue Template
+
+```markdown
+## Problem
+Brief description of the issue
+
+## Solution
+What needs to be done
+
+### Scope
+- Key tasks
+- Files affected
+
+### Benefits
+- Why this matters
+
+### Priority
+**High/Medium/Low** - Brief justification
+```
+
+## Labels
+- `enhancement` - New features/improvements
+- `dev1` - Dev1 environment specific
+- `dev2` - Dev2 environment specific
+- `bug` - Something broken
+- `documentation` - Docs updates
+
+## Commands
+```bash
+# Create issue
+gh issue create --title "Title" --body-file issue.md --label "enhancement,dev1"
+
+# Add labels
+gh issue edit #N --add-label "label"
+
+# List labels
+gh label list
+```
