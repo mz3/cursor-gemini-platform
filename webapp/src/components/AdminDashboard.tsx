@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { featureFlagService, FeatureFlag } from '../services/featureFlagService';
 import { Database, Users, Settings, Flag, Shield, Zap } from 'lucide-react';
+import UserManagement from './UserManagement';
+import SystemSettings from './SystemSettings';
+import FeatureFlagManagement from './FeatureFlagManagement';
 
 const AdminDashboard: React.FC = () => {
   const { user, isFeatureEnabled, hasRole } = useAuth();
@@ -10,6 +13,7 @@ const AdminDashboard: React.FC = () => {
   const [seeding, setSeeding] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [currentView, setCurrentView] = useState<'dashboard' | 'users' | 'system' | 'flags'>('dashboard');
 
   // Check if user has admin role
   if (!hasRole('admin')) {
@@ -84,6 +88,24 @@ const AdminDashboard: React.FC = () => {
     setError(null);
     setSuccess(null);
   };
+
+  const handleViewChange = (view: 'dashboard' | 'users' | 'system' | 'flags') => {
+    setCurrentView(view);
+    clearMessages();
+  };
+
+  // Render different views based on currentView
+  if (currentView === 'users') {
+    return <UserManagement onBack={() => handleViewChange('dashboard')} />;
+  }
+
+  if (currentView === 'system') {
+    return <SystemSettings onBack={() => handleViewChange('dashboard')} />;
+  }
+
+  if (currentView === 'flags') {
+    return <FeatureFlagManagement onBack={() => handleViewChange('dashboard')} />;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -201,7 +223,10 @@ const AdminDashboard: React.FC = () => {
                   </div>
                 </div>
                 <div className="mt-5">
-                  <button className="w-full bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors">
+                  <button
+                    onClick={() => handleViewChange('users')}
+                    className="w-full bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
+                  >
                     View Users
                   </button>
                 </div>
@@ -227,7 +252,10 @@ const AdminDashboard: React.FC = () => {
                   </div>
                 </div>
                 <div className="mt-5">
-                  <button className="w-full bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors">
+                  <button
+                    onClick={() => handleViewChange('system')}
+                    className="w-full bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
+                  >
                     Configure
                   </button>
                 </div>
@@ -254,7 +282,7 @@ const AdminDashboard: React.FC = () => {
                 </div>
                 <div className="mt-5">
                   <button
-                    onClick={loadFeatureFlags}
+                    onClick={() => handleViewChange('flags')}
                     className="w-full bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
                   >
                     Manage Flags

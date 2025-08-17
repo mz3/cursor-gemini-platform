@@ -382,5 +382,778 @@
     "isActive": true,
     "requiresAuth": true,
     "botId": "sysadmin"
+  },
+  {
+    "name": "github-api-sdk",
+    "displayName": "GitHub API SDK",
+    "description": "Comprehensive GitHub API SDK for managing repositories, issues, pull requests, workflows, and CI/CD operations",
+    "type": "mcp_tool",
+    "config": {
+      "apiEndpoint": "https://api.github.com",
+      "graphqlEndpoint": "https://api.github.com/graphql",
+      "userId": "system",
+      "permissions": ["read", "write", "execute"],
+      "githubSecretId": "",
+      "operations": [
+        "list_repositories", "get_repository", "create_repository", "update_repository", "delete_repository",
+        "list_issues", "get_issue", "create_issue", "update_issue", "close_issue", "reopen_issue",
+        "list_pull_requests", "get_pull_request", "create_pull_request", "update_pull_request", "merge_pull_request",
+        "list_commits", "get_commit", "create_commit", "list_branches", "create_branch", "delete_branch",
+        "list_workflows", "get_workflow", "trigger_workflow", "get_workflow_runs", "cancel_workflow_run",
+        "list_releases", "create_release", "update_release", "delete_release",
+        "list_teams", "get_team", "create_team", "update_team", "delete_team",
+        "list_organization_members", "add_organization_member", "remove_organization_member",
+        "list_collaborators", "add_collaborator", "remove_collaborator",
+        "list_deployments", "create_deployment", "update_deployment_status",
+        "list_environment_secrets", "create_environment_secret", "update_environment_secret", "delete_environment_secret",
+        "list_repository_secrets", "create_repository_secret", "update_repository_secret", "delete_repository_secret",
+        "list_organization_secrets", "create_organization_secret", "update_organization_secret", "delete_organization_secret",
+        "list_webhooks", "create_webhook", "update_webhook", "delete_webhook",
+        "list_projects", "get_project", "create_project", "update_project", "delete_project",
+        "list_project_columns", "create_project_column", "update_project_column", "delete_project_column",
+        "list_project_cards", "create_project_card", "update_project_card", "delete_project_card",
+        "search_repositories", "search_issues", "search_pull_requests", "search_code",
+        "get_rate_limit", "get_github_app_installation", "list_github_app_installations",
+        "create_check_run", "update_check_run", "list_check_runs", "list_check_suites",
+        "create_status", "list_statuses", "get_combined_status",
+        "list_deploy_keys", "create_deploy_key", "delete_deploy_key",
+        "list_topics", "replace_topics", "add_topics", "remove_topics",
+        "get_license", "get_readme", "get_contents", "create_contents", "update_contents", "delete_contents",
+        "list_languages", "list_contributors", "list_stargazers", "list_watchers",
+        "star_repository", "unstar_repository", "watch_repository", "unwatch_repository",
+        "fork_repository", "list_forks", "get_fork",
+        "list_comments", "create_comment", "update_comment", "delete_comment",
+        "list_reviews", "create_review", "update_review", "dismiss_review",
+        "list_review_requests", "request_reviewers", "remove_review_request",
+        "list_assignees", "add_assignees", "remove_assignees",
+        "list_labels", "create_label", "update_label", "delete_label",
+        "list_milestones", "create_milestone", "update_milestone", "delete_milestone",
+        "list_events", "get_event", "list_public_events",
+        "get_organization", "update_organization", "list_organizations",
+        "get_user", "update_user", "list_users", "get_authenticated_user",
+        "list_gists", "get_gist", "create_gist", "update_gist", "delete_gist",
+        "list_gist_comments", "create_gist_comment", "update_gist_comment", "delete_gist_comment",
+        "list_notifications", "mark_notification_as_read", "mark_all_notifications_as_read",
+        "list_emails", "add_email", "delete_email", "set_primary_email",
+        "list_ssh_keys", "get_ssh_key", "create_ssh_key", "delete_ssh_key",
+        "list_gpg_keys", "get_gpg_key", "create_gpg_key", "delete_gpg_key"
+      ],
+      "features": {
+        "rest_api": true,
+        "graphql_api": true,
+        "webhooks": true,
+        "rate_limiting": true,
+        "pagination": true,
+        "search": true,
+        "authentication": ["personal_access_token", "oauth_app", "github_app", "installation_token"],
+        "scopes": ["repo", "workflow", "admin:org", "user", "gist", "notifications", "write:packages", "read:packages"]
+      }
+    },
+    "isActive": true,
+    "requiresAuth": true,
+    "botId": "cicd-github-manager"
+  },
+  {
+    "name": "github-cli-workflow-monitor",
+    "displayName": "GitHub CLI Workflow Monitor",
+    "description": "Monitors GitHub Actions workflows and runs using GitHub CLI with real-time status reporting",
+    "type": "shell_command",
+    "config": {
+      "command": "export GH_PAGER=cat && gh run list --limit ${limit} --json id,status,conclusion,workflowName,createdAt,updatedAt,headBranch,headSha",
+      "timeout": 30,
+      "githubSecretId": "",
+      "env": {
+        "GH_PAGER": "cat"
+      }
+    },
+    "isActive": true,
+    "requiresAuth": true,
+    "botId": "cicd-github-manager"
+  },
+  {
+    "name": "github-cli-run-watch",
+    "displayName": "GitHub CLI Run Watch",
+    "description": "Watches a specific GitHub Actions workflow run in real-time for monitoring CI/CD builds",
+    "type": "shell_command",
+    "config": {
+      "command": "export GH_PAGER=cat && gh run watch ${runId}",
+      "timeout": 600,
+      "githubSecretId": "",
+      "env": {
+        "GH_PAGER": "cat"
+      }
+    },
+    "isActive": true,
+    "requiresAuth": true,
+    "botId": "cicd-github-manager"
+  },
+  {
+    "name": "github-cli-run-status",
+    "displayName": "GitHub CLI Run Status",
+    "description": "Gets detailed status of a specific GitHub Actions workflow run",
+    "type": "shell_command",
+    "config": {
+      "command": "export GH_PAGER=cat && gh run view ${runId} --json id,status,conclusion,workflowName,createdAt,updatedAt,headBranch,headSha,url,logsUrl",
+      "timeout": 30,
+      "env": {
+        "GH_PAGER": "cat"
+      }
+    },
+    "isActive": true,
+    "requiresAuth": true,
+    "botId": "cicd-github-manager"
+  },
+  {
+    "name": "github-cli-run-logs",
+    "displayName": "GitHub CLI Run Logs",
+    "description": "Fetches logs for a specific GitHub Actions workflow run",
+    "type": "shell_command",
+    "config": {
+      "command": "export GH_PAGER=cat && gh run view ${runId} --log",
+      "timeout": 60,
+      "env": {
+        "GH_PAGER": "cat"
+      }
+    },
+    "isActive": true,
+    "requiresAuth": true,
+    "botId": "cicd-github-manager"
+  },
+  {
+    "name": "github-cli-run-logs-failed",
+    "displayName": "GitHub CLI Failed Run Logs",
+    "description": "Fetches failed logs for a specific GitHub Actions workflow run",
+    "type": "shell_command",
+    "config": {
+      "command": "export GH_PAGER=cat && gh run view ${runId} --log-failed",
+      "timeout": 60,
+      "env": {
+        "GH_PAGER": "cat"
+      }
+    },
+    "isActive": true,
+    "requiresAuth": true,
+    "botId": "cicd-github-manager"
+  },
+  {
+    "name": "github-cli-issue-list",
+    "displayName": "GitHub CLI Issue List",
+    "description": "Lists GitHub issues with filtering and status information",
+    "type": "shell_command",
+    "config": {
+      "command": "export GH_PAGER=cat && gh issue list --state ${state} --limit ${limit} --json number,title,state,author,createdAt,updatedAt,labels,assignees",
+      "timeout": 30,
+      "githubSecretId": "",
+      "env": {
+        "GH_PAGER": "cat"
+      }
+    },
+    "isActive": true,
+    "requiresAuth": true,
+    "botId": "cicd-github-manager"
+  },
+  {
+    "name": "github-cli-issue-view",
+    "displayName": "GitHub CLI Issue View",
+    "description": "Views detailed information about a specific GitHub issue",
+    "type": "shell_command",
+    "config": {
+      "command": "export GH_PAGER=cat && gh issue view ${issueNumber} --json number,title,body,state,author,createdAt,updatedAt,labels,assignees,comments,reactions",
+      "timeout": 30,
+      "env": {
+        "GH_PAGER": "cat"
+      }
+    },
+    "isActive": true,
+    "requiresAuth": true,
+    "botId": "cicd-github-manager"
+  },
+  {
+    "name": "github-cli-issue-create",
+    "displayName": "GitHub CLI Issue Create",
+    "description": "Creates a new GitHub issue with title and body",
+    "type": "shell_command",
+    "config": {
+      "command": "export GH_PAGER=cat && gh issue create --title \"${title}\" --body \"${body}\" ${assignee ? '--assignee ' + assignee : ''} ${labels ? '--label ' + labels : ''}",
+      "timeout": 30,
+      "env": {
+        "GH_PAGER": "cat"
+      }
+    },
+    "isActive": true,
+    "requiresAuth": true,
+    "botId": "cicd-github-manager"
+  },
+  {
+    "name": "github-cli-issue-close",
+    "displayName": "GitHub CLI Issue Close",
+    "description": "Closes a GitHub issue with optional comment",
+    "type": "shell_command",
+    "config": {
+      "command": "export GH_PAGER=cat && gh issue close ${issueNumber} ${comment ? '--comment \"' + comment + '\"' : ''}",
+      "timeout": 30,
+      "env": {
+        "GH_PAGER": "cat"
+      }
+    },
+    "isActive": true,
+    "requiresAuth": true,
+    "botId": "cicd-github-manager"
+  },
+  {
+    "name": "github-cli-pr-list",
+    "displayName": "GitHub CLI PR List",
+    "description": "Lists GitHub pull requests with filtering and status information",
+    "type": "shell_command",
+    "config": {
+      "command": "export GH_PAGER=cat && gh pr list --state ${state} --limit ${limit} --json number,title,state,author,createdAt,updatedAt,labels,assignees,reviewDecision,mergeable",
+      "timeout": 30,
+      "env": {
+        "GH_PAGER": "cat"
+      }
+    },
+    "isActive": true,
+    "requiresAuth": true,
+    "botId": "cicd-github-manager"
+  },
+  {
+    "name": "github-cli-pr-view",
+    "displayName": "GitHub CLI PR View",
+    "description": "Views detailed information about a specific GitHub pull request",
+    "type": "shell_command",
+    "config": {
+      "command": "export GH_PAGER=cat && gh pr view ${prNumber} --json number,title,body,state,author,createdAt,updatedAt,labels,assignees,reviewDecision,mergeable,mergeStateStatus,headRefName,baseRefName,commits,files",
+      "timeout": 30,
+      "env": {
+        "GH_PAGER": "cat"
+      }
+    },
+    "isActive": true,
+    "requiresAuth": true,
+    "botId": "cicd-github-manager"
+  },
+  {
+    "name": "github-cli-pr-create",
+    "displayName": "GitHub CLI PR Create",
+    "description": "Creates a new GitHub pull request with title and body",
+    "type": "shell_command",
+    "config": {
+      "command": "export GH_PAGER=cat && gh pr create --title \"${title}\" --body \"${body}\" --base ${baseBranch} ${headBranch ? '--head ' + headBranch : ''} ${draft ? '--draft' : ''}",
+      "timeout": 30,
+      "env": {
+        "GH_PAGER": "cat"
+      }
+    },
+    "isActive": true,
+    "requiresAuth": true,
+    "botId": "cicd-github-manager"
+  },
+  {
+    "name": "github-cli-pr-merge",
+    "displayName": "GitHub CLI PR Merge",
+    "description": "Merges a GitHub pull request with specified merge strategy",
+    "type": "shell_command",
+    "config": {
+      "command": "export GH_PAGER=cat && gh pr merge ${prNumber} --${mergeStrategy} ${deleteBranch ? '--delete-branch' : ''}",
+      "timeout": 30,
+      "env": {
+        "GH_PAGER": "cat"
+      }
+    },
+    "isActive": true,
+    "requiresAuth": true,
+    "botId": "cicd-github-manager"
+  },
+  {
+    "name": "github-cli-pr-comment",
+    "displayName": "GitHub CLI PR Comment",
+    "description": "Adds a comment to a GitHub pull request",
+    "type": "shell_command",
+    "config": {
+      "command": "export GH_PAGER=cat && gh pr comment ${prNumber} --body \"${comment}\"",
+      "timeout": 30,
+      "env": {
+        "GH_PAGER": "cat"
+      }
+    },
+    "isActive": true,
+    "requiresAuth": true,
+    "botId": "cicd-github-manager"
+  },
+  {
+    "name": "github-cli-workflow-trigger",
+    "displayName": "GitHub CLI Workflow Trigger",
+    "description": "Triggers a GitHub Actions workflow manually",
+    "type": "shell_command",
+    "config": {
+      "command": "export GH_PAGER=cat && gh workflow run ${workflowFile} --ref ${ref} ${inputs ? '--field ' + inputs : ''}",
+      "timeout": 30,
+      "env": {
+        "GH_PAGER": "cat"
+      }
+    },
+    "isActive": true,
+    "requiresAuth": true,
+    "botId": "cicd-github-manager"
+  },
+  {
+    "name": "github-cli-workflow-list",
+    "displayName": "GitHub CLI Workflow List",
+    "description": "Lists available GitHub Actions workflows",
+    "type": "shell_command",
+    "config": {
+      "command": "export GH_PAGER=cat && gh workflow list --limit ${limit} --json id,name,state,createdAt,updatedAt",
+      "timeout": 30,
+      "env": {
+        "GH_PAGER": "cat"
+      }
+    },
+    "isActive": true,
+    "requiresAuth": true,
+    "botId": "cicd-github-manager"
+  },
+  {
+    "name": "github-cli-workflow-view",
+    "displayName": "GitHub CLI Workflow View",
+    "description": "Views detailed information about a specific GitHub Actions workflow",
+    "type": "shell_command",
+    "config": {
+      "command": "export GH_PAGER=cat && gh workflow view ${workflowId} --json id,name,state,createdAt,updatedAt,path",
+      "timeout": 30,
+      "env": {
+        "GH_PAGER": "cat"
+      }
+    },
+    "isActive": true,
+    "requiresAuth": true,
+    "botId": "cicd-github-manager"
+  },
+  {
+    "name": "github-cli-run-cancel",
+    "displayName": "GitHub CLI Run Cancel",
+    "description": "Cancels a running GitHub Actions workflow run",
+    "type": "shell_command",
+    "config": {
+      "command": "export GH_PAGER=cat && gh run cancel ${runId}",
+      "timeout": 30,
+      "env": {
+        "GH_PAGER": "cat"
+      }
+    },
+    "isActive": true,
+    "requiresAuth": true,
+    "botId": "cicd-github-manager"
+  },
+  {
+    "name": "github-cli-repo-status",
+    "displayName": "GitHub CLI Repository Status",
+    "description": "Gets the status of a GitHub repository including branches, commits, and protection rules",
+    "type": "shell_command",
+    "config": {
+      "command": "export GH_PAGER=cat && gh repo view --json name,description,defaultBranchRef,isPrivate,isArchived,isFork,parent,licenseInfo,stargazerCount,watcherCount,forkCount,openIssuesCount,openPullRequestsCount",
+      "timeout": 30,
+      "env": {
+        "GH_PAGER": "cat"
+      }
+    },
+    "isActive": true,
+    "requiresAuth": true,
+    "botId": "cicd-github-manager"
+  },
+  {
+    "name": "github-cli-branch-list",
+    "displayName": "GitHub CLI Branch List",
+    "description": "Lists branches in a GitHub repository",
+    "type": "shell_command",
+    "config": {
+      "command": "export GH_PAGER=cat && gh api repos/:owner/:repo/branches --paginate --jq '.[] | {name: .name, commit: .commit.sha, protection: .protection.enabled}',
+      "timeout": 30,
+      "env": {
+        "GH_PAGER": "cat"
+      }
+    },
+    "isActive": true,
+    "requiresAuth": true,
+    "botId": "cicd-github-manager"
+  },
+  {
+    "name": "github-cli-secret-list",
+    "displayName": "GitHub CLI Secret List",
+    "description": "Lists repository secrets (names only, values are not accessible)",
+    "type": "shell_command",
+    "config": {
+      "command": "export GH_PAGER=cat && gh secret list",
+      "timeout": 30,
+      "env": {
+        "GH_PAGER": "cat"
+      }
+    },
+    "isActive": true,
+    "requiresAuth": true,
+    "botId": "cicd-github-manager"
+  },
+  {
+    "name": "github-cli-variable-list",
+    "displayName": "GitHub CLI Variable List",
+    "description": "Lists repository variables (names only, values are not accessible)",
+    "type": "shell_command",
+    "config": {
+      "command": "export GH_PAGER=cat && gh variable list",
+      "timeout": 30,
+      "env": {
+        "GH_PAGER": "cat"
+      }
+    },
+    "isActive": true,
+    "requiresAuth": true,
+    "botId": "cicd-github-manager"
+  },
+  {
+    "name": "github-cli-release-list",
+    "displayName": "GitHub CLI Release List",
+    "description": "Lists GitHub releases with version information",
+    "type": "shell_command",
+    "config": {
+      "command": "export GH_PAGER=cat && gh release list --limit ${limit} --json tagName,name,body,createdAt,isDraft,isPrerelease",
+      "timeout": 30,
+      "env": {
+        "GH_PAGER": "cat"
+      }
+    },
+    "isActive": true,
+    "requiresAuth": true,
+    "botId": "cicd-github-manager"
+  },
+  {
+    "name": "github-cli-release-create",
+    "displayName": "GitHub CLI Release Create",
+    "description": "Creates a new GitHub release",
+    "type": "shell_command",
+    "config": {
+      "command": "export GH_PAGER=cat && gh release create ${tag} --title \"${title}\" --notes \"${notes}\" ${draft ? '--draft' : ''} ${prerelease ? '--prerelease' : ''}",
+      "timeout": 30,
+      "env": {
+        "GH_PAGER": "cat"
+      }
+    },
+    "isActive": true,
+    "requiresAuth": true,
+    "botId": "cicd-github-manager"
+  },
+  {
+    "name": "github-cli-deployment-list",
+    "displayName": "GitHub CLI Deployment List",
+    "description": "Lists GitHub deployments with status information",
+    "type": "shell_command",
+    "config": {
+      "command": "export GH_PAGER=cat && gh api repos/:owner/:repo/deployments --paginate --jq '.[] | {id: .id, environment: .environment, ref: .ref, task: .task, status: .status, created_at: .created_at}',
+      "timeout": 30,
+      "env": {
+        "GH_PAGER": "cat"
+      }
+    },
+    "isActive": true,
+    "requiresAuth": true,
+    "botId": "cicd-github-manager"
+  },
+  {
+    "name": "github-cli-deployment-status",
+    "displayName": "GitHub CLI Deployment Status",
+    "description": "Gets status information for a specific GitHub deployment",
+    "type": "shell_command",
+    "config": {
+      "command": "export GH_PAGER=cat && gh api repos/:owner/:repo/deployments/${deploymentId}/statuses --jq '.[] | {id: .id, state: .state, description: .description, environment: .environment, created_at: .created_at}',
+      "timeout": 30,
+      "env": {
+        "GH_PAGER": "cat"
+      }
+    },
+    "isActive": true,
+    "requiresAuth": true,
+    "botId": "cicd-github-manager"
+  },
+  {
+    "name": "github-cli-search-issues",
+    "displayName": "GitHub CLI Search Issues",
+    "description": "Searches GitHub issues with advanced filtering",
+    "type": "shell_command",
+    "config": {
+      "command": "export GH_PAGER=cat && gh search issues \"${query}\" --limit ${limit} --json number,title,state,author,createdAt,updatedAt,labels,assignees,repository",
+      "timeout": 30,
+      "env": {
+        "GH_PAGER": "cat"
+      }
+    },
+    "isActive": true,
+    "requiresAuth": true,
+    "botId": "cicd-github-manager"
+  },
+  {
+    "name": "github-cli-search-prs",
+    "displayName": "GitHub CLI Search PRs",
+    "description": "Searches GitHub pull requests with advanced filtering",
+    "type": "shell_command",
+    "config": {
+      "command": "export GH_PAGER=cat && gh search prs \"${query}\" --limit ${limit} --json number,title,state,author,createdAt,updatedAt,labels,assignees,repository,reviewDecision",
+      "timeout": 30,
+      "env": {
+        "GH_PAGER": "cat"
+      }
+    },
+    "isActive": true,
+    "requiresAuth": true,
+    "botId": "cicd-github-manager"
+  },
+  {
+    "name": "github-cli-search-repos",
+    "displayName": "GitHub CLI Search Repositories",
+    "description": "Searches GitHub repositories with advanced filtering",
+    "type": "shell_command",
+    "config": {
+      "command": "export GH_PAGER=cat && gh search repos \"${query}\" --limit ${limit} --json name,description,stargazerCount,language,isPrivate,isArchived,updatedAt",
+      "timeout": 30,
+      "env": {
+        "GH_PAGER": "cat"
+      }
+    },
+    "isActive": true,
+    "requiresAuth": true,
+    "botId": "cicd-github-manager"
+  },
+  {
+    "name": "github-cli-notification-list",
+    "displayName": "GitHub CLI Notification List",
+    "description": "Lists GitHub notifications for the authenticated user",
+    "type": "shell_command",
+    "config": {
+      "command": "export GH_PAGER=cat && gh notification list --limit ${limit} --json id,subject,reason,unread,updatedAt,repository",
+      "timeout": 30,
+      "env": {
+        "GH_PAGER": "cat"
+      }
+    },
+    "isActive": true,
+    "requiresAuth": true,
+    "botId": "cicd-github-manager"
+  },
+  {
+    "name": "github-cli-notification-mark-read",
+    "displayName": "GitHub CLI Mark Notification Read",
+    "description": "Marks a GitHub notification as read",
+    "type": "shell_command",
+    "config": {
+      "command": "export GH_PAGER=cat && gh notification mark ${notificationId} --read",
+      "timeout": 30,
+      "env": {
+        "GH_PAGER": "cat"
+      }
+    },
+    "isActive": true,
+    "requiresAuth": true,
+    "botId": "cicd-github-manager"
+  },
+  {
+    "name": "github-cli-auth-status",
+    "displayName": "GitHub CLI Auth Status",
+    "description": "Checks GitHub CLI authentication status and user information",
+    "type": "shell_command",
+    "config": {
+      "command": "export GH_PAGER=cat && gh auth status --json token,user,scopes",
+      "timeout": 30,
+      "env": {
+        "GH_PAGER": "cat"
+      }
+    },
+    "isActive": true,
+    "requiresAuth": true,
+    "botId": "cicd-github-manager"
+  },
+  {
+    "name": "ci-build-status-check",
+    "displayName": "CI Build Status Check",
+    "description": "Checks the status of CI builds across multiple platforms and reports on failures",
+    "type": "shell_command",
+    "config": {
+      "command": "curl -s -H \"Authorization: Bearer ${CI_TOKEN}\" ${CI_API_URL}/builds/${buildId} | jq '.status, .result, .duration, .started_at, .finished_at'",
+      "timeout": 30
+    },
+    "isActive": true,
+    "requiresAuth": true,
+    "botId": "cicd-github-manager"
+  },
+  {
+    "name": "docker-build-monitor",
+    "displayName": "Docker Build Monitor",
+    "description": "Monitors Docker build processes and reports on build status and completion",
+    "type": "shell_command",
+    "config": {
+      "command": "docker ps -a --filter \"ancestor=${imageName}\" --format \"table {{.ID}}\\t{{.Image}}\\t{{.Status}}\\t{{.CreatedAt}}\"",
+      "timeout": 30
+    },
+    "isActive": true,
+    "requiresAuth": true,
+    "botId": "cicd-github-manager"
+  },
+  {
+    "name": "deployment-status-check",
+    "displayName": "Deployment Status Check",
+    "description": "Checks deployment status across different environments and platforms",
+    "type": "shell_command",
+    "config": {
+      "command": "curl -s -H \"Authorization: Bearer ${DEPLOY_TOKEN}\" ${DEPLOY_API_URL}/deployments/${deploymentId} | jq '.status, .environment, .created_at, .updated_at, .url'",
+      "timeout": 30
+    },
+    "isActive": true,
+    "requiresAuth": true,
+    "botId": "cicd-github-manager"
+  },
+  {
+    "name": "test-results-analyzer",
+    "displayName": "Test Results Analyzer",
+    "description": "Analyzes test results from CI/CD pipelines and reports on failures and trends",
+    "type": "shell_command",
+    "config": {
+      "command": "find ${testResultsPath} -name \"*.xml\" -exec grep -l \"failure\" {} \\; | head -10",
+      "timeout": 60
+    },
+    "isActive": true,
+    "requiresAuth": true,
+    "botId": "cicd-github-manager"
+  },
+  {
+    "name": "performance-metrics-collector",
+    "displayName": "Performance Metrics Collector",
+    "description": "Collects performance metrics from CI/CD builds and deployments",
+    "type": "shell_command",
+    "config": {
+      "command": "curl -s ${metricsUrl}/api/v1/query?query=${query} | jq '.data.result[0].value[1]'",
+      "timeout": 30
+    },
+    "isActive": true,
+    "requiresAuth": true,
+    "botId": "cicd-github-manager"
+  },
+  {
+    "name": "security-scan-results",
+    "displayName": "Security Scan Results",
+    "description": "Retrieves and analyzes security scan results from CI/CD pipelines",
+    "type": "shell_command",
+    "config": {
+      "command": "curl -s -H \"Authorization: Bearer ${SECURITY_TOKEN}\" ${SECURITY_API_URL}/scans/${scanId}/results | jq '.vulnerabilities | length, .severity_counts'",
+      "timeout": 60
+    },
+    "isActive": true,
+    "requiresAuth": true,
+    "botId": "cicd-github-manager"
+  },
+  {
+    "name": "code-coverage-reporter",
+    "displayName": "Code Coverage Reporter",
+    "description": "Reports on code coverage metrics from test runs",
+    "type": "shell_command",
+    "config": {
+      "command": "find ${coveragePath} -name \"coverage.json\" -exec jq '.total.lines.pct, .total.functions.pct, .total.branches.pct' {} \\;",
+      "timeout": 30
+    },
+    "isActive": true,
+    "requiresAuth": true,
+    "botId": "cicd-github-manager"
+  },
+  {
+    "name": "artifact-validator",
+    "displayName": "Artifact Validator",
+    "description": "Validates build artifacts and ensures they meet quality standards",
+    "type": "shell_command",
+    "config": {
+      "command": "sha256sum ${artifactPath} && file ${artifactPath} && ls -la ${artifactPath}",
+      "timeout": 30
+    },
+    "isActive": true,
+    "requiresAuth": true,
+    "botId": "cicd-github-manager"
+  },
+  {
+    "name": "environment-health-check",
+    "displayName": "Environment Health Check",
+    "description": "Performs health checks on deployment environments",
+    "type": "shell_command",
+    "config": {
+      "command": "curl -f ${healthCheckUrl}/health || echo 'Health check failed' && curl -s ${healthCheckUrl}/metrics | jq '.status'",
+      "timeout": 30
+    },
+    "isActive": true,
+    "requiresAuth": true,
+    "botId": "cicd-github-manager"
+  },
+  {
+    "name": "rollback-trigger",
+    "displayName": "Rollback Trigger",
+    "description": "Triggers rollback procedures for failed deployments",
+    "type": "shell_command",
+    "config": {
+      "command": "curl -X POST -H \"Authorization: Bearer ${ROLLBACK_TOKEN}\" ${ROLLBACK_API_URL}/rollback/${deploymentId} -d '{\"reason\": \"${reason}\", \"version\": \"${previousVersion}\"}'",
+      "timeout": 60
+    },
+    "isActive": true,
+    "requiresAuth": true,
+    "botId": "cicd-github-manager"
+  },
+  {
+    "name": "notification-sender",
+    "displayName": "Notification Sender",
+    "description": "Sends notifications about CI/CD events to various channels",
+    "type": "shell_command",
+    "config": {
+      "command": "curl -X POST -H \"Content-Type: application/json\" ${WEBHOOK_URL} -d '{\"text\": \"${message}\", \"channel\": \"${channel}\", \"username\": \"CI/CD Bot\"}'",
+      "timeout": 30
+    },
+    "isActive": true,
+    "requiresAuth": true,
+    "botId": "cicd-github-manager"
+  },
+  {
+    "name": "build-time-analyzer",
+    "displayName": "Build Time Analyzer",
+    "description": "Analyzes build times and identifies optimization opportunities",
+    "type": "shell_command",
+    "config": {
+      "command": "gh run list --limit 50 --json id,status,conclusion,workflowName,createdAt,updatedAt,duration | jq '[.[] | select(.duration != null)] | sort_by(.duration) | reverse | .[0:10] | .[] | {id: .id, workflow: .workflowName, duration: .duration, status: .status}'",
+      "timeout": 30,
+      "env": {
+        "GH_PAGER": "cat"
+      }
+    },
+    "isActive": true,
+    "requiresAuth": true,
+    "botId": "cicd-github-manager"
+  },
+  {
+    "name": "dependency-update-checker",
+    "displayName": "Dependency Update Checker",
+    "description": "Checks for outdated dependencies and security updates",
+    "type": "shell_command",
+    "config": {
+      "command": "npm outdated --json || echo '{}' && npm audit --json | jq '.vulnerabilities | keys | length'",
+      "timeout": 60
+    },
+    "isActive": true,
+    "requiresAuth": true,
+    "botId": "cicd-github-manager"
+  },
+  {
+    "name": "release-notes-generator",
+    "displayName": "Release Notes Generator",
+    "description": "Generates release notes from commits and pull requests",
+    "type": "shell_command",
+    "config": {
+      "command": "gh pr list --state merged --base ${baseBranch} --limit 100 --json title,number,author,mergedAt | jq '[.[] | select(.mergedAt >= \"${sinceDate}\")] | .[] | \"- #\" + (.number | tostring) + \" \" + .title + \" (@\" + .author.login + \")\"'",
+      "timeout": 30,
+      "env": {
+        "GH_PAGER": "cat"
+      }
+    },
+    "isActive": true,
+    "requiresAuth": true,
+    "botId": "cicd-github-manager"
   }
 ]

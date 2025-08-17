@@ -13,13 +13,22 @@ router.get('/bots/:botId/tools', async (req, res) => {
     const { botId } = req.params;
     const { userId } = req.query;
 
-    // Verify bot ownership
+    // Find the bot
     const bot = await botRepository.findOne({
-      where: { id: botId, userId: userId as string }
+      where: { id: botId }
     });
 
     if (!bot) {
-      return res.status(404).json({ error: 'Bot not found or unauthorized' });
+      return res.status(404).json({ error: 'Bot not found' });
+    }
+
+    // Allow access if user owns the bot OR if it's a system bot
+    const systemUser = await botRepository.manager.getRepository('User').findOne({
+      where: { email: 'system@platform.com' }
+    });
+
+    if (bot.userId !== userId && bot.userId !== systemUser?.id) {
+      return res.status(403).json({ error: 'Unauthorized access to bot' });
     }
 
     const tools = await botToolRepository.find({
@@ -221,7 +230,7 @@ router.get('/system-tools', async (req, res) => {
     });
 
     // Filter for system tools (tools belonging to system bots)
-    const systemTools = tools.filter(tool => 
+    const systemTools = tools.filter(tool =>
       tool.bot && tool.bot.userId === 'system'
     );
 
@@ -347,6 +356,127 @@ router.post('/tools/:toolId/test', async (req, res) => {
       error: 'Failed to test tool',
       details: error instanceof Error ? error.message : 'Unknown error'
     });
+  }
+});
+
+// Get available tools for bot (system tools that can be added)
+router.get('/bots/:botId/available-tools', async (req, res) => {
+  try {
+    const { botId } = req.params;
+    const { userId } = req.query;
+
+    // Find the bot
+    const bot = await botRepository.findOne({
+      where: { id: botId }
+    });
+
+    if (!bot) {
+      return res.status(404).json({ error: 'Bot not found' });
+    }
+
+    // Allow access if user owns the bot OR if it's a system bot
+    const systemUser = await botRepository.manager.getRepository('User').findOne({
+      where: { email: 'system@platform.com' }
+    });
+
+    if (bot.userId !== userId && bot.userId !== systemUser?.id) {
+      return res.status(403).json({ error: 'Unauthorized access to bot' });
+    }
+
+    // Get all system tools
+    const systemTools = await botToolRepository.find({
+      where: { isActive: true },
+      relations: ['bot'],
+      order: { createdAt: 'ASC' }
+    });
+
+    // Filter for system tools (tools belonging to system bots)
+    const availableTools = systemTools.filter(tool =>
+      tool.bot && tool.bot.userId === systemUser?.id
+    );
+
+    // Get tools already assigned to this bot
+    const existingTools = await botToolRepository.find({
+      where: { botId, isActive: true }
+    });
+
+    // Filter out tools that are already assigned to this bot
+    const assignableTools = availableTools.filter(tool =>
+      !existingTools.some(existing => existing.name === tool.name)
+    );
+
+    return res.json(assignableTools);
+  } catch (error) {
+    console.error('Failed to fetch available tools:', error);
+    return res.status(500).json({ error: 'Failed to fetch available tools' });
+  }
+});
+
+// Add existing tool to bot (copy from system tool)
+router.post('/bots/:botId/add-existing-tool', async (req, res) => {
+  try {
+    const { botId } = req.params;
+    const { userId, toolId } = req.body;
+
+    // Find the bot
+    const bot = await botRepository.findOne({
+      where: { id: botId }
+    });
+
+    if (!bot) {
+      return res.status(404).json({ error: 'Bot not found' });
+    }
+
+    // Allow access if user owns the bot OR if it's a system bot
+    const systemUser = await botRepository.manager.getRepository('User').findOne({
+      where: { email: 'system@platform.com' }
+    });
+
+    if (bot.userId !== userId && bot.userId !== systemUser?.id) {
+      return res.status(403).json({ error: 'Unauthorized access to bot' });
+    }
+
+    // Get the source tool (system tool)
+    const sourceTool = await botToolRepository.findOne({
+      where: { id: toolId },
+      relations: ['bot']
+    });
+
+    if (!sourceTool) {
+      return res.status(404).json({ error: 'Source tool not found' });
+    }
+
+    // Verify it's a system tool
+    if (!sourceTool.bot || sourceTool.bot.userId !== systemUser?.id) {
+      return res.status(400).json({ error: 'Can only copy system tools' });
+    }
+
+    // Check if tool already exists for this bot
+    const existingTool = await botToolRepository.findOne({
+      where: { botId, name: sourceTool.name }
+    });
+
+    if (existingTool) {
+      return res.status(400).json({ error: 'Tool already exists for this bot' });
+    }
+
+    // Create a copy of the tool for this bot
+    const newTool = botToolRepository.create({
+      name: sourceTool.name,
+      displayName: sourceTool.displayName,
+      description: sourceTool.description,
+      type: sourceTool.type,
+      config: sourceTool.config,
+      isActive: sourceTool.isActive,
+      requiresAuth: sourceTool.requiresAuth,
+      botId
+    });
+
+    await botToolRepository.save(newTool);
+    return res.json(newTool);
+  } catch (error) {
+    console.error('Failed to add existing tool:', error);
+    return res.status(500).json({ error: 'Failed to add existing tool' });
   }
 });
 

@@ -29,7 +29,7 @@ const Workflows: React.FC = () => {
   const fetchWorkflows = async () => {
     try {
       setLoading(true);
-      const response = await api.get('/api/workflows');
+      const response = await api.get('/workflows');
       setWorkflows(response.data);
     } catch (error) {
       console.error('Error fetching workflows:', error);
@@ -41,7 +41,7 @@ const Workflows: React.FC = () => {
 
   const handleToggleActive = async (workflowId: string, isActive: boolean) => {
     try {
-      await api.patch(`/api/workflows/${workflowId}`, { isActive: !isActive });
+      await api.patch(`/workflows/${workflowId}`, { isActive: !isActive });
       setWorkflows(prev =>
         prev.map(workflow =>
           workflow.id === workflowId
@@ -61,7 +61,7 @@ const Workflows: React.FC = () => {
     }
 
     try {
-      await api.delete(`/api/workflows/${workflowId}`);
+      await api.delete(`/workflows/${workflowId}`);
       setWorkflows(prev => prev.filter(workflow => workflow.id !== workflowId));
     } catch (error) {
       console.error('Error deleting workflow:', error);
@@ -71,7 +71,7 @@ const Workflows: React.FC = () => {
 
   const handleExecute = async (workflowId: string) => {
     try {
-      await api.post(`/api/workflows/${workflowId}/execute`);
+      await api.post(`/workflows/${workflowId}/execute`);
       // TODO: Show success message and maybe redirect to execution logs
       alert('Workflow execution started!');
     } catch (error) {

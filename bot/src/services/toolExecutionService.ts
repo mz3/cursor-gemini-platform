@@ -4,6 +4,7 @@ import { exec } from 'child_process';
 import { promisify } from 'util';
 import { AppDataSource } from '../config/database.js';
 import { MCPToolService } from './mcpToolService.js';
+import { Secret } from '../entities/Secret.js';
 
 const execAsync = promisify(exec);
 
@@ -117,7 +118,7 @@ export class ToolExecutionService {
   }
 
   private static async executeShellCommand(tool: BotTool, params: Record<string, any>): Promise<any> {
-    const { command, cwd, timeout = 30000 } = tool.config;
+    const { command, cwd, timeout = 30000, githubSecretId } = tool.config;
     const interpolatedCommand = this.interpolateParams(command || '', params);
 
     // Security: Only allow safe commands
@@ -126,7 +127,7 @@ export class ToolExecutionService {
       'ping', 'curl', 'wget', 'dig', 'nslookup',
       'ps', 'top', 'free', 'df', 'du',
       'grep', 'find', 'head', 'tail', 'sort', 'uniq',
-      'wc', 'cut', 'tr', 'sed', 'awk'
+      'wc', 'cut', 'tr', 'sed', 'awk', 'gh'
     ];
     const commandName = interpolatedCommand.split(' ')[0];
 
@@ -134,9 +135,35 @@ export class ToolExecutionService {
       throw new Error(`Command not allowed: ${commandName}`);
     }
 
+    // Prepare environment variables
+    const env: Record<string, string> = Object.fromEntries(
+      Object.entries(process.env).filter(([_, value]) => value !== undefined)
+    );
+
+    // Add GitHub API key if secret is configured
+    if (githubSecretId) {
+      try {
+        const secretRepository = AppDataSource.getRepository(Secret);
+        const secret = await secretRepository.findOne({
+          where: { id: githubSecretId }
+        });
+
+        if (secret) {
+          const githubToken = secret.getDecryptedValue();
+          env.GITHUB_TOKEN = githubToken;
+          env.GH_TOKEN = githubToken; // Alternative environment variable
+          console.log('🔑 GitHub API key loaded from secret');
+        }
+      } catch (error) {
+        console.error('Failed to load GitHub secret:', error);
+        // Continue execution without the secret
+      }
+    }
+
     const { stdout, stderr } = await execAsync(interpolatedCommand, {
       cwd: cwd || '/app',
-      timeout
+      timeout,
+      env
     });
 
     return {
@@ -196,4 +223,4 @@ export class ToolExecutionService {
       return params[key] || match;
     });
   }
-} 
+}

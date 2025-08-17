@@ -166,7 +166,7 @@ const WorkflowForm: React.FC<WorkflowFormProps> = ({
 
   const fetchBots = async () => {
     try {
-      const response = await api.get('/api/bots');
+      const response = await api.get('/bots');
       const activeBots = response.data.filter((bot: Bot) => bot.isActive);
       setBots(activeBots);
     } catch (error) {

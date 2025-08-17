@@ -71,7 +71,7 @@ const WorkflowDesigner: React.FC = () => {
   const fetchWorkflow = async (workflowId: string) => {
     try {
       setLoading(true);
-      const response = await api.get(`/api/workflows/${workflowId}`);
+      const response = await api.get(`/workflows/${workflowId}`);
       const workflowData = response.data;
       setWorkflow(workflowData);
 
@@ -97,7 +97,7 @@ const WorkflowDesigner: React.FC = () => {
         nodes: nodes,
       };
 
-      await api.put(`/api/workflows/${workflow.id}`, {
+      await api.put(`/workflows/${workflow.id}`, {
         ...workflow,
         config: updatedConfig,
       });
@@ -167,7 +167,7 @@ const WorkflowDesigner: React.FC = () => {
     if (!workflow) return;
 
     try {
-      await api.post(`/api/workflows/${workflow.id}/execute`);
+      await api.post(`/workflows/${workflow.id}/execute`);
       alert('Workflow execution started!');
     } catch (error) {
       console.error('Error executing workflow:', error);

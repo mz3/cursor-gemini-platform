@@ -47,5 +47,51 @@
     },
     "order": 0,
     "workflowId": "generate_documentation_id"
+  },
+  {
+    "name": "schedule_daily_report",
+    "type": "scheduler",
+    "config": {
+      "cron": "0 14 * * *",
+      "timezone": "America/New_York",
+      "trigger": "daily_github_report"
+    },
+    "order": 0,
+    "workflowId": "daily_github_report_id"
+  },
+  {
+    "name": "collect_github_data",
+    "type": "github_data_collection",
+    "config": {
+      "bot": "cicd-github-manager",
+      "data_sources": ["issues", "pull_requests", "workflows", "deployments"],
+      "timeframe": "last_24_hours"
+    },
+    "order": 1,
+    "workflowId": "daily_github_report_id"
+  },
+  {
+    "name": "generate_daily_report",
+    "type": "report_generation",
+    "config": {
+      "format": "markdown",
+      "template": "daily_github_summary",
+      "include_metrics": ["new_issues", "closed_issues", "active_prs", "failed_workflows", "deployments"]
+    },
+    "order": 2,
+    "workflowId": "daily_github_report_id"
+  },
+  {
+    "name": "create_github_issue",
+    "type": "github_issue_creation",
+    "config": {
+      "bot": "cicd-github-manager",
+      "repository": "cursor-gemini-platform",
+      "title_template": "Daily Report - {date}",
+      "labels": ["automated", "daily-report"],
+      "assignees": ["system"]
+    },
+    "order": 3,
+    "workflowId": "daily_github_report_id"
   }
 ]

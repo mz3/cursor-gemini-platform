@@ -49,10 +49,11 @@ const ViewSchema: React.FC = () => {
   const loadSchemaData = async () => {
     try {
       setLoading(true);
-      const [SchemaResponse, applicationsResponse, relationshipsResponse] = await Promise.all([
+      const [SchemaResponse, applicationsResponse, relationshipsResponse, entitiesResponse] = await Promise.all([
         api.get(`/schemas/${id}`),
         api.get('/applications'),
-        api.get('/relationships')
+        api.get('/relationships'),
+        api.get(`/entities/schema/${id}`)
       ]);
 
       setSchema(SchemaResponse.data);
@@ -64,6 +65,18 @@ const ViewSchema: React.FC = () => {
 
       // Transform into entities for display
       const entityList: Entity[] = [
+        // Actual entities for this schema
+        ...entitiesResponse.data.map((entity: any) => ({
+          name: entity.name,
+          displayName: entity.displayName,
+          description: entity.description,
+          tableName: 'entities',
+          fields: entity.schema?.schema?.fields?.length || 0,
+          relationships: 0,
+          isSystem: entity.isSystem || false,
+          createdAt: entity.createdAt,
+          type: 'Entity'
+        })),
         // Relationships involving this Schema
         ...SchemaRelationships.map((rel: any) => ({
           name: rel.name,
@@ -100,30 +113,30 @@ const ViewSchema: React.FC = () => {
     if (!schema?.fields) return <p className="text-gray-500 dark:text-gray-400">No schema defined</p>;
 
     return (
-      <div className="bg-gray-50 rounded-lg p-4">
+      <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
         <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-3">Schema Fields</h4>
         <div className="space-y-2">
           {schema.fields.map((field: any, index: number) => (
-            <div key={index} className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700">
+            <div key={index} className="flex items-center justify-between p-3 bg-white dark:bg-gray-700 rounded border border-gray-200 dark:border-gray-600">
               <div className="flex-1">
                 <div className="flex items-center space-x-2">
                   <span className="font-medium text-gray-900 dark:text-gray-100">{field.name}</span>
-                  <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                  <span className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 py-1 rounded">
                     {field.type}
                   </span>
                   {field.required && (
-                    <span className="text-xs bg-red-100 text-red-800 px-2 py-1 rounded">
+                    <span className="text-xs bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 px-2 py-1 rounded">
                       Required
                     </span>
                   )}
                   {field.unique && (
-                    <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
+                    <span className="text-xs bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 px-2 py-1 rounded">
                       Unique
                     </span>
                   )}
                 </div>
                 {field.description && (
-                  <p className="text-sm text-gray-600 mt-1">{field.description}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{field.description}</p>
                 )}
               </div>
             </div>
@@ -275,45 +288,45 @@ const ViewSchema: React.FC = () => {
       </div>
 
       {/* Schema Visualization */}
-      <div className="bg-white shadow rounded-lg p-6 mb-8">
+      <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6 mb-8">
         <div className="flex items-center mb-4">
-          <Settings className="w-5 h-5 text-gray-400 mr-2" />
+          <Settings className="w-5 h-5 text-gray-400 dark:text-gray-500 mr-2" />
           <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Schema Definition</h3>
         </div>
         {renderSchemaVisualization(Schema.schema)}
       </div>
 
       {/* Entities Table */}
-      <div className="bg-white shadow rounded-lg">
+      <div className="bg-white dark:bg-gray-800 shadow rounded-lg">
         <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
           <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Schema Entities</h3>
-          <p className="text-sm text-gray-600 mt-1">
+          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
             Entities and relationships defined by this Schema
           </p>
         </div>
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+            <thead className="bg-gray-50 dark:bg-gray-700">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   Entity
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   Display Name
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   Table Name
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   Fields
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   Relationships
                 </th>
-                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                    Entity Type
                  </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   Created
                 </th>
               </tr>
@@ -321,7 +334,7 @@ const ViewSchema: React.FC = () => {
             <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
               {entities.length > 0 ? (
                 entities.map((entity, index) => (
-                  <tr key={index} className="hover:bg-gray-50">
+                  <tr key={index} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900 dark:text-gray-100">{entity.name}</div>
                       {entity.description && (
@@ -332,7 +345,7 @@ const ViewSchema: React.FC = () => {
                       {entity.displayName}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <code className="text-sm bg-gray-100 px-2 py-1 rounded text-gray-800">
+                      <code className="text-sm bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-gray-800 dark:text-gray-200">
                         {entity.tableName}
                       </code>
                     </td>
@@ -343,7 +356,7 @@ const ViewSchema: React.FC = () => {
                       {entity.relationships}
                     </td>
                                          <td className="px-6 py-4 whitespace-nowrap">
-                       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200">
                          {entity.type}
                        </span>
                      </td>

@@ -54,5 +54,13 @@
     "isActive": true,
     "model": "gemini-2.5-flash",
     "userId": "system"
+  },
+  {
+    "name": "cicd-github-manager",
+    "displayName": "CI/CD & GitHub Manager Bot",
+    "description": "Comprehensive GitHub and CI/CD management bot with real-time workflow monitoring, issue tracking, PR management, deployment oversight, and automated build reporting. Features GitHub CLI integration for seamless operations and GitHub API SDK for advanced automation.",
+    "isActive": true,
+    "model": "gemini-2.5-flash",
+    "userId": "system"
   }
 ]

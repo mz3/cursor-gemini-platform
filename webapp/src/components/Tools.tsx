@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Trash2, Edit, Play, Settings, Globe, Database, FileText, Terminal, Code, Workflow, Bot, Search, Eye } from 'lucide-react';
+import { Plus, Trash2, Edit, Play, Settings, Globe, Database, FileText, Terminal, Code, Workflow, Bot, Search, Eye, Key } from 'lucide-react';
 import api from '../utils/api';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -68,7 +68,7 @@ export const Tools: React.FC<ToolsProps> = ({ botId, showSystemTools = false }) 
       } else if (showSystemTools || viewMode === 'system') {
         endpoint = '/bot-tools/system-tools';
       }
-      
+
       const response = await api.get(endpoint);
       setTools(response.data);
     } catch (error) {
@@ -94,10 +94,10 @@ export const Tools: React.FC<ToolsProps> = ({ botId, showSystemTools = false }) 
 
   const updateTool = async (toolId: string, toolData: Partial<Tool>) => {
     try {
-      const endpoint = botId 
+      const endpoint = botId
         ? `/bot-tools/bots/${botId}/tools/${toolId}`
         : `/bot-tools/tools/${toolId}`;
-      
+
       await api.put(endpoint, {
         ...toolData,
         userId: user?.id
@@ -111,12 +111,12 @@ export const Tools: React.FC<ToolsProps> = ({ botId, showSystemTools = false }) 
 
   const deleteTool = async (toolId: string) => {
     if (!confirm('Are you sure you want to delete this tool?')) return;
-    
+
     try {
-      const endpoint = botId 
+      const endpoint = botId
         ? `/bot-tools/bots/${botId}/tools/${toolId}?userId=${user?.id}`
         : `/bot-tools/tools/${toolId}?userId=${user?.id}`;
-      
+
       await api.delete(endpoint);
       await fetchTools();
     } catch (error) {
@@ -127,15 +127,15 @@ export const Tools: React.FC<ToolsProps> = ({ botId, showSystemTools = false }) 
   const testTool = async (toolId: string, params: Record<string, any> = {}) => {
     setTestingTool(toolId);
     try {
-      const endpoint = botId 
+      const endpoint = botId
         ? `/bot-tools/bots/${botId}/tools/${toolId}/test`
         : `/bot-tools/tools/${toolId}/test`;
-      
+
       const response = await api.post(endpoint, {
         userId: user?.id,
         params
       });
-      
+
       alert(`Tool test successful!\nResult: ${JSON.stringify(response.data.result, null, 2)}`);
     } catch (error) {
       console.error('Failed to test tool:', error);
@@ -244,7 +244,7 @@ export const Tools: React.FC<ToolsProps> = ({ botId, showSystemTools = false }) 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredTools.map((tool) => {
           const IconComponent = toolTypeIcons[tool.type as keyof typeof toolTypeIcons] || Settings;
-          
+
           return (
             <div
               key={tool.id}
@@ -335,7 +335,7 @@ export const Tools: React.FC<ToolsProps> = ({ botId, showSystemTools = false }) 
             No tools found
           </h3>
           <p className="text-gray-600 dark:text-gray-400">
-            {searchTerm || filterType !== 'all' 
+            {searchTerm || filterType !== 'all'
               ? 'Try adjusting your search or filters'
               : 'Get started by adding your first tool'
             }
@@ -376,6 +376,8 @@ const ToolForm: React.FC<ToolFormProps> = ({ tool, onSubmit, onCancel, toolTypes
     requiresAuth: tool?.requiresAuth ?? false,
     config: tool?.config || {}
   });
+  const [secrets, setSecrets] = useState<Array<{ id: string; name: string; key: string; provider?: string; type: string }>>([]);
+  const [loadingSecrets, setLoadingSecrets] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -390,6 +392,37 @@ const ToolForm: React.FC<ToolFormProps> = ({ tool, onSubmit, onCancel, toolTypes
         [key]: value
       }
     }));
+  };
+
+  // Fetch available secrets for GitHub API key selection
+  const fetchSecrets = async () => {
+    try {
+      setLoadingSecrets(true);
+      const response = await api.get('/secrets');
+      setSecrets(response.data);
+    } catch (error) {
+      console.error('Failed to fetch secrets:', error);
+    } finally {
+      setLoadingSecrets(false);
+    }
+  };
+
+  // Load secrets when component mounts
+  useEffect(() => {
+    fetchSecrets();
+  }, []);
+
+  // Filter secrets for GitHub API keys
+  const githubSecrets = secrets.filter(secret =>
+    secret.provider === 'github' ||
+    secret.key.toLowerCase().includes('github') ||
+    secret.name.toLowerCase().includes('github')
+  );
+
+  // Get selected secret name for display
+  const getSelectedSecretName = (secretId: string) => {
+    const secret = secrets.find(s => s.id === secretId);
+    return secret ? `${secret.name} (${secret.key})` : 'Select a secret...';
   };
 
   return (
@@ -560,6 +593,70 @@ const ToolForm: React.FC<ToolFormProps> = ({ tool, onSubmit, onCancel, toolTypes
               </div>
             )}
 
+            {/* GitHub API Key Secret Selection */}
+            {(formData.type === 'mcp_tool' || formData.name.toLowerCase().includes('github')) && (
+              <div className="space-y-4">
+                <h4 className="font-medium text-gray-900 dark:text-gray-100 flex items-center">
+                  <Key className="w-4 h-4 mr-2" />
+                  GitHub API Configuration
+                </h4>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    GitHub API Key Secret
+                  </label>
+                  <div className="relative">
+                    <select
+                      value={formData.config.githubSecretId || ''}
+                      onChange={(e) => updateConfig('githubSecretId', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                      disabled={loadingSecrets}
+                    >
+                      <option value="">Select a GitHub API key secret...</option>
+                      {githubSecrets.map(secret => (
+                        <option key={secret.id} value={secret.id}>
+                          {secret.name} ({secret.key})
+                        </option>
+                      ))}
+                    </select>
+                    {loadingSecrets && (
+                      <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-600"></div>
+                      </div>
+                    )}
+                  </div>
+                  <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                    Select a secret containing your GitHub API key. The tool will use this for authentication.
+                  </p>
+                </div>
+
+                {formData.config.githubSecretId && (
+                  <div className="p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-md">
+                    <div className="flex items-center">
+                      <Key className="w-4 h-4 text-green-600 dark:text-green-400 mr-2" />
+                      <span className="text-sm text-green-800 dark:text-green-200">
+                        GitHub API key configured: {getSelectedSecretName(formData.config.githubSecretId)}
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                {githubSecrets.length === 0 && !loadingSecrets && (
+                  <div className="p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-md">
+                    <div className="flex items-center">
+                      <Key className="w-4 h-4 text-amber-600 dark:text-amber-400 mr-2" />
+                      <span className="text-sm text-amber-800 dark:text-amber-200">
+                        No GitHub API key secrets found.
+                        <Link to="/secrets/create" className="ml-1 text-amber-700 dark:text-amber-300 underline hover:text-amber-800 dark:hover:text-amber-200">
+                          Create one here
+                        </Link>
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
             <div className="flex justify-end space-x-3 pt-4">
               <button
                 type="button"
@@ -582,4 +679,4 @@ const ToolForm: React.FC<ToolFormProps> = ({ tool, onSubmit, onCancel, toolTypes
   );
 };
 
-export default Tools; 
+export default Tools;

@@ -10,6 +10,7 @@ import { BotInstance, BotInstanceStatus } from '../entities/BotInstance.js';
 import { AppDataSource } from '../config/database.js';
 import axios from 'axios';
 import { Entity } from '../entities/Entity.js';
+import { Secret } from '../entities/Secret.js';
 
 const botRepository = AppDataSource.getRepository(Bot);
 const userRepository = AppDataSource.getRepository(User);
@@ -27,6 +28,8 @@ export interface MCPToolConfig {
   userId?: string;
   permissions: string[];
   operations: string[];
+  apiEndpoint?: string;
+  githubSecretId?: string;
 }
 
 export interface MCPOperation {
@@ -50,6 +53,11 @@ export class MCPToolService {
 
     if (!config.operations.includes(operation)) {
       throw new Error(`Operation '${operation}' not allowed for this MCP tool`);
+    }
+
+    // Check if this is a GitHub API operation
+    if (config.apiEndpoint && config.apiEndpoint.includes('github.com')) {
+      return await this.executeGitHubOperation(tool, operation, params);
     }
 
     // Execute the operation based on the entity type
@@ -663,6 +671,313 @@ export class MCPToolService {
         features,
         workflows
       }
+    };
+  }
+
+  /**
+   * Execute GitHub API operations
+   */
+  private static async executeGitHubOperation(tool: BotTool, operation: string, params: Record<string, any>): Promise<any> {
+    const config = tool.config as MCPToolConfig;
+    const { githubSecretId } = config;
+
+    // Get GitHub API token from secret
+    let githubToken: string | null = null;
+    if (githubSecretId) {
+      try {
+        const secretRepository = AppDataSource.getRepository(Secret);
+        const secret = await secretRepository.findOne({
+          where: { id: githubSecretId }
+        });
+
+        if (secret) {
+          githubToken = secret.getDecryptedValue();
+          console.log('🔑 GitHub API key loaded from secret for MCP tool');
+        }
+      } catch (error) {
+        console.error('Failed to load GitHub secret for MCP tool:', error);
+      }
+    }
+
+    if (!githubToken) {
+      throw new Error('GitHub API token not available. Please configure a GitHub secret in the tool.');
+    }
+
+    // Prepare headers for GitHub API
+    const headers = {
+      'Authorization': `Bearer ${githubToken}`,
+      'Accept': 'application/vnd.github.v3+json',
+      'User-Agent': 'Meta-Platform-Bot'
+    };
+
+    // Execute GitHub API operation based on the operation type
+    const [action, resource] = operation.split('_');
+
+    try {
+      switch (action) {
+        case 'list':
+          return await this.executeGitHubListOperation(resource, config, params, headers);
+        case 'get':
+          return await this.executeGitHubGetOperation(resource, config, params, headers);
+        case 'create':
+          return await this.executeGitHubCreateOperation(resource, config, params, headers);
+        case 'update':
+          return await this.executeGitHubUpdateOperation(resource, config, params, headers);
+        case 'delete':
+          return await this.executeGitHubDeleteOperation(resource, config, params, headers);
+        case 'search':
+          return await this.executeGitHubSearchOperation(resource, config, params, headers);
+        default:
+          throw new Error(`Unknown GitHub operation: ${operation}`);
+      }
+    } catch (error) {
+      console.error(`GitHub API error for operation ${operation}:`, error);
+      throw new Error(`GitHub API operation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
+   * Execute GitHub list operations
+   */
+  private static async executeGitHubListOperation(resource: string, config: MCPToolConfig, params: Record<string, any>, headers: Record<string, string>): Promise<any> {
+    const { owner, repo, limit = 30 } = params;
+    const baseUrl = config.apiEndpoint || 'https://api.github.com';
+
+    // Validate required parameters for repo-specific operations
+    if (resource !== 'repositories' && (!owner || !repo)) {
+      throw new Error(`Owner and repo are required for ${resource} operations`);
+    }
+
+    let endpoint = '';
+    switch (resource) {
+      case 'repositories':
+        endpoint = '/user/repos';
+        break;
+      case 'issues':
+        endpoint = `/repos/${owner!}/${repo!}/issues`;
+        break;
+      case 'pull_requests':
+        endpoint = `/repos/${owner!}/${repo!}/pulls`;
+        break;
+      case 'workflows':
+        endpoint = `/repos/${owner!}/${repo!}/actions/workflows`;
+        break;
+      case 'runs':
+        endpoint = `/repos/${owner!}/${repo!}/actions/runs`;
+        break;
+      case 'releases':
+        endpoint = `/repos/${owner!}/${repo!}/releases`;
+        break;
+      default:
+        throw new Error(`Unknown GitHub resource: ${resource}`);
+    }
+
+    const response = await axios.get(`${baseUrl}${endpoint}`, {
+      headers,
+      params: { per_page: limit }
+    });
+
+    return {
+      success: true,
+      data: response.data,
+      total: response.data.length
+    };
+  }
+
+  /**
+   * Execute GitHub get operations
+   */
+  private static async executeGitHubGetOperation(resource: string, config: MCPToolConfig, params: Record<string, any>, headers: Record<string, string>): Promise<any> {
+    const { owner, repo, id } = params;
+    const baseUrl = config.apiEndpoint || 'https://api.github.com';
+
+    // Validate required parameters
+    if (!owner || !repo) {
+      throw new Error('Owner and repo are required for GitHub get operations');
+    }
+    if (!id) {
+      throw new Error('ID is required for GitHub get operations');
+    }
+
+    let endpoint = '';
+    switch (resource) {
+      case 'repository':
+        endpoint = `/repos/${owner!}/${repo!}`;
+        break;
+      case 'issue':
+        endpoint = `/repos/${owner!}/${repo!}/issues/${id!}`;
+        break;
+      case 'pull_request':
+        endpoint = `/repos/${owner!}/${repo!}/pulls/${id!}`;
+        break;
+      case 'workflow':
+        endpoint = `/repos/${owner!}/${repo!}/actions/workflows/${id!}`;
+        break;
+      case 'run':
+        endpoint = `/repos/${owner!}/${repo!}/actions/runs/${id!}`;
+        break;
+      case 'release':
+        endpoint = `/repos/${owner!}/${repo!}/releases/${id!}`;
+        break;
+      default:
+        throw new Error(`Unknown GitHub resource: ${resource}`);
+    }
+
+    const response = await axios.get(`${baseUrl}${endpoint}`, { headers });
+
+    return {
+      success: true,
+      data: response.data
+    };
+  }
+
+  /**
+   * Execute GitHub create operations
+   */
+  private static async executeGitHubCreateOperation(resource: string, config: MCPToolConfig, params: Record<string, any>, headers: Record<string, string>): Promise<any> {
+    const { owner, repo, ...data } = params;
+    const baseUrl = config.apiEndpoint || 'https://api.github.com';
+
+    // Validate required parameters
+    if (!owner || !repo) {
+      throw new Error('Owner and repo are required for GitHub create operations');
+    }
+
+    let endpoint = '';
+    switch (resource) {
+      case 'issue':
+        endpoint = `/repos/${owner!}/${repo!}/issues`;
+        break;
+      case 'pull_request':
+        endpoint = `/repos/${owner!}/${repo!}/pulls`;
+        break;
+      case 'release':
+        endpoint = `/repos/${owner!}/${repo!}/releases`;
+        break;
+      default:
+        throw new Error(`Unknown GitHub resource: ${resource}`);
+    }
+
+    const response = await axios.post(`${baseUrl}${endpoint}`, data, { headers });
+
+    return {
+      success: true,
+      data: response.data
+    };
+  }
+
+  /**
+   * Execute GitHub update operations
+   */
+  private static async executeGitHubUpdateOperation(resource: string, config: MCPToolConfig, params: Record<string, any>, headers: Record<string, string>): Promise<any> {
+    const { owner, repo, id, ...data } = params;
+    const baseUrl = config.apiEndpoint || 'https://api.github.com';
+
+    // Validate required parameters
+    if (!owner || !repo) {
+      throw new Error('Owner and repo are required for GitHub update operations');
+    }
+    if (!id) {
+      throw new Error('ID is required for GitHub update operations');
+    }
+
+    let endpoint = '';
+    switch (resource) {
+      case 'issue':
+        endpoint = `/repos/${owner!}/${repo!}/issues/${id!}`;
+        break;
+      case 'pull_request':
+        endpoint = `/repos/${owner!}/${repo!}/pulls/${id!}`;
+        break;
+      case 'release':
+        endpoint = `/repos/${owner!}/${repo!}/releases/${id!}`;
+        break;
+      default:
+        throw new Error(`Unknown GitHub resource: ${resource}`);
+    }
+
+    const response = await axios.patch(`${baseUrl}${endpoint}`, data, { headers });
+
+    return {
+      success: true,
+      data: response.data
+    };
+  }
+
+  /**
+   * Execute GitHub delete operations
+   */
+  private static async executeGitHubDeleteOperation(resource: string, config: MCPToolConfig, params: Record<string, any>, headers: Record<string, string>): Promise<any> {
+    const { owner, repo, id } = params;
+    const baseUrl = config.apiEndpoint || 'https://api.github.com';
+
+    // Validate required parameters
+    if (!owner || !repo) {
+      throw new Error('Owner and repo are required for GitHub delete operations');
+    }
+    if (!id) {
+      throw new Error('ID is required for GitHub delete operations');
+    }
+
+    let endpoint = '';
+    switch (resource) {
+      case 'release':
+        endpoint = `/repos/${owner!}/${repo!}/releases/${id!}`;
+        break;
+      default:
+        throw new Error(`Unknown GitHub resource: ${resource}`);
+    }
+
+    await axios.delete(`${baseUrl}${endpoint}`, { headers });
+
+    return {
+      success: true,
+      message: `${resource} deleted successfully`
+    };
+  }
+
+  /**
+   * Execute GitHub search operations
+   */
+  private static async executeGitHubSearchOperation(resource: string, config: MCPToolConfig, params: Record<string, any>, headers: Record<string, string>): Promise<any> {
+    const { query, limit = 30 } = params;
+    const baseUrl = config.apiEndpoint || 'https://api.github.com';
+
+    // Validate required parameters
+    if (!query) {
+      throw new Error('Query is required for GitHub search operations');
+    }
+
+    let endpoint = '';
+    switch (resource) {
+      case 'repositories':
+        endpoint = '/search/repositories';
+        break;
+      case 'issues':
+        endpoint = '/search/issues';
+        break;
+      case 'pull_requests':
+        endpoint = '/search/issues'; // GitHub search API uses issues for PRs
+        break;
+      case 'code':
+        endpoint = '/search/code';
+        break;
+      default:
+        throw new Error(`Unknown GitHub search resource: ${resource}`);
+    }
+
+    const response = await axios.get(`${baseUrl}${endpoint}`, {
+      headers,
+      params: {
+        q: query,
+        per_page: limit
+      }
+    });
+
+    return {
+      success: true,
+      data: response.data.items,
+      total: response.data.total_count
     };
   }
 

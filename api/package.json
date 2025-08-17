@@ -19,7 +19,9 @@
     "migration:revert": "npx typeorm-ts-node-esm migration:revert -d src/config/database.ts",
     "migration:show": "npx typeorm-ts-node-esm migration:show -d src/config/database.ts",
     "seed": "node --loader ts-node/esm src/scripts/seed.ts",
-    "seed:build": "tsc && cp -r src/fixtures dist/ && node dist/scripts/seed.js"
+    "seed:build": "tsc && cp -r src/fixtures dist/ && node dist/scripts/seed.js",
+    "populate-secrets": "node src/scripts/populate-secrets.js",
+    "update-secrets": "node src/scripts/update-secrets.js"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

@@ -11,7 +11,7 @@ const CreateWorkflow: React.FC = () => {
   const handleSubmit = async (workflowData: any) => {
     try {
       setIsLoading(true);
-      const response = await api.post('/api/workflows', workflowData);
+      const response = await api.post('/workflows', workflowData);
       navigate(`/workflows/${response.data.id}`);
     } catch (error) {
       console.error('Error creating workflow:', error);

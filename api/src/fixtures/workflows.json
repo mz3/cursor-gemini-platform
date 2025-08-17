@@ -38,5 +38,21 @@
       "steps": ["analyze", "generate", "publish"]
     },
     "isActive": true
+  },
+  {
+    "name": "daily_github_report",
+    "displayName": "Daily GitHub Issue Report",
+    "description": "Creates a daily GitHub issue report every day at 9am EST using the CI/CD GitHub bot",
+    "config": {
+      "queue": "github_reports",
+      "steps": ["schedule", "collect_data", "generate_report", "create_issue"],
+      "schedule": {
+        "cron": "0 14 * * *",
+        "timezone": "America/New_York",
+        "description": "Daily at 9:00 AM EST"
+      },
+      "bot": "cicd-github-manager"
+    },
+    "isActive": true
   }
 ]

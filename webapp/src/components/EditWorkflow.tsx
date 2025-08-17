@@ -32,7 +32,7 @@ const EditWorkflow: React.FC = () => {
   const fetchWorkflow = async (workflowId: string) => {
     try {
       setLoading(true);
-      const response = await api.get(`/api/workflows/${workflowId}`);
+      const response = await api.get(`/workflows/${workflowId}`);
       setWorkflow(response.data);
     } catch (error) {
       console.error('Error fetching workflow:', error);
@@ -47,7 +47,7 @@ const EditWorkflow: React.FC = () => {
 
     try {
       setIsSubmitting(true);
-      await api.put(`/api/workflows/${id}`, workflowData);
+      await api.put(`/workflows/${id}`, workflowData);
       navigate(`/workflows/${id}`);
     } catch (error) {
       console.error('Error updating workflow:', error);

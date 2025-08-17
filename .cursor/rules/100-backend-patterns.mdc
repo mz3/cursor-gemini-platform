@@ -454,44 +454,46 @@ When running PostgreSQL queries via Docker, use these tricks to make output more
 
 #### Basic Output Control
 ```bash
-# Prevent pager and show all output at once
-docker exec -it platform-postgres psql -U platform_user -d platform_db -c "SELECT * FROM users;" | cat
+# Disable pager to show all output at once (RECOMMENDED)
+docker exec -it platform-postgres psql -U platform_user -d platform_db -c "\pset pager off" -c "SELECT * FROM users;"
 
-# Disable expanded display for cleaner table output
-docker exec -it platform-postgres psql -U platform_user -d platform_db -c "\x off" -c "SELECT id, name FROM schemas;" | cat
+# Use unaligned format for compact output
+docker exec -it platform-postgres psql -U platform_user -d platform_db -c "\pset format unaligned" -c "SELECT id, name FROM schemas;"
 
-# Use tab-separated output
-docker exec -it platform-postgres psql -U platform_user -d platform_db -c "\t" -c "SELECT id, name FROM schemas;" | cat
+# Use tuples-only mode (no headers, no row count)
+docker exec -it platform-postgres psql -U platform_user -d platform_db -c "\t" -c "SELECT id, name FROM schemas;"
 ```
 
 #### Handling Long Text Fields
 ```bash
 # Truncate long text fields to avoid wide output
-docker exec -it platform-postgres psql -U platform_user -d platform_db -c "SELECT name, substring(schema::text, 1, 100) as schema_preview FROM schemas;" | cat
+docker exec -it platform-postgres psql -U platform_user -d platform_db -c "\pset pager off" -c "SELECT name, substring(schema::text, 1, 100) as schema_preview FROM schemas;"
 
 # Use expanded format for complex JSON data
-docker exec -it platform-postgres psql -U platform_user -d platform_db -c "\pset format expanded" -c "SELECT name, schema FROM schemas WHERE name = 'Bot';" | cat
+docker exec -it platform-postgres psql -U platform_user -d platform_db -c "\pset pager off" -c "\pset format expanded" -c "SELECT name, schema FROM schemas WHERE name = 'Bot';"
 ```
 
 #### Common Query Patterns
 ```bash
 # Simple table query with readable output
-docker exec -it platform-postgres psql -U platform_user -d platform_db -c "SELECT id, name, \"displayName\" FROM schemas;" | cat
+docker exec -it platform-postgres psql -U platform_user -d platform_db -c "\pset pager off" -c "SELECT id, name, \"displayName\" FROM schemas;"
 
 # Count records
-docker exec -it platform-postgres psql -U platform_user -d platform_db -c "SELECT COUNT(*) as total FROM users;" | cat
+docker exec -it platform-postgres psql -U platform_user -d platform_db -c "\pset pager off" -c "SELECT COUNT(*) as total FROM users;"
 
 # Check specific record
-docker exec -it platform-postgres psql -U platform_user -d platform_db -c "SELECT id, email, \"firstName\" FROM users WHERE email = 'system@platform.com';" | cat
+docker exec -it platform-postgres psql -U platform_user -d platform_db -c "\pset pager off" -c "SELECT id, email, \"firstName\" FROM users WHERE email = 'system@platform.com';"
 ```
 
 #### Key Tricks Summary
-- **`| cat`** - Prevents pager and shows all output
-- **`\x off`** - Disables expanded display for cleaner tables
+- **`\pset pager off`** - Disables pager and shows all output (BEST OPTION)
+- **`\pset format unaligned`** - Compact pipe-separated output
+- **`\t`** - Tuples-only mode (no headers, no row count)
 - **`substring()`** - Truncates long text fields
 - **`\pset format expanded`** - For complex JSON data
 - **Limit columns** - Only select needed columns
-- **`\t`** - Tab-separated output when needed
+- **AVOID `| cat`** - Doesn't work well with PostgreSQL output formatting
+```
 
   subscribers: [],
 });

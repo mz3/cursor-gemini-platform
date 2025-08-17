@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Trash2, Edit, Play, Settings, Globe, Database, FileText, Terminal, Code, Workflow } from 'lucide-react';
+import { Plus, Trash2, Edit, Play, Settings, Globe, Database, FileText, Terminal, Code, Workflow, X } from 'lucide-react';
 import api from '../utils/api';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -12,6 +12,10 @@ interface BotTool {
   config: Record<string, any>;
   isActive: boolean;
   requiresAuth: boolean;
+  bot?: {
+    id: string;
+    displayName: string;
+  };
 }
 
 interface BotToolsProps {
@@ -24,7 +28,8 @@ const toolTypeIcons = {
   file_operation: FileText,
   shell_command: Terminal,
   custom_script: Code,
-  workflow_action: Workflow
+  workflow_action: Workflow,
+  mcp_tool: Settings
 };
 
 const toolTypeLabels = {
@@ -33,7 +38,8 @@ const toolTypeLabels = {
   file_operation: 'File Operation',
   shell_command: 'Shell Command',
   custom_script: 'Custom Script',
-  workflow_action: 'Workflow Action'
+  workflow_action: 'Workflow Action',
+  mcp_tool: 'MCP Tool'
 };
 
 export const BotTools: React.FC<BotToolsProps> = ({ botId }) => {
@@ -41,6 +47,8 @@ export const BotTools: React.FC<BotToolsProps> = ({ botId }) => {
   const [tools, setTools] = useState<BotTool[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [showToolSelector, setShowToolSelector] = useState(false);
+  const [availableTools, setAvailableTools] = useState<BotTool[]>([]);
   const [editingTool, setEditingTool] = useState<BotTool | null>(null);
   const [testingTool, setTestingTool] = useState<string | null>(null);
 
@@ -69,6 +77,28 @@ export const BotTools: React.FC<BotToolsProps> = ({ botId }) => {
       setShowAddForm(false);
     } catch (error) {
       console.error('Failed to add tool:', error);
+    }
+  };
+
+  const fetchAvailableTools = async () => {
+    try {
+      const response = await api.get(`/bot-tools/bots/${botId}/available-tools?userId=${user?.id}`);
+      setAvailableTools(response.data);
+    } catch (error) {
+      console.error('Failed to fetch available tools:', error);
+    }
+  };
+
+  const addExistingTool = async (toolId: string) => {
+    try {
+      await api.post(`/bot-tools/bots/${botId}/add-existing-tool`, {
+        userId: user?.id,
+        toolId
+      });
+      await fetchTools();
+      setShowToolSelector(false);
+    } catch (error) {
+      console.error('Failed to add existing tool:', error);
     }
   };
 
@@ -122,13 +152,25 @@ export const BotTools: React.FC<BotToolsProps> = ({ botId }) => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h3 className="text-lg font-semibold">Bot Tools</h3>
-        <button
-          onClick={() => setShowAddForm(true)}
-          className="flex items-center px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Add Tool
-        </button>
+        <div className="flex space-x-2">
+          <button
+            onClick={() => {
+              setShowToolSelector(true);
+              fetchAvailableTools();
+            }}
+            className="flex items-center px-3 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Select from Existing
+          </button>
+          <button
+            onClick={() => setShowAddForm(true)}
+            className="flex items-center px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Create New Tool
+          </button>
+        </div>
       </div>
 
       {tools.length === 0 ? (
@@ -212,6 +254,68 @@ export const BotTools: React.FC<BotToolsProps> = ({ botId }) => {
           onCancel={() => setEditingTool(null)}
           toolTypes={toolTypeLabels}
         />
+      )}
+
+      {showToolSelector && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">Select from Existing Tools</h3>
+              <button
+                onClick={() => setShowToolSelector(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {availableTools.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                <Settings className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                <p>No available tools to add.</p>
+                <p className="text-sm">All system tools are already assigned to this bot.</p>
+              </div>
+            ) : (
+              <div className="grid gap-4">
+                {availableTools.map(tool => {
+                  const IconComponent = toolTypeIcons[tool.type as keyof typeof toolTypeIcons];
+
+                  return (
+                    <div key={tool.id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50">
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <div className="flex items-center mb-2">
+                            {IconComponent && <IconComponent className="w-5 h-5 mr-2 text-blue-600" />}
+                            <h4 className="font-medium">{tool.displayName}</h4>
+                            <span className="ml-2 px-2 py-1 text-xs bg-green-100 text-green-800 rounded">
+                              {toolTypeLabels[tool.type as keyof typeof toolTypeLabels]}
+                            </span>
+                          </div>
+                          <p className="text-sm text-gray-600 mb-2">{tool.description}</p>
+                          <div className="flex items-center text-xs text-gray-500">
+                            <span className="mr-4">Bot: {tool.bot?.displayName || 'Unknown'}</span>
+                            {tool.requiresAuth && (
+                              <span className="flex items-center">
+                                <Settings className="w-3 h-3 mr-1" />
+                                Auth Required
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => addExistingTool(tool.id)}
+                          className="ml-4 px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
+                        >
+                          Add to Bot
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
       )}
     </div>
   );
