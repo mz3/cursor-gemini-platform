@@ -72,6 +72,7 @@ export const seedDatabase = async (): Promise<void> => {
       const existingPrompts = await promptRepository.find();
       const existingBots = await botRepository.find();
       const existingWorkflows = await botRepository.find();
+      const existingBotTools = await botToolRepository.find();
 
       if (existingUsers.length > 0 || existingFeatures.length > 0 || existingApplications.length > 0 ||
           existingSchemas.length > 0 || existingPrompts.length > 0 || existingBots.length > 0 || existingWorkflows.length > 0) {
@@ -462,11 +463,29 @@ export const seedDatabase = async (): Promise<void> => {
           });
 
           if (bot) {
-            const tool = botToolRepository.create({
-              ...toolData,
-              botId: bot.id
+            // Check if tool already exists
+            const existingTool = await botToolRepository.findOne({
+              where: { name: toolData.name }
             });
-            await botToolRepository.save(tool);
+
+            if (existingTool) {
+              // Update existing tool's botId if it's different
+              if (existingTool.botId !== bot.id) {
+                existingTool.botId = bot.id;
+                await botToolRepository.save(existingTool);
+                console.log(`✅ Updated tool "${toolData.name}" association to bot "${bot.name}"`);
+              } else {
+                console.log(`ℹ️  Tool "${toolData.name}" already exists and is properly associated`);
+              }
+            } else {
+              // Create new tool
+              const tool = botToolRepository.create({
+                ...toolData,
+                botId: bot.id
+              });
+              await botToolRepository.save(tool);
+              console.log(`✅ Created tool "${toolData.name}" for bot "${bot.name}"`);
+            }
           } else {
             console.warn(`Bot not found for tool ${toolData.name}: ${toolData.botId}`);
           }
