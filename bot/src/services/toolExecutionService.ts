@@ -137,7 +137,7 @@ export class ToolExecutionService {
 
     // Prepare environment variables
     const env: Record<string, string> = Object.fromEntries(
-      Object.entries(process.env).filter(([_, value]) => value !== undefined)
+      Object.entries(process.env).filter(([_, value]) => value !== undefined) as [string, string][]
     );
 
     // Add GitHub API key if secret is configured
