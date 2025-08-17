@@ -18,27 +18,40 @@ The platform uses a microservices architecture with separate containers for:
 
 ### Development Environment
 
-There are two dev environments
+There are two dev environments, each with their own compose file
 
-- `dev1`
-- `dev2`
+- `platform-dev1`
+  - `docker/docker-compose-dev1.yml`
+- `platform-dev2`
+  - `docker/docker-compose-dev2.yml`
 
-Each has their own compose file. Each developer/AI agent/Cursor agent/coder uses their own dev environment carefully without touching containers outside their namespace.
+Each developer/AI agent/Cursor agent/coder uses their own dev environment carefully without touching containers outside their namespace. Local (gitignored) Cursor rules indicate which dev environment you should use. If not, warn the user and stop.
 
-You must use the correct compose file and provide it (via `-f`) to all Docker compose commands.
+You must use the correct compose file and provide it (via `-f`) to all Docker compose commands. You must also provide the correct project name (via `-p`) t all Docker compose commands.
 
 **IMPORTANT**: Use explicit project names to avoid conflicts:
-- Dev1: Uses `platform-dev1` (usually directory name)
+- Dev1: Uses `platform-dev1` project name
 - Dev2: Uses `platform-dev2` project name
 - Always use `-p` flag or `name:` in compose file to ensure isolation
 
-When running local containers, start them in the background (i.e. `docker compose up -d`) and then use `docker logs` to make sure they start correctly. Note that  using `-f` with `docker logs` will keep the terminal open indefinitely.
-
-
-For container names (i.e. api) make sure to use local rules to determine which dev environment (i.e. dev1 or dev2) to use and target the appropriate container. Don't assume the names used in these examples are correct.
+When running local containers, start them in the background (i.e. `docker compose up -d`) and then use `docker logs` to make sure they start correctly. Note that  using `-f` with `docker logs` will keep the terminal open indefinitely. Don't forgot to provide `-f` and `-p` to those commands.
 
 ### E2E Testing Requirement
+
 **ALWAYS run a simple e2e test after starting the local dev environment before beginning work:**
+
+Verify the correct port to use according to the dev environment.
+
+- For `platform-dev1`:
+  - API: http://localhost:4001
+  - Webapp: http://localhost:3001
+
+- For `platform-dev2`:
+  - API: http://localhost:4002
+  - Webapp: http://localhost:3002
+
+**Example E2E test commands (replace ports with your dev environment):**
+
 
 ```bash
 # Test API health
@@ -56,27 +69,30 @@ curl http://localhost:3002
 This ensures the development environment is working correctly before proceeding with any development work.
 
 ### Database Migration Commands
+
+**IMPORTANT**: Use `-f` and `-p` with all docker compose commands and use correct container names for `docker exec` commands.
+
 ```bash
 # Run migrations in container
-docker exec api npm run migration:run
+docker exec api-dev2 npm run migration:run
 
 # Generate new migration
-docker exec api npm run migration:generate -- src/migrations/[MigrationName]
+docker exec api-dev2 npm run migration:generate -- src/migrations/[MigrationName]
 
 # Revert migration
-docker exec api npm run migration:revert
+docker exec api-dev2 npm run migration:revert
 
 # Show migration status
-docker exec api npm run migration:show
+docker exec api-dev2 npm run migration:show
 ```
 
 ### Database Seeding Commands
 ```bash
 # Seed database with initial data (development mode)
-docker exec api npm run seed
+docker exec api-dev2 npm run seed
 
 # Seed database with built artifacts (production-like)
-docker exec api npm run seed:build
+docker exec api-dev2 npm run seed:build
 ```
 
 ### Logging and Debugging
