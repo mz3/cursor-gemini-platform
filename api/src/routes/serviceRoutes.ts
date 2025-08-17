@@ -17,19 +17,15 @@ router.get('/', authenticate, async (req: Request, res: Response, next: NextFunc
       where: { email: 'system@platform.com' }
     });
 
-    const whereConditions = [
-      { userId } // User's own services
-    ];
+    // Use QueryBuilder for explicit OR condition
+    let query = serviceRepository.createQueryBuilder('service')
+      .where('service.userId = :userId', { userId });
 
-    // Add system services if system user exists
     if (systemUser) {
-      whereConditions.push({ userId: systemUser.id });
+      query = query.orWhere('service.userId = :systemUserId', { systemUserId: systemUser.id });
     }
 
-    const services = await serviceRepository.find({
-      where: whereConditions,
-      order: { createdAt: 'DESC' }
-    });
+    const services = await query.orderBy('service.createdAt', 'DESC').getMany();
     return res.json(services);
   } catch (error) {
     return next(error);
@@ -46,18 +42,16 @@ router.get('/:id', authenticate, async (req: Request, res: Response, next: NextF
       where: { email: 'system@platform.com' }
     });
 
-    const whereConditions = [
-      { id: req.params.id, userId } // User's own service
-    ];
+    // Use query builder for explicit OR condition
+    let serviceQuery = serviceRepository.createQueryBuilder('service')
+      .where('service.id = :id AND service.userId = :userId', { id: req.params.id, userId });
 
     // Add system service condition if system user exists
     if (systemUser) {
-      whereConditions.push({ id: req.params.id, userId: systemUser.id });
+      serviceQuery = serviceQuery.orWhere('service.id = :id AND service.userId = :systemUserId', { id: req.params.id, systemUserId: systemUser.id });
     }
 
-    const service = await serviceRepository.findOne({
-      where: whereConditions
-    });
+    const service = await serviceQuery.getOne();
 
     if (!service) {
       return res.status(404).json({ error: 'Service not found' });

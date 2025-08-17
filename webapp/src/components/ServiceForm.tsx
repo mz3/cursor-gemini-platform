@@ -145,12 +145,12 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
       <div>
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Endpoint</label>
         <input
-          type="url"
+          type="text"
           value={form.endpoint || ''}
           onChange={e => handleChange('endpoint', e.target.value)}
           disabled={readOnly}
           className="mt-1 block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-          placeholder="https://api.example.com"
+          placeholder="e.g. https://api.example.com or localhost:5433"
         />
       </div>
 
