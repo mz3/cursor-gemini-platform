@@ -1,0 +1,102 @@
+[
+  {
+    "name": "platform-api",
+    "displayName": "Platform API",
+    "description": "Core API service for the platform",
+    "isActive": true,
+    "type": "http",
+    "endpoint": "http://localhost:4002",
+    "status": "active",
+    "userId": "system@platform.com"
+  },
+  {
+    "name": "platform-webapp",
+    "displayName": "Platform Webapp",
+    "description": "Frontend web application",
+    "isActive": true,
+    "type": "http",
+    "endpoint": "http://localhost:3002",
+    "status": "active",
+    "userId": "system@platform.com"
+  },
+  {
+    "name": "platform-bot",
+    "displayName": "Platform Bot",
+    "description": "Background bot worker service",
+    "isActive": true,
+    "type": "http",
+    "endpoint": "http://localhost:4003",
+    "status": "active",
+    "userId": "system@platform.com"
+  },
+  {
+    "name": "platform-database",
+    "displayName": "Platform Database",
+    "description": "PostgreSQL database service",
+    "isActive": true,
+    "type": "tcp",
+    "endpoint": "localhost:5433",
+    "status": "active",
+    "userId": "system@platform.com"
+  },
+  {
+    "name": "platform-redis",
+    "displayName": "Platform Redis",
+    "description": "Redis cache and queue service",
+    "isActive": true,
+    "type": "tcp",
+    "endpoint": "localhost:6379",
+    "status": "active",
+    "userId": "system@platform.com"
+  },
+  {
+    "name": "user-service",
+    "displayName": "User Management Service",
+    "description": "Handles user authentication, profiles, and permissions",
+    "isActive": true,
+    "type": "http",
+    "endpoint": "https://api.users.example.com",
+    "status": "active",
+    "userId": "system@platform.com"
+  },
+  {
+    "name": "notification-service",
+    "displayName": "Notification Service",
+    "description": "Handles email, SMS, and push notifications",
+    "isActive": true,
+    "type": "http",
+    "endpoint": "https://api.notifications.example.com",
+    "status": "active",
+    "userId": "system@platform.com"
+  },
+  {
+    "name": "payment-service",
+    "displayName": "Payment Processing Service",
+    "description": "Handles payment processing and billing",
+    "isActive": true,
+    "type": "http",
+    "endpoint": "https://api.payments.example.com",
+    "status": "active",
+    "userId": "system@platform.com"
+  },
+  {
+    "name": "analytics-service",
+    "displayName": "Analytics Service",
+    "description": "Collects and processes analytics data",
+    "isActive": true,
+    "type": "http",
+    "endpoint": "https://api.analytics.example.com",
+    "status": "active",
+    "userId": "system@platform.com"
+  },
+  {
+    "name": "file-storage-service",
+    "displayName": "File Storage Service",
+    "description": "Handles file uploads, storage, and retrieval",
+    "isActive": true,
+    "type": "http",
+    "endpoint": "https://api.storage.example.com",
+    "status": "active",
+    "userId": "system@platform.com"
+  }
+]

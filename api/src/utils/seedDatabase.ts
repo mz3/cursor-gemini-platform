@@ -18,6 +18,7 @@ import { Role } from '../entities/Role.js';
 import { Permission, PermissionResource } from '../entities/Permission.js';
 import { FeatureFlag } from '../entities/FeatureFlag.js';
 import { Secret } from '../entities/Secret.js';
+import { Service } from '../entities/Service.js';
 import { FixtureLoader } from './fixtureLoader.js';
 import bcrypt from 'bcryptjs';
 
@@ -63,6 +64,7 @@ export const seedDatabase = async (): Promise<void> => {
     const permissionRepository = AppDataSource.getRepository(Permission);
     const featureFlagRepository = AppDataSource.getRepository(FeatureFlag);
     const secretRepository = AppDataSource.getRepository(Secret);
+    const serviceRepository = AppDataSource.getRepository(Service);
 
     // Initialize ID mapping
     const idMapping: IdMapping = {
@@ -634,6 +636,30 @@ export const seedDatabase = async (): Promise<void> => {
           await userSettingsRepository.save(userSettings);
         } catch (error) {
           console.error('Error creating user settings:', error);
+        }
+      }
+    }
+
+    console.log('Creating services...');
+    // Create services from fixtures
+    if (fixtures.services) {
+      for (const serviceData of fixtures.services) {
+        try {
+          // Use email reference to get actual user ID from mapping
+          const userId = idMapping.users[serviceData.userId];
+          if (!userId) {
+            console.warn(`User not found for service ${serviceData.name}: ${serviceData.userId}`);
+            continue;
+          }
+
+          const service = serviceRepository.create({
+            ...serviceData,
+            userId: userId // Use mapped user ID
+          });
+          await serviceRepository.save(service);
+          console.log(`✅ Created service: ${serviceData.name}`);
+        } catch (error) {
+          console.error('Error creating service:', error);
         }
       }
     }
