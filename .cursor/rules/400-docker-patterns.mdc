@@ -18,7 +18,37 @@ The platform uses a microservices architecture with separate containers for:
 
 ### Development Environment
 
+There are two dev environments
+
+- `dev1`
+- `dev2`
+
+Each has their own compose file. Each developer/AI agent/Cursor agent/coder uses their own dev environment carefully without touching containers outside their namespace.
+
+You must use the correct compose file and provide it (via `-f`) to all Docker compose commands.
+
 When running local containers, start them in the background (i.e. `docker compose up -d`) and then use `docker logs` to make sure they start correctly. Note that  using `-f` with `docker logs` will keep the terminal open indefinitely.
+
+
+For container names (i.e. api) make sure to use local rules to determine which dev environment (i.e. dev1 or dev2) to use and target the appropriate container. Don't assume the names used in these examples are correct.
+
+### E2E Testing Requirement
+**ALWAYS run a simple e2e test after starting the local dev environment before beginning work:**
+
+```bash
+# Test API health
+curl http://localhost:4002/health
+
+# Test login with default admin credentials
+curl -X POST http://localhost:4002/api/users/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"admin@platform.com","password":"admin123"}'
+
+# Test webapp accessibility
+curl http://localhost:3002
+```
+
+This ensures the development environment is working correctly before proceeding with any development work.
 
 ### Database Migration Commands
 ```bash
