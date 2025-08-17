@@ -238,15 +238,18 @@ export class BotExecutionService {
 
     console.log('🌐 Production environment, queuing message for async processing');
 
-    // Create a placeholder bot response (will be updated by worker)
-    const botResponse = chatMessageRepository.create({
+    // Don't create a placeholder bot response - let the frontend handle the loading state
+    // The actual bot response will be created by the worker when processing is complete
+    const botResponse = {
+      id: `pending-${Date.now()}`,
       botInstanceId: instance.id,
       userId,
       role: MessageRole.BOT,
-      content: 'Processing your message...',
-      tokensUsed: 0
-    });
-    await chatMessageRepository.save(botResponse);
+      content: '',
+      tokensUsed: 0,
+      createdAt: new Date(),
+      status: 'processing'
+    } as ChatMessage;
 
     // Queue the message for async processing
     await publishEvent('bot_messages', {
@@ -254,8 +257,7 @@ export class BotExecutionService {
       userId,
       message,
       instanceId: instance.id,
-      userMessageId: userMessage.id,
-      botResponseId: botResponse.id
+      userMessageId: userMessage.id
     });
 
     // Broadcast user message via WebSocket
