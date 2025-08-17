@@ -1,8 +1,5 @@
 #!/usr/bin/env node
 
-// IMPORTANT: Import Sentry instrument first
-import '../instrument.js';
-
 import 'reflect-metadata';
 import dotenv from 'dotenv';
 import { initializeDatabase } from '../config/database.js';
