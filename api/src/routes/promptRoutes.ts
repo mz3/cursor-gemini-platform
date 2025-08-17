@@ -77,12 +77,28 @@ router.post('/', authenticateUser, async (req: Request, res: Response) => {
   }
 });
 
-// Get all prompts for a user
+// Get all prompts for a user (including system prompts)
 router.get('/', authenticateUser, async (req: Request, res: Response) => {
   try {
     const user = (req as any).user;
+    
+    // Find system user for system prompts
+    const systemUser = await userRepository.findOne({
+      where: { email: 'system@platform.com' }
+    });
+
+    // Build where conditions - include user's own prompts and system prompts
+    const whereConditions = [
+      { userId: user.id } // User's own prompts
+    ];
+
+    // Add system prompts if system user exists
+    if (systemUser) {
+      whereConditions.push({ userId: systemUser.id });
+    }
+
     const prompts = await promptRepository.find({
-      where: { userId: user.id },
+      where: whereConditions,
       relations: ['versions'],
       order: { createdAt: 'DESC' }
     });
