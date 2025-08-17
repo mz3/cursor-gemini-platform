@@ -21,6 +21,18 @@ import { Secret } from '../entities/Secret.js';
 import { FixtureLoader } from './fixtureLoader.js';
 import bcrypt from 'bcryptjs';
 
+// ID Mapping interface for dynamic foreign key relationships
+interface IdMapping {
+  users: { [key: string]: string }; // email -> uuid
+  roles: { [key: string]: string }; // name -> uuid
+  applications: { [key: string]: string }; // name -> uuid
+  prompts: { [key: string]: string }; // name -> uuid
+  bots: { [key: string]: string }; // name -> uuid
+  workflows: { [key: string]: string }; // name -> uuid
+  schemas: { [key: string]: string }; // name -> uuid
+  features: { [key: string]: string }; // name -> uuid
+}
+
 export const seedDatabase = async (): Promise<void> => {
   try {
     console.log('Loading fixtures...');
@@ -52,6 +64,18 @@ export const seedDatabase = async (): Promise<void> => {
     const featureFlagRepository = AppDataSource.getRepository(FeatureFlag);
     const secretRepository = AppDataSource.getRepository(Secret);
 
+    // Initialize ID mapping
+    const idMapping: IdMapping = {
+      users: {},
+      roles: {},
+      applications: {},
+      prompts: {},
+      bots: {},
+      workflows: {},
+      schemas: {},
+      features: {}
+    };
+
     // Add timeout to prevent hanging
     const timeout = setTimeout(() => {
       console.error('Seeding process timed out after 30 seconds');
@@ -71,7 +95,7 @@ export const seedDatabase = async (): Promise<void> => {
       const existingSchemas = await schemaRepository.find();
       const existingPrompts = await promptRepository.find();
       const existingBots = await botRepository.find();
-      const existingWorkflows = await botRepository.find();
+      const existingWorkflows = await workflowRepository.find();
       const existingBotTools = await botToolRepository.find();
 
       if (existingUsers.length > 0 || existingFeatures.length > 0 || existingApplications.length > 0 ||
@@ -85,14 +109,18 @@ export const seedDatabase = async (): Promise<void> => {
 
     console.log('Creating roles and permissions...');
 
-    // Create roles first
+    // Create roles first and populate ID mapping
     if (fixtures.roles) {
       for (const roleData of fixtures.roles) {
         const existingRole = await roleRepository.findOne({ where: { name: roleData.name } });
         if (!existingRole) {
           const role = roleRepository.create(roleData);
-          await roleRepository.save(role);
+          const savedRole = await roleRepository.save(role) as unknown as Role;
+          idMapping.roles[roleData.name] = savedRole.id;
           console.log(`✅ Created role: ${roleData.name}`);
+        } else {
+          idMapping.roles[roleData.name] = existingRole.id;
+          console.log(`ℹ️  Role already exists: ${roleData.name}`);
         }
       }
     }
@@ -212,7 +240,7 @@ export const seedDatabase = async (): Promise<void> => {
     }
 
     console.log('Creating users...');
-    // Create users from fixtures and assign roles
+    // Create users from fixtures and assign roles, populate ID mapping
     const createdUsers: User[] = [];
     if (fixtures.users) {
       for (const userData of fixtures.users) {
@@ -233,7 +261,11 @@ export const seedDatabase = async (): Promise<void> => {
 
           const savedUser = await userRepository.save(user);
           createdUsers.push(savedUser);
+          idMapping.users[userData.email] = savedUser.id;
           console.log(`✅ Created user: ${userData.email} with role: ${userData.role}`);
+        } else {
+          idMapping.users[userData.email] = existingUser.id;
+          console.log(`ℹ️  User already exists: ${userData.email}`);
         }
       }
     }
@@ -242,7 +274,7 @@ export const seedDatabase = async (): Promise<void> => {
     // Use first created user or fallback
     let savedUser = createdUsers[0];
 
-        if (!savedUser) {
+    if (!savedUser) {
       // Fallback to existing user if none were created
       const foundUser = await userRepository.findOne({
         where: { email: 'michael@tunnel.ninja' },
@@ -256,7 +288,7 @@ export const seedDatabase = async (): Promise<void> => {
     }
 
     console.log('Creating system schemas...');
-    // Create system schemas from fixtures
+    // Create system schemas from fixtures and populate ID mapping
     if (fixtures.schemas) {
       for (const schemaData of fixtures.schemas) {
         try {
@@ -264,7 +296,9 @@ export const seedDatabase = async (): Promise<void> => {
             ...schemaData,
             userId: savedUser!.id
           });
-          await schemaRepository.save(schema);
+          const savedSchema = await schemaRepository.save(schema) as unknown as Schema;
+          idMapping.schemas[schemaData.name] = savedSchema.id;
+          console.log(`✅ Created schema: ${schemaData.name}`);
         } catch (error) {
           console.error('Error creating schema:', error);
         }
@@ -272,7 +306,7 @@ export const seedDatabase = async (): Promise<void> => {
     }
 
     console.log('Creating applications...');
-    // Create applications from fixtures
+    // Create applications from fixtures and populate ID mapping
     if (fixtures.applications) {
       for (const appData of fixtures.applications) {
         try {
@@ -280,7 +314,9 @@ export const seedDatabase = async (): Promise<void> => {
             ...appData,
             userId: savedUser!.id
           });
-          await applicationRepository.save(application);
+          const savedApplication = await applicationRepository.save(application) as unknown as Application;
+          idMapping.applications[appData.name] = savedApplication.id;
+          console.log(`✅ Created application: ${appData.name}`);
         } catch (error) {
           console.error('Error creating application:', error);
         }
@@ -288,7 +324,7 @@ export const seedDatabase = async (): Promise<void> => {
     }
 
     console.log('Creating features...');
-    // Create features from fixtures
+    // Create features from fixtures and populate ID mapping
     if (fixtures.features) {
       console.log('Number of features in fixtures:', fixtures.features.length);
       for (const featureData of fixtures.features) {
@@ -297,8 +333,9 @@ export const seedDatabase = async (): Promise<void> => {
             ...featureData,
             userId: savedUser!.id
           });
-          await featureRepository.save(feature);
-          console.log('Inserted feature:', JSON.stringify(feature, null, 2));
+          const savedFeature = await featureRepository.save(feature) as unknown as Feature;
+          idMapping.features[featureData.name] = savedFeature.id;
+          console.log(`✅ Created feature: ${featureData.name}`);
         } catch (error) {
           console.error('Error creating feature:', error);
         }
@@ -328,7 +365,7 @@ export const seedDatabase = async (): Promise<void> => {
     }
 
     console.log('Creating prompts...');
-    // Create prompts from fixtures
+    // Create prompts from fixtures and populate ID mapping
     if (fixtures.prompts) {
       // Find the system user for system prompts
       const systemUser = await userRepository.findOne({
@@ -354,6 +391,7 @@ export const seedDatabase = async (): Promise<void> => {
               userId: promptUserId
             });
             await promptRepository.save(existingPrompt);
+            idMapping.prompts[promptData.name] = existingPrompt.id;
             console.log(`🔄 Updated prompt: ${promptData.name}`);
           } else if (!existingPrompt) {
             // Create new prompt
@@ -361,9 +399,11 @@ export const seedDatabase = async (): Promise<void> => {
               ...promptData,
               userId: promptUserId
             });
-            await promptRepository.save(prompt);
+            const savedPrompt = await promptRepository.save(prompt) as unknown as Prompt;
+            idMapping.prompts[promptData.name] = savedPrompt.id;
             console.log(`✅ Created prompt: ${promptData.name}`);
           } else {
+            idMapping.prompts[promptData.name] = existingPrompt.id;
             console.log(`⏭️  Skipped existing prompt: ${promptData.name}`);
           }
         } catch (error) {
@@ -373,21 +413,19 @@ export const seedDatabase = async (): Promise<void> => {
     }
 
     console.log('Creating prompt versions...');
-    // Create prompt versions from fixtures
+    // Create prompt versions from fixtures using ID mapping
     if (fixtures.promptVersions) {
       for (const versionData of fixtures.promptVersions) {
         try {
-          // Find the prompt by name
-          const prompt = await promptRepository.findOne({
-            where: { name: versionData.promptId }
-          });
-
-          if (prompt) {
+          // Find the prompt by name using ID mapping
+          const promptId = idMapping.prompts[versionData.promptId];
+          if (promptId) {
             const version = promptVersionRepository.create({
               ...versionData,
-              promptId: prompt.id
+              promptId: promptId
             });
             await promptVersionRepository.save(version);
+            console.log(`✅ Created prompt version: ${versionData.name}`);
           } else {
             console.warn(`Prompt not found for version ${versionData.name}: ${versionData.promptId}`);
           }
@@ -398,7 +436,7 @@ export const seedDatabase = async (): Promise<void> => {
     }
 
     console.log('Creating bots...');
-    // Create bots from fixtures
+    // Create bots from fixtures and populate ID mapping
     if (fixtures.bots) {
       // Find the system user for system bots
       const systemUser = await userRepository.findOne({
@@ -416,7 +454,9 @@ export const seedDatabase = async (): Promise<void> => {
             ...botData,
             userId: botUserId
           });
-          await botRepository.save(bot);
+          const savedBot = await botRepository.save(bot) as unknown as Bot;
+          idMapping.bots[botData.name] = savedBot.id;
+          console.log(`✅ Created bot: ${botData.name}`);
         } catch (error) {
           console.error('Error creating bot:', error);
         }
@@ -424,7 +464,7 @@ export const seedDatabase = async (): Promise<void> => {
     }
 
     console.log('Linking bots to prompts...');
-    // Link bots to their appropriate prompts
+    // Link bots to their appropriate prompts using ID mapping
     const botPromptMappings = [
       { botName: 'meta-platform-support', promptName: 'platform-support' },
       { botName: 'code-builder', promptName: 'code-builder' },
@@ -437,13 +477,19 @@ export const seedDatabase = async (): Promise<void> => {
 
     for (const mapping of botPromptMappings) {
       try {
-        const bot = await botRepository.findOne({ where: { name: mapping.botName } });
-        const prompt = await promptRepository.findOne({ where: { name: mapping.promptName } });
+        const botId = idMapping.bots[mapping.botName];
+        const promptId = idMapping.prompts[mapping.promptName];
 
-        if (bot && prompt) {
-          // Add the prompt to the bot's prompts
-          bot.prompts = [prompt];
-          await botRepository.save(bot);
+        if (botId && promptId) {
+          const bot = await botRepository.findOne({ where: { id: botId } });
+          const prompt = await promptRepository.findOne({ where: { id: promptId } });
+
+          if (bot && prompt) {
+            // Add the prompt to the bot's prompts
+            bot.prompts = [prompt];
+            await botRepository.save(bot);
+            console.log(`✅ Linked bot "${mapping.botName}" to prompt "${mapping.promptName}"`);
+          }
         } else {
           console.warn(`Bot or prompt not found for mapping: ${mapping.botName} -> ${mapping.promptName}`);
         }
@@ -453,16 +499,13 @@ export const seedDatabase = async (): Promise<void> => {
     }
 
     console.log('Creating bot tools...');
-    // Create bot tools from fixtures
+    // Create bot tools from fixtures using ID mapping
     if (fixtures.botTools) {
       for (const toolData of fixtures.botTools) {
         try {
-          // Find the bot by name for system bots
-          const bot = await botRepository.findOne({
-            where: { name: toolData.botId }
-          });
-
-          if (bot) {
+          // Find the bot by name using ID mapping
+          const botId = idMapping.bots[toolData.botId];
+          if (botId) {
             // Check if tool already exists
             const existingTool = await botToolRepository.findOne({
               where: { name: toolData.name }
@@ -470,10 +513,10 @@ export const seedDatabase = async (): Promise<void> => {
 
             if (existingTool) {
               // Update existing tool's botId if it's different
-              if (existingTool.botId !== bot.id) {
-                existingTool.botId = bot.id;
+              if (existingTool.botId !== botId) {
+                existingTool.botId = botId;
                 await botToolRepository.save(existingTool);
-                console.log(`✅ Updated tool "${toolData.name}" association to bot "${bot.name}"`);
+                console.log(`✅ Updated tool "${toolData.name}" association to bot "${toolData.botId}"`);
               } else {
                 console.log(`ℹ️  Tool "${toolData.name}" already exists and is properly associated`);
               }
@@ -481,10 +524,10 @@ export const seedDatabase = async (): Promise<void> => {
               // Create new tool
               const tool = botToolRepository.create({
                 ...toolData,
-                botId: bot.id
+                botId: botId
               });
               await botToolRepository.save(tool);
-              console.log(`✅ Created tool "${toolData.name}" for bot "${bot.name}"`);
+              console.log(`✅ Created tool "${toolData.name}" for bot "${toolData.botId}"`);
             }
           } else {
             console.warn(`Bot not found for tool ${toolData.name}: ${toolData.botId}`);
@@ -496,12 +539,14 @@ export const seedDatabase = async (): Promise<void> => {
     }
 
     console.log('Creating workflows...');
-    // Create workflows from fixtures
+    // Create workflows from fixtures and populate ID mapping
     if (fixtures.workflows) {
       for (const workflowData of fixtures.workflows) {
         try {
           const workflow = workflowRepository.create(workflowData);
-          await workflowRepository.save(workflow);
+          const savedWorkflow = await workflowRepository.save(workflow) as unknown as Workflow;
+          idMapping.workflows[workflowData.name] = savedWorkflow.id;
+          console.log(`✅ Created workflow: ${workflowData.name}`);
         } catch (error) {
           console.error('Error creating workflow:', error);
         }
@@ -594,10 +639,17 @@ export const seedDatabase = async (): Promise<void> => {
     }
 
     console.log('Creating secrets...');
-    // Create secrets from fixtures
+    // Create secrets from fixtures using ID mapping
     if (fixtures.secrets) {
       for (const secretData of fixtures.secrets) {
         try {
+          // Use email reference to get actual user ID from mapping
+          const userId = idMapping.users[secretData.userId];
+          if (!userId) {
+            console.warn(`User not found for secret ${secretData.name}: ${secretData.userId}`);
+            continue;
+          }
+
           // Create secret with encrypted dummy values
           const secret = secretRepository.create({
             id: secretData.id,
@@ -607,7 +659,7 @@ export const seedDatabase = async (): Promise<void> => {
             type: secretData.type,
             provider: secretData.provider,
             isActive: secretData.isActive,
-            userId: secretData.userId,
+            userId: userId, // Use mapped user ID
             createdAt: new Date(secretData.createdAt),
             updatedAt: new Date(secretData.updatedAt)
           });
@@ -625,6 +677,16 @@ export const seedDatabase = async (): Promise<void> => {
 
     clearTimeout(timeout);
     console.log('Database seeded successfully with JSON fixtures');
+    console.log('ID Mapping summary:', {
+      users: Object.keys(idMapping.users).length,
+      roles: Object.keys(idMapping.roles).length,
+      applications: Object.keys(idMapping.applications).length,
+      prompts: Object.keys(idMapping.prompts).length,
+      bots: Object.keys(idMapping.bots).length,
+      workflows: Object.keys(idMapping.workflows).length,
+      schemas: Object.keys(idMapping.schemas).length,
+      features: Object.keys(idMapping.features).length
+    });
   } catch (error) {
     console.error('Error seeding database:', error);
     throw error;
