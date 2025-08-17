@@ -27,6 +27,11 @@ Each has their own compose file. Each developer/AI agent/Cursor agent/coder uses
 
 You must use the correct compose file and provide it (via `-f`) to all Docker compose commands.
 
+**IMPORTANT**: Use explicit project names to avoid conflicts:
+- Dev1: Uses `platform-dev1` (usually directory name)
+- Dev2: Uses `platform-dev2` project name
+- Always use `-p` flag or `name:` in compose file to ensure isolation
+
 When running local containers, start them in the background (i.e. `docker compose up -d`) and then use `docker logs` to make sure they start correctly. Note that  using `-f` with `docker logs` will keep the terminal open indefinitely.
 
 

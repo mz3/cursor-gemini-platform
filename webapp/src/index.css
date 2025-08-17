@@ -26,3 +26,13 @@ code {
 .app-main {
   @apply flex-1 flex flex-col min-h-screen overflow-x-hidden;
 }
+
+/* Global heading colors with dark mode support */
+@layer base {
+  h1, h2, h3, h4, h5, h6 {
+    @apply text-gray-900;
+  }
+  .dark h1, .dark h2, .dark h3, .dark h4, .dark h5, .dark h6 {
+    @apply text-gray-100;
+  }
+}
