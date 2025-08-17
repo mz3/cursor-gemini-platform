@@ -645,9 +645,16 @@ export const seedDatabase = async (): Promise<void> => {
     if (fixtures.services) {
       for (const serviceData of fixtures.services) {
         try {
+          // Use email reference to get actual user ID from mapping
+          const userId = idMapping.users[serviceData.userId];
+          if (!userId) {
+            console.warn(`User not found for service ${serviceData.name}: ${serviceData.userId}`);
+            continue;
+          }
+
           const service = serviceRepository.create({
             ...serviceData,
-            userId: savedUser!.id
+            userId: userId // Use mapped user ID
           });
           await serviceRepository.save(service);
           console.log(`✅ Created service: ${serviceData.name}`);

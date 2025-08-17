@@ -7,7 +7,7 @@
     "type": "http",
     "endpoint": "http://localhost:4002",
     "status": "active",
-    "userId": "system"
+    "userId": "system@platform.com"
   },
   {
     "name": "platform-webapp",
@@ -17,7 +17,7 @@
     "type": "http",
     "endpoint": "http://localhost:3002",
     "status": "active",
-    "userId": "system"
+    "userId": "system@platform.com"
   },
   {
     "name": "platform-bot",
@@ -27,7 +27,7 @@
     "type": "http",
     "endpoint": "http://localhost:4003",
     "status": "active",
-    "userId": "system"
+    "userId": "system@platform.com"
   },
   {
     "name": "platform-database",
@@ -37,7 +37,7 @@
     "type": "tcp",
     "endpoint": "localhost:5433",
     "status": "active",
-    "userId": "system"
+    "userId": "system@platform.com"
   },
   {
     "name": "platform-redis",
@@ -47,7 +47,7 @@
     "type": "tcp",
     "endpoint": "localhost:6379",
     "status": "active",
-    "userId": "system"
+    "userId": "system@platform.com"
   },
   {
     "name": "user-service",
@@ -57,7 +57,7 @@
     "type": "http",
     "endpoint": "https://api.users.example.com",
     "status": "active",
-    "userId": "system"
+    "userId": "system@platform.com"
   },
   {
     "name": "notification-service",
@@ -67,7 +67,7 @@
     "type": "http",
     "endpoint": "https://api.notifications.example.com",
     "status": "active",
-    "userId": "system"
+    "userId": "system@platform.com"
   },
   {
     "name": "payment-service",
@@ -77,7 +77,7 @@
     "type": "http",
     "endpoint": "https://api.payments.example.com",
     "status": "active",
-    "userId": "system"
+    "userId": "system@platform.com"
   },
   {
     "name": "analytics-service",
@@ -87,7 +87,7 @@
     "type": "http",
     "endpoint": "https://api.analytics.example.com",
     "status": "active",
-    "userId": "system"
+    "userId": "system@platform.com"
   },
   {
     "name": "file-storage-service",
@@ -97,6 +97,6 @@
     "type": "http",
     "endpoint": "https://api.storage.example.com",
     "status": "active",
-    "userId": "system"
+    "userId": "system@platform.com"
   }
 ]
