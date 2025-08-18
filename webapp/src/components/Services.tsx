@@ -107,7 +107,7 @@ const Services: React.FC = () => {
         </button>
       </div>
 
-      <div className="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-md">
+      <div className="card">
         {services.length === 0 ? (
           <div className="p-8 text-center">
             <Server className="mx-auto h-12 w-12 text-gray-400" />

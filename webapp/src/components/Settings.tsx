@@ -15,7 +15,7 @@ const Settings: React.FC = () => {
         <p className="text-gray-600 dark:text-gray-400">Manage your application preferences</p>
       </div>
 
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+      <div className="card">
         <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Appearance</h2>
         </div>
@@ -41,7 +41,7 @@ const Settings: React.FC = () => {
       </div>
 
       {/* Future settings sections can be added here */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+      <div className="card">
         <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Account</h2>
         </div>
