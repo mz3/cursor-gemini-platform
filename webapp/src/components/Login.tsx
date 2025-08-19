@@ -17,7 +17,7 @@ const Login: React.FC = () => {
   const getRedirectUrl = () => {
     const params = new URLSearchParams(location.search);
     const redirect = params.get('redirect');
-    return redirect || '/dashboard';
+    return redirect || '/';
   };
 
   const handleSubmit = async (e: React.FormEvent) => {

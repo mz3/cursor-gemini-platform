@@ -35,7 +35,7 @@ api.interceptors.response.use(
         // Store current URL before redirecting
         const currentUrl = window.location.pathname + window.location.search;
         localStorage.removeItem('token');
-        
+
         // Redirect to login with the current URL as a parameter
         const loginUrl = `/login?redirect=${encodeURIComponent(currentUrl)}`;
         window.location.href = loginUrl;
