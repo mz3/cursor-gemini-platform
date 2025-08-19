@@ -84,7 +84,7 @@ describe('JWT Expiration Redirect Flow', () => {
   it('should fallback to dashboard when no redirect parameter is present', () => {
     // Visit login page directly without any redirect parameter
     cy.visit('/login');
-    
+
     // Verify no redirect parameter in URL
     cy.url().should('not.include', 'redirect=');
 
@@ -139,7 +139,7 @@ describe('JWT Expiration Redirect Flow', () => {
   it('should clear redirect parameter after successful login', () => {
     // Visit login page with a redirect parameter
     cy.visit('/login?redirect=%2Fschemas');
-    
+
     // Verify redirect parameter is present
     cy.url().should('include', 'redirect=');
 
@@ -150,7 +150,7 @@ describe('JWT Expiration Redirect Flow', () => {
 
     // Should redirect to schemas page
     cy.url({ timeout: 10000 }).should('include', '/schemas');
-    
+
     // Redirect parameter should be cleared from URL
     cy.url().should('not.include', 'redirect=');
   });
