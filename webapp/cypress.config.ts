@@ -3,7 +3,7 @@ import { defineConfig } from 'cypress';
 
 export default defineConfig({
   e2e: {
-    baseUrl: process.env.CYPRESS_baseUrl || 'http://localhost:3000',
+    baseUrl: process.env.CYPRESS_baseUrl || 'http://localhost:3002',
     supportFile: false,
     specPattern: 'cypress/e2e/**/*.cy.{js,jsx,ts,tsx}',
     viewportWidth: 1280,
@@ -11,7 +11,7 @@ export default defineConfig({
     video: false,
     screenshotOnRunFailure: true,
     env: {
-      apiUrl: process.env.CYPRESS_apiUrl || 'http://localhost:4001',
+      apiUrl: process.env.CYPRESS_apiUrl || 'http://localhost:4002',
       testEmail: process.env.CYPRESS_testEmail || 'admin@platform.com',
       testPassword: process.env.CYPRESS_testPassword || 'admin123'
     }
