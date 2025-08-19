@@ -28,6 +28,21 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    // Handle JWT expiration
+    if (error.response?.status === 401) {
+      const token = localStorage.getItem('token');
+      if (token) {
+        // Store current URL before redirecting
+        const currentUrl = window.location.pathname + window.location.search;
+        localStorage.removeItem('token');
+        
+        // Redirect to login with the current URL as a parameter
+        const loginUrl = `/login?redirect=${encodeURIComponent(currentUrl)}`;
+        window.location.href = loginUrl;
+        return Promise.reject(new Error('Authentication token has expired'));
+      }
+    }
+
     // Use the centralized error handling
     const processedError = handleError(error, 'API Request');
 

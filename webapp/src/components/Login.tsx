@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import ErrorDisplay from './ErrorDisplay';
 
@@ -11,6 +11,14 @@ const Login: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { login, error, clearError } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Get redirect URL from query parameters
+  const getRedirectUrl = () => {
+    const params = new URLSearchParams(location.search);
+    const redirect = params.get('redirect');
+    return redirect || '/dashboard';
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -19,7 +27,9 @@ const Login: React.FC = () => {
 
     try {
       await login(email, password);
-      navigate('/dashboard');
+      // Navigate to the redirect URL or dashboard as fallback
+      const redirectUrl = getRedirectUrl();
+      navigate(redirectUrl);
     } catch (error) {
       // Error is already handled in AuthContext
       console.error('Login error:', error);
@@ -125,7 +135,7 @@ const Login: React.FC = () => {
             >
               {isLoading ? (
                 <>
-                  <Loader2 className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" />
+                  <Loader2 className="animate-spin -ml-1 mr-3 h-5 w-5" />
                   Signing in...
                 </>
               ) : (

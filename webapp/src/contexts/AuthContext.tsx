@@ -76,12 +76,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     } catch (error: any) {
       const processedError = handleError(error, 'Fetch User Profile');
 
-      // Handle authentication errors
-      if (isAuthError(error)) {
-        setError('Your session has expired. Please log in again.');
-        localStorage.removeItem('token');
-        setUser(null);
-      } else {
+      // Don't handle auth errors here since they're handled by the API interceptor
+      if (!isAuthError(error)) {
         setError(processedError.message);
       }
     } finally {
