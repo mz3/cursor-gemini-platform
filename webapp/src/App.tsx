@@ -73,15 +73,7 @@ const AppContent: React.FC = () => {
     );
   }
 
-  // If user is not authenticated, only render the login route
-  if (!user) {
-    return (
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="*" element={<Navigate to="/login" replace />} />
-      </Routes>
-    );
-  }
+  // Always render the routes, let PrivateRoute handle authentication
 
   const navigation = [
     { name: 'Applications', href: '/applications', icon: AppWindow },
