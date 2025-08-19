@@ -8,6 +8,7 @@ alwaysApply: false
 - Include feature name in parentheses if applicable
 - Example: `feature (auth): implement oauth2 login`
 - Commit each set of changes rather than doing all the work at once and committing at the end
+- Include name of LLM or LLMs that were used during development
 
 ## Issue Management
 
