@@ -1,10 +1,5 @@
 import request from 'supertest';
 import { TEST_CONFIG } from './config.js';
-import { AppDataSource } from '../config/database.js';
-import { User } from '../entities/User.js';
-import { Role } from '../entities/Role.js';
-import bcrypt from 'bcryptjs';
-
 
 describe('Profile Update Endpoints', () => {
   let authToken: string;
@@ -22,17 +17,17 @@ describe('Profile Update Endpoints', () => {
   });
 
   afterAll(async () => {
-    // Reset admin user password back to original
+    // Reset admin user password back to original via API
     try {
-      const userRepository = AppDataSource.getRepository(User);
-      const adminUser = await userRepository.findOne({ where: { email: 'admin@platform.com' } });
-      if (adminUser) {
-        const hashedPassword = await bcrypt.hash(originalPassword, 10);
-        adminUser.password = hashedPassword;
-        await userRepository.save(adminUser);
-      }
+      await request(TEST_CONFIG.API_BASE_URL)
+        .put('/api/users/profile')
+        .set('Authorization', `Bearer ${authToken}`)
+        .send({
+          currentPassword: 'newpassword123', // The password that was changed in tests
+          newPassword: originalPassword
+        });
     } catch (error) {
-      console.error('Failed to reset admin password:', error);
+      console.error('Failed to reset admin password via API:', error);
     }
   });
 

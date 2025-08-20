@@ -211,7 +211,7 @@ describe('Bot Execution API Integration Tests', () => {
       expect(response.body.botResponse).toHaveProperty('content');
       expect(response.body.botResponse).toHaveProperty('status', 'processing');
       expect(typeof response.body.botResponse.content).toBe('string');
-      
+
       // In production mode, the initial response has empty content and processing status
       // The actual response is generated asynchronously
       expect(response.body.botResponse.content).toBe('');
