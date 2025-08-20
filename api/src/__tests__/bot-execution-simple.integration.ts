@@ -2,8 +2,7 @@ import request from 'supertest';
 import { AppDataSource } from '../config/database.js';
 import { Bot } from '../entities/Bot.js';
 import { BotInstance } from '../entities/BotInstance.js';
-
-const API_BASE_URL = process.env.API_URL || 'http://localhost:4001';
+import { TEST_CONFIG } from './config.js';
 
 describe('Simple Bot Execution Test', () => {
   let testUserId: string;
@@ -12,14 +11,14 @@ describe('Simple Bot Execution Test', () => {
 
   beforeAll(async () => {
     // Login to get auth token
-    const loginRes = await request(API_BASE_URL)
+    const loginRes = await request(TEST_CONFIG.API_BASE_URL)
       .post('/api/users/login')
-      .send({ email: 'admin@platform.com', password: 'admin123' });
+      .send({ email: TEST_CONFIG.TEST_USER.email, password: TEST_CONFIG.TEST_USER.password });
     authToken = loginRes.body.token;
     testUserId = loginRes.body.user.id;
 
     // Find the code-builder bot
-    const botsRes = await request(API_BASE_URL)
+    const botsRes = await request(TEST_CONFIG.API_BASE_URL)
       .get('/api/bots')
       .set('Authorization', `Bearer ${authToken}`);
 
@@ -40,7 +39,7 @@ describe('Simple Bot Execution Test', () => {
 
     // First, try to stop any existing bot instance
     try {
-      await request(API_BASE_URL)
+      await request(TEST_CONFIG.API_BASE_URL)
         .post(`/api/bot-execution/${codeBuilderBotId}/stop`)
         .set('Authorization', `Bearer ${authToken}`)
         .send({ userId: testUserId });
@@ -53,7 +52,7 @@ describe('Simple Bot Execution Test', () => {
     await new Promise(resolve => setTimeout(resolve, 1000));
 
     // Start the bot
-    const startBotRes = await request(API_BASE_URL)
+    const startBotRes = await request(TEST_CONFIG.API_BASE_URL)
       .post(`/api/bot-execution/${codeBuilderBotId}/start`)
       .set('Authorization', `Bearer ${authToken}`)
       .send({ userId: testUserId })
@@ -63,7 +62,7 @@ describe('Simple Bot Execution Test', () => {
     console.log('Started bot:', startBotRes.body);
 
     // Stop the bot
-    const stopBotRes = await request(API_BASE_URL)
+    const stopBotRes = await request(TEST_CONFIG.API_BASE_URL)
       .post(`/api/bot-execution/${codeBuilderBotId}/stop`)
       .set('Authorization', `Bearer ${authToken}`)
       .send({ userId: testUserId })

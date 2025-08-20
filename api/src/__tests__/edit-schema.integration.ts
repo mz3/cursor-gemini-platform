@@ -1,10 +1,10 @@
 import request from 'supertest';
+import { TEST_CONFIG } from './config.js';
 import { AppDataSource } from '../config/database.js';
 import { Schema } from '../entities/Schema.js';
 import { Relationship } from '../entities/Relationship.js';
 import { User } from '../entities/User.js';
 
-const API_BASE_URL = process.env.API_URL || 'http://localhost:4001';
 
 describe('Edit Schema API', () => {
   let token: string;
@@ -13,7 +13,7 @@ describe('Edit Schema API', () => {
 
   beforeAll(async () => {
     // Login to get token
-    const loginResponse = await request(API_BASE_URL)
+    const loginResponse = await request(TEST_CONFIG.API_BASE_URL)
       .post('/api/users/login')
       .send({
         email: 'admin@platform.com',
@@ -35,7 +35,7 @@ describe('Edit Schema API', () => {
       userId
     };
 
-    const createResponse = await request(API_BASE_URL)
+    const createResponse = await request(TEST_CONFIG.API_BASE_URL)
       .post('/api/schemas')
       .set('Authorization', `Bearer ${token}`)
       .send(schemaData);
@@ -46,7 +46,7 @@ describe('Edit Schema API', () => {
   afterAll(async () => {
     // Clean up test schema
     if (testSchemaId) {
-      await request(API_BASE_URL)
+      await request(TEST_CONFIG.API_BASE_URL)
         .delete(`/api/schemas/${testSchemaId}`)
         .set('Authorization', `Bearer ${token}`);
     }
@@ -64,7 +64,7 @@ describe('Edit Schema API', () => {
       }
     };
 
-    const response = await request(API_BASE_URL)
+    const response = await request(TEST_CONFIG.API_BASE_URL)
       .put(`/api/schemas/${testSchemaId}`)
       .set('Authorization', `Bearer ${token}`)
       .send(updateData);
@@ -90,7 +90,7 @@ describe('Edit Schema API', () => {
       userId
     };
 
-    const targetResponse = await request(API_BASE_URL)
+    const targetResponse = await request(TEST_CONFIG.API_BASE_URL)
       .post('/api/schemas')
       .set('Authorization', `Bearer ${token}`)
       .send(targetSchemaData);
@@ -112,7 +112,7 @@ describe('Edit Schema API', () => {
       userId
     };
 
-    const relResponse = await request(API_BASE_URL)
+    const relResponse = await request(TEST_CONFIG.API_BASE_URL)
       .post('/api/relationships')
       .set('Authorization', `Bearer ${token}`)
       .send(relationshipData);
@@ -121,7 +121,7 @@ describe('Edit Schema API', () => {
     expect(relResponse.body.name).toBe('testRelationship');
 
     // Verify the relationship was created
-    const relationshipsResponse = await request(API_BASE_URL)
+    const relationshipsResponse = await request(TEST_CONFIG.API_BASE_URL)
       .get(`/api/schemas/${testSchemaId}/relationships`)
       .set('Authorization', `Bearer ${token}`);
 
@@ -130,7 +130,7 @@ describe('Edit Schema API', () => {
     expect(relationshipsResponse.body[0].name).toBe('testRelationship');
 
     // Clean up target schema
-    await request(API_BASE_URL)
+    await request(TEST_CONFIG.API_BASE_URL)
       .delete(`/api/schemas/${targetSchemaId}`)
       .set('Authorization', `Bearer ${token}`);
   });
@@ -141,7 +141,7 @@ describe('Edit Schema API', () => {
       displayName: 'Updated Schema'
     };
 
-    const response = await request(API_BASE_URL)
+    const response = await request(TEST_CONFIG.API_BASE_URL)
       .put(`/api/schemas/${nonExistentId}`)
       .set('Authorization', `Bearer ${token}`)
       .send(updateData);
@@ -157,7 +157,7 @@ describe('Edit Schema API', () => {
       userId
     };
 
-    const response = await request(API_BASE_URL)
+    const response = await request(TEST_CONFIG.API_BASE_URL)
       .post('/api/relationships')
       .set('Authorization', `Bearer ${token}`)
       .send(invalidRelationshipData);

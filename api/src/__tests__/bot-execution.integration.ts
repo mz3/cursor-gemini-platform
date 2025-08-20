@@ -1,4 +1,5 @@
 import request from 'supertest';
+import { TEST_CONFIG } from './config.js';
 import { AppDataSource } from '../config/database.js';
 import { Bot } from '../entities/Bot.js';
 import { BotInstance } from '../entities/BotInstance.js';
@@ -16,7 +17,6 @@ jest.mock('../config/redis.ts', () => ({
   })
 }));
 
-const API_BASE_URL = process.env.API_URL || 'http://localhost:4001';
 
 describe('Bot Execution API Integration Tests', () => {
   let testUserId: string;
@@ -25,7 +25,7 @@ describe('Bot Execution API Integration Tests', () => {
 
   beforeAll(async () => {
     // Login to get auth token
-    const loginRes = await request(API_BASE_URL)
+    const loginRes = await request(TEST_CONFIG.API_BASE_URL)
       .post('/api/users/login')
       .send({ email: 'admin@platform.com', password: 'admin123' });
     authToken = loginRes.body.token;
@@ -40,7 +40,7 @@ describe('Bot Execution API Integration Tests', () => {
       userId: testUserId
     };
 
-    const botRes = await request(API_BASE_URL)
+    const botRes = await request(TEST_CONFIG.API_BASE_URL)
       .post('/api/bots')
       .set('Authorization', `Bearer ${authToken}`)
       .send(botData);
@@ -56,14 +56,14 @@ describe('Bot Execution API Integration Tests', () => {
         description: 'A test prompt for the test bot'
       };
 
-      const promptRes = await request(API_BASE_URL)
+      const promptRes = await request(TEST_CONFIG.API_BASE_URL)
         .post('/api/prompts')
         .set('Authorization', `Bearer ${authToken}`)
         .send(promptData);
 
       if (promptRes.status === 201) {
         // Associate the prompt with the bot
-        const associateRes = await request(API_BASE_URL)
+        const associateRes = await request(TEST_CONFIG.API_BASE_URL)
           .post(`/api/bots/${testBotId}/prompts`)
           .set('Authorization', `Bearer ${authToken}`)
           .send({ promptIds: [promptRes.body.id] });
@@ -85,7 +85,7 @@ describe('Bot Execution API Integration Tests', () => {
 
   describe('POST /api/bot-execution/:botId/start', () => {
     it('should start a bot instance successfully', async () => {
-      const response = await request(API_BASE_URL)
+      const response = await request(TEST_CONFIG.API_BASE_URL)
         .post(`/api/bot-execution/${testBotId}/start`)
         .set('Authorization', `Bearer ${authToken}`)
         .send({ userId: testUserId })
@@ -101,13 +101,13 @@ describe('Bot Execution API Integration Tests', () => {
     it('should start even when userId is missing (uses auth token)', async () => {
       // Ensure stopped first to avoid already running error
       try {
-        await request(API_BASE_URL)
+        await request(TEST_CONFIG.API_BASE_URL)
           .post(`/api/bot-execution/${testBotId}/stop`)
           .set('Authorization', `Bearer ${authToken}`)
           .send({ userId: testUserId });
       } catch {}
 
-      const response = await request(API_BASE_URL)
+      const response = await request(TEST_CONFIG.API_BASE_URL)
         .post(`/api/bot-execution/${testBotId}/start`)
         .set('Authorization', `Bearer ${authToken}`)
         .send({})
@@ -118,7 +118,7 @@ describe('Bot Execution API Integration Tests', () => {
 
     it('should handle non-existent bot (mock behavior)', async () => {
       const fakeBotId = '00000000-0000-0000-0000-000000000000';
-      const response = await request(API_BASE_URL)
+      const response = await request(TEST_CONFIG.API_BASE_URL)
         .post(`/api/bot-execution/${fakeBotId}/start`)
         .set('Authorization', `Bearer ${authToken}`)
         .send({ userId: testUserId })
@@ -130,7 +130,7 @@ describe('Bot Execution API Integration Tests', () => {
 
   describe('POST /api/bot-execution/:botId/stop', () => {
     it('should stop a bot instance successfully', async () => {
-      const response = await request(API_BASE_URL)
+      const response = await request(TEST_CONFIG.API_BASE_URL)
         .post(`/api/bot-execution/${testBotId}/stop`)
         .set('Authorization', `Bearer ${authToken}`)
         .send({ userId: testUserId })
@@ -144,7 +144,7 @@ describe('Bot Execution API Integration Tests', () => {
     });
 
     it('should return 400 when userId is missing', async () => {
-      const response = await request(API_BASE_URL)
+      const response = await request(TEST_CONFIG.API_BASE_URL)
         .post(`/api/bot-execution/${testBotId}/stop`)
         .set('Authorization', `Bearer ${authToken}`)
         .send({})
@@ -156,7 +156,7 @@ describe('Bot Execution API Integration Tests', () => {
 
   describe('GET /api/bot-execution/:botId/status', () => {
     it('should return bot instance status', async () => {
-      const response = await request(API_BASE_URL)
+      const response = await request(TEST_CONFIG.API_BASE_URL)
         .get(`/api/bot-execution/${testBotId}/status?userId=${testUserId}`)
         .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
@@ -168,7 +168,7 @@ describe('Bot Execution API Integration Tests', () => {
     });
 
     it('should return 400 when userId is missing', async () => {
-      const response = await request(API_BASE_URL)
+      const response = await request(TEST_CONFIG.API_BASE_URL)
         .get(`/api/bot-execution/${testBotId}/status`)
         .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
@@ -178,7 +178,7 @@ describe('Bot Execution API Integration Tests', () => {
 
     it('should return status for non-existent instance (mock behavior)', async () => {
       const fakeBotId = '00000000-0000-0000-0000-000000000000';
-      const response = await request(API_BASE_URL)
+      const response = await request(TEST_CONFIG.API_BASE_URL)
         .get(`/api/bot-execution/${fakeBotId}/status?userId=${testUserId}`)
         .set('Authorization', `Bearer ${authToken}`)
         .expect(500); // Expect 500 for non-existent bot
@@ -190,14 +190,14 @@ describe('Bot Execution API Integration Tests', () => {
   describe('POST /api/bot-execution/:botId/chat', () => {
     it('should send a message and receive bot response', async () => {
       // First start the bot
-      await request(API_BASE_URL)
+      await request(TEST_CONFIG.API_BASE_URL)
         .post(`/api/bot-execution/${testBotId}/start`)
         .set('Authorization', `Bearer ${authToken}`)
         .send({ userId: testUserId })
         .expect(200);
 
       const testMessage = 'Hello, bot!';
-      const response = await request(API_BASE_URL)
+      const response = await request(TEST_CONFIG.API_BASE_URL)
         .post(`/api/bot-execution/${testBotId}/chat`)
         .set('Authorization', `Bearer ${authToken}`)
         .send({ userId: testUserId, message: testMessage })
@@ -212,7 +212,7 @@ describe('Bot Execution API Integration Tests', () => {
     });
 
     it('should return 400 when userId is missing', async () => {
-      const response = await request(API_BASE_URL)
+      const response = await request(TEST_CONFIG.API_BASE_URL)
         .post(`/api/bot-execution/${testBotId}/chat`)
         .set('Authorization', `Bearer ${authToken}`)
         .send({ message: 'Hello' })
@@ -222,7 +222,7 @@ describe('Bot Execution API Integration Tests', () => {
     });
 
     it('should return 400 when message is missing', async () => {
-      const response = await request(API_BASE_URL)
+      const response = await request(TEST_CONFIG.API_BASE_URL)
         .post(`/api/bot-execution/${testBotId}/chat`)
         .set('Authorization', `Bearer ${authToken}`)
         .send({ userId: testUserId })
@@ -234,7 +234,7 @@ describe('Bot Execution API Integration Tests', () => {
 
   describe('GET /api/bot-execution/:botId/chat', () => {
     it('should return conversation history', async () => {
-      const response = await request(API_BASE_URL)
+      const response = await request(TEST_CONFIG.API_BASE_URL)
         .get(`/api/bot-execution/${testBotId}/chat?userId=${testUserId}`)
         .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
@@ -243,7 +243,7 @@ describe('Bot Execution API Integration Tests', () => {
     });
 
     it('should return 400 when userId is missing', async () => {
-      const response = await request(API_BASE_URL)
+      const response = await request(TEST_CONFIG.API_BASE_URL)
         .get(`/api/bot-execution/${testBotId}/chat`)
         .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
@@ -252,7 +252,7 @@ describe('Bot Execution API Integration Tests', () => {
     });
 
     it('should accept limit parameter', async () => {
-      const response = await request(API_BASE_URL)
+      const response = await request(TEST_CONFIG.API_BASE_URL)
         .get(`/api/bot-execution/${testBotId}/chat?userId=${testUserId}&limit=10`)
         .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
@@ -265,7 +265,7 @@ describe('Bot Execution API Integration Tests', () => {
     it('should handle complete bot lifecycle: start -> chat -> stop', async () => {
       // First stop the bot if it's running
       try {
-        await request(API_BASE_URL)
+        await request(TEST_CONFIG.API_BASE_URL)
           .post(`/api/bot-execution/${testBotId}/stop`)
           .set('Authorization', `Bearer ${authToken}`)
           .send({ userId: testUserId });
@@ -274,7 +274,7 @@ describe('Bot Execution API Integration Tests', () => {
       }
 
       // Step 1: Start bot
-      const startResponse = await request(API_BASE_URL)
+      const startResponse = await request(TEST_CONFIG.API_BASE_URL)
         .post(`/api/bot-execution/${testBotId}/start`)
         .set('Authorization', `Bearer ${authToken}`)
         .send({ userId: testUserId })
@@ -283,7 +283,7 @@ describe('Bot Execution API Integration Tests', () => {
       expect(startResponse.body.status).toBe('running');
 
       // Step 2: Send a message
-      const chatResponse = await request(API_BASE_URL)
+      const chatResponse = await request(TEST_CONFIG.API_BASE_URL)
         .post(`/api/bot-execution/${testBotId}/chat`)
         .set('Authorization', `Bearer ${authToken}`)
         .send({ userId: testUserId, message: 'Hello, how are you?' })
@@ -294,7 +294,7 @@ describe('Bot Execution API Integration Tests', () => {
       expect(chatResponse.body.botResponse.content.length).toBeGreaterThan(0);
 
       // Step 3: Get conversation history
-      const historyResponse = await request(API_BASE_URL)
+      const historyResponse = await request(TEST_CONFIG.API_BASE_URL)
         .get(`/api/bot-execution/${testBotId}/chat?userId=${testUserId}`)
         .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
@@ -303,7 +303,7 @@ describe('Bot Execution API Integration Tests', () => {
       expect(historyResponse.body.length).toBeGreaterThan(0);
 
       // Step 4: Stop bot
-      const stopResponse = await request(API_BASE_URL)
+      const stopResponse = await request(TEST_CONFIG.API_BASE_URL)
         .post(`/api/bot-execution/${testBotId}/stop`)
         .set('Authorization', `Bearer ${authToken}`)
         .send({ userId: testUserId })
@@ -315,7 +315,7 @@ describe('Bot Execution API Integration Tests', () => {
     it('should handle multiple messages in conversation', async () => {
       // First stop the bot if it's running
       try {
-        await request(API_BASE_URL)
+        await request(TEST_CONFIG.API_BASE_URL)
           .post(`/api/bot-execution/${testBotId}/stop`)
           .set('Authorization', `Bearer ${authToken}`)
           .send({ userId: testUserId });
@@ -324,7 +324,7 @@ describe('Bot Execution API Integration Tests', () => {
       }
 
       // Start bot
-      await request(API_BASE_URL)
+      await request(TEST_CONFIG.API_BASE_URL)
         .post(`/api/bot-execution/${testBotId}/start`)
         .set('Authorization', `Bearer ${authToken}`)
         .send({ userId: testUserId })
@@ -354,7 +354,7 @@ describe('Bot Execution API Integration Tests', () => {
       ];
 
       for (const { message, expectedResponse } of messageResponses) {
-        const response = await request(API_BASE_URL)
+        const response = await request(TEST_CONFIG.API_BASE_URL)
           .post(`/api/bot-execution/${testBotId}/chat`)
           .set('Authorization', `Bearer ${authToken}`)
           .send({ userId: testUserId, message })
@@ -366,7 +366,7 @@ describe('Bot Execution API Integration Tests', () => {
       }
 
       // Stop bot
-      await request(API_BASE_URL)
+      await request(TEST_CONFIG.API_BASE_URL)
         .post(`/api/bot-execution/${testBotId}/stop`)
         .set('Authorization', `Bearer ${authToken}`)
         .send({ userId: testUserId })
@@ -376,7 +376,7 @@ describe('Bot Execution API Integration Tests', () => {
 
   describe('Error Handling', () => {
     it('should handle invalid bot ID format (mock behavior)', async () => {
-      const response = await request(API_BASE_URL)
+      const response = await request(TEST_CONFIG.API_BASE_URL)
         .post('/api/bot-execution/invalid-id/start')
         .set('Authorization', `Bearer ${authToken}`)
         .send({ userId: testUserId })
@@ -386,7 +386,7 @@ describe('Bot Execution API Integration Tests', () => {
     });
 
     it('should ignore body userId and use token userId', async () => {
-      const response = await request(API_BASE_URL)
+      const response = await request(TEST_CONFIG.API_BASE_URL)
         .post(`/api/bot-execution/${testBotId}/start`)
         .set('Authorization', `Bearer ${authToken}`)
         .send({ userId: 'invalid-user-id' })
@@ -398,7 +398,7 @@ describe('Bot Execution API Integration Tests', () => {
     it('should handle very long messages', async () => {
       // First stop the bot if it's running
       try {
-        await request(API_BASE_URL)
+        await request(TEST_CONFIG.API_BASE_URL)
           .post(`/api/bot-execution/${testBotId}/stop`)
           .set('Authorization', `Bearer ${authToken}`)
           .send({ userId: testUserId });
@@ -407,14 +407,14 @@ describe('Bot Execution API Integration Tests', () => {
       }
 
       // Start bot first
-      await request(API_BASE_URL)
+      await request(TEST_CONFIG.API_BASE_URL)
         .post(`/api/bot-execution/${testBotId}/start`)
         .set('Authorization', `Bearer ${authToken}`)
         .send({ userId: testUserId })
         .expect(200);
 
       const longMessage = 'A'.repeat(10000);
-      const response = await request(API_BASE_URL)
+      const response = await request(TEST_CONFIG.API_BASE_URL)
         .post(`/api/bot-execution/${testBotId}/chat`)
         .set('Authorization', `Bearer ${authToken}`)
         .send({ userId: testUserId, message: longMessage })

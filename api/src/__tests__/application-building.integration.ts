@@ -2,7 +2,7 @@ import request from 'supertest';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 
-const API_BASE_URL = process.env.API_URL || 'http://localhost:4001';
+import { TEST_CONFIG } from './config.js';
 const execAsync = promisify(exec);
 
 describe('Application Building API Integration Tests', () => {
@@ -38,14 +38,14 @@ describe('Application Building API Integration Tests', () => {
       return;
     }
     // Login to get auth token
-    const loginRes = await request(API_BASE_URL)
+    const loginRes = await request(TEST_CONFIG.API_BASE_URL)
       .post('/api/users/login')
       .send({ email: 'admin@platform.com', password: 'admin123' });
     authToken = loginRes.body.token;
     testUserId = loginRes.body.user.id;
 
     // Find the code-builder bot
-    const botsRes = await request(API_BASE_URL)
+    const botsRes = await request(TEST_CONFIG.API_BASE_URL)
       .get('/api/bots')
       .set('Authorization', `Bearer ${authToken}`);
 
@@ -98,7 +98,7 @@ describe('Application Building API Integration Tests', () => {
       userId: testUserId
     };
 
-    const schemaRes = await request(API_BASE_URL)
+    const schemaRes = await request(TEST_CONFIG.API_BASE_URL)
       .post('/api/schemas')
       .set('Authorization', `Bearer ${authToken}`)
       .send(schemaData);
@@ -140,7 +140,7 @@ describe('Application Building API Integration Tests', () => {
         }
       };
 
-      const createAppRes = await request(API_BASE_URL)
+      const createAppRes = await request(TEST_CONFIG.API_BASE_URL)
         .post('/api/applications')
         .set('Authorization', `Bearer ${authToken}`)
         .send(applicationData)
@@ -157,7 +157,7 @@ describe('Application Building API Integration Tests', () => {
       if (codeBuilderBotId) {
         // First, try to stop any existing bot instance
         try {
-          await request(API_BASE_URL)
+          await request(TEST_CONFIG.API_BASE_URL)
             .post(`/api/bot-execution/${codeBuilderBotId}/stop`)
             .set('Authorization', `Bearer ${authToken}`)
             .send({ userId: testUserId });
@@ -169,7 +169,7 @@ describe('Application Building API Integration Tests', () => {
         // Small delay to ensure stop operation completes
         await new Promise(resolve => setTimeout(resolve, 1000));
 
-        const startBotRes = await request(API_BASE_URL)
+        const startBotRes = await request(TEST_CONFIG.API_BASE_URL)
           .post(`/api/bot-execution/${codeBuilderBotId}/start`)
           .set('Authorization', `Bearer ${authToken}`)
           .send({ userId: testUserId })
@@ -182,7 +182,7 @@ describe('Application Building API Integration Tests', () => {
         console.log('Skipping bot chat - Redis integration needs debugging');
 
         // Step 4: Trigger the build process via API
-        const buildRes = await request(API_BASE_URL)
+        const buildRes = await request(TEST_CONFIG.API_BASE_URL)
           .post(`/api/applications/${testApplicationId}/build`)
           .set('Authorization', `Bearer ${authToken}`)
           .expect(200);
@@ -205,7 +205,7 @@ describe('Application Building API Integration Tests', () => {
         }
 
         // Step 7: Verify application status was updated
-        const appStatusRes = await request(API_BASE_URL)
+        const appStatusRes = await request(TEST_CONFIG.API_BASE_URL)
           .get(`/api/applications/${testApplicationId}`)
           .set('Authorization', `Bearer ${authToken}`)
           .expect(200);
@@ -213,7 +213,7 @@ describe('Application Building API Integration Tests', () => {
         console.log('Application status:', appStatusRes.body.status);
 
         // Step 8: Stop the bot
-        await request(API_BASE_URL)
+        await request(TEST_CONFIG.API_BASE_URL)
           .post(`/api/bot-execution/${codeBuilderBotId}/stop`)
           .set('Authorization', `Bearer ${authToken}`)
           .send({ userId: testUserId })
@@ -250,7 +250,7 @@ describe('Application Building API Integration Tests', () => {
         }
       };
 
-      const createComplexAppRes = await request(API_BASE_URL)
+      const createComplexAppRes = await request(TEST_CONFIG.API_BASE_URL)
         .post('/api/applications')
         .set('Authorization', `Bearer ${authToken}`)
         .send(complexAppData)
@@ -260,7 +260,7 @@ describe('Application Building API Integration Tests', () => {
       console.log('Created complex application:', complexAppId);
 
       // Build the complex application
-      const buildComplexRes = await request(API_BASE_URL)
+      const buildComplexRes = await request(TEST_CONFIG.API_BASE_URL)
         .post(`/api/applications/${complexAppId}/build`)
         .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
@@ -269,7 +269,7 @@ describe('Application Building API Integration Tests', () => {
       console.log('Complex application build triggered');
 
       // Clean up
-      await request(API_BASE_URL)
+      await request(TEST_CONFIG.API_BASE_URL)
         .delete(`/api/applications/${complexAppId}`)
         .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
@@ -286,7 +286,7 @@ describe('Application Building API Integration Tests', () => {
       }
       // Try to build a non-existent application
       const fakeAppId = '00000000-0000-0000-0000-000000000000';
-      const buildErrorRes = await request(API_BASE_URL)
+      const buildErrorRes = await request(TEST_CONFIG.API_BASE_URL)
         .post(`/api/applications/${fakeAppId}/build`)
         .set('Authorization', `Bearer ${authToken}`)
         .expect(404);
@@ -310,7 +310,7 @@ describe('Application Building API Integration Tests', () => {
         description: 'An invalid application'
       };
 
-      const createInvalidRes = await request(API_BASE_URL)
+      const createInvalidRes = await request(TEST_CONFIG.API_BASE_URL)
         .post('/api/applications')
         .set('Authorization', `Bearer ${authToken}`)
         .send(invalidAppData)
@@ -381,7 +381,7 @@ describe('Application Building API Integration Tests', () => {
         }
       };
 
-      const createRes = await request(API_BASE_URL)
+      const createRes = await request(TEST_CONFIG.API_BASE_URL)
         .post('/api/applications')
         .set('Authorization', `Bearer ${authToken}`)
         .send(lifecycleAppData)
@@ -390,7 +390,7 @@ describe('Application Building API Integration Tests', () => {
       const lifecycleAppId = createRes.body.id;
 
       // Update application
-      const updateRes = await request(API_BASE_URL)
+      const updateRes = await request(TEST_CONFIG.API_BASE_URL)
         .put(`/api/applications/${lifecycleAppId}`)
         .set('Authorization', `Bearer ${authToken}`)
         .send({
@@ -402,7 +402,7 @@ describe('Application Building API Integration Tests', () => {
       expect(updateRes.body.displayName).toBe('Updated Lifecycle Test App');
 
       // Build application
-      const buildRes = await request(API_BASE_URL)
+      const buildRes = await request(TEST_CONFIG.API_BASE_URL)
         .post(`/api/applications/${lifecycleAppId}/build`)
         .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
@@ -410,7 +410,7 @@ describe('Application Building API Integration Tests', () => {
       expect(buildRes.body.message).toBe('Build started successfully');
 
       // Get application details
-      const getRes = await request(API_BASE_URL)
+      const getRes = await request(TEST_CONFIG.API_BASE_URL)
         .get(`/api/applications/${lifecycleAppId}`)
         .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
@@ -419,7 +419,7 @@ describe('Application Building API Integration Tests', () => {
       expect(getRes.body.name).toBe('lifecycle-test');
 
       // Delete application
-      const deleteRes = await request(API_BASE_URL)
+      const deleteRes = await request(TEST_CONFIG.API_BASE_URL)
         .delete(`/api/applications/${lifecycleAppId}`)
         .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
@@ -445,13 +445,13 @@ describe('Application Building API Integration Tests', () => {
 
       // Send multiple build requests simultaneously
       const buildPromises = [
-        request(API_BASE_URL)
+        request(TEST_CONFIG.API_BASE_URL)
           .post(`/api/applications/${testApplicationId}/build`)
           .set('Authorization', `Bearer ${authToken}`),
-        request(API_BASE_URL)
+        request(TEST_CONFIG.API_BASE_URL)
           .post(`/api/applications/${testApplicationId}/build`)
           .set('Authorization', `Bearer ${authToken}`),
-        request(API_BASE_URL)
+        request(TEST_CONFIG.API_BASE_URL)
           .post(`/api/applications/${testApplicationId}/build`)
           .set('Authorization', `Bearer ${authToken}`)
       ];
@@ -510,7 +510,7 @@ describe('Application Building API Integration Tests', () => {
         }
       };
 
-      const createLargeRes = await request(API_BASE_URL)
+      const createLargeRes = await request(TEST_CONFIG.API_BASE_URL)
         .post('/api/applications')
         .set('Authorization', `Bearer ${authToken}`)
         .send(largeConfig)
@@ -519,7 +519,7 @@ describe('Application Building API Integration Tests', () => {
       const largeAppId = createLargeRes.body.id;
 
       // Try to build the large configuration
-      const buildLargeRes = await request(API_BASE_URL)
+      const buildLargeRes = await request(TEST_CONFIG.API_BASE_URL)
         .post(`/api/applications/${largeAppId}/build`)
         .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
@@ -527,7 +527,7 @@ describe('Application Building API Integration Tests', () => {
       expect(buildLargeRes.body.message).toBe('Build started successfully');
 
       // Clean up
-      await request(API_BASE_URL)
+      await request(TEST_CONFIG.API_BASE_URL)
         .delete(`/api/applications/${largeAppId}`)
         .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
@@ -538,7 +538,7 @@ describe('Application Building API Integration Tests', () => {
     // Clean up test data
     if (testApplicationId) {
       try {
-        await request(API_BASE_URL)
+        await request(TEST_CONFIG.API_BASE_URL)
           .delete(`/api/applications/${testApplicationId}`)
           .set('Authorization', `Bearer ${authToken}`);
         console.log('Cleaned up test application');
@@ -549,7 +549,7 @@ describe('Application Building API Integration Tests', () => {
 
     if (testSchemaId) {
       try {
-        await request(API_BASE_URL)
+        await request(TEST_CONFIG.API_BASE_URL)
           .delete(`/api/schemas/${testSchemaId}`)
           .set('Authorization', `Bearer ${authToken}`);
         console.log('Cleaned up test schema');

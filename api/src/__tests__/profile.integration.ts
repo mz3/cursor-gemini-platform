@@ -1,17 +1,17 @@
 import request from 'supertest';
+import { TEST_CONFIG } from './config.js';
 import { AppDataSource } from '../config/database.js';
 import { User } from '../entities/User.js';
 import { Role } from '../entities/Role.js';
 import bcrypt from 'bcryptjs';
 
-const API_BASE_URL = process.env.API_URL || 'http://localhost:4001';
 
 describe('Profile Update Endpoints', () => {
   let authToken: string;
 
   beforeAll(async () => {
     // Login to get token
-    const res = await request(API_BASE_URL)
+    const res = await request(TEST_CONFIG.API_BASE_URL)
       .post('/api/users/login')
       .send({ email: 'admin@platform.com', password: 'admin123' });
     authToken = res.body.token;
@@ -21,7 +21,7 @@ describe('Profile Update Endpoints', () => {
     it('should update user email successfully', async () => {
       const newEmail = 'newemail@example.com';
 
-      const response = await request(API_BASE_URL)
+      const response = await request(TEST_CONFIG.API_BASE_URL)
         .put('/api/users/profile')
         .set('Authorization', `Bearer ${authToken}`)
         .send({ email: newEmail });
@@ -35,7 +35,7 @@ describe('Profile Update Endpoints', () => {
     it('should update user password successfully', async () => {
       const newPassword = 'newpassword123';
 
-      const response = await request(API_BASE_URL)
+      const response = await request(TEST_CONFIG.API_BASE_URL)
         .put('/api/users/profile')
         .set('Authorization', `Bearer ${authToken}`)
         .send({
@@ -49,7 +49,7 @@ describe('Profile Update Endpoints', () => {
       expect(response.body).toHaveProperty('lastName', 'User');
 
       // Verify the password was actually changed by trying to login with new password
-      const loginResponse = await request(API_BASE_URL)
+      const loginResponse = await request(TEST_CONFIG.API_BASE_URL)
         .post('/api/users/login')
         .send({
           email: 'newemail@example.com',
@@ -61,7 +61,7 @@ describe('Profile Update Endpoints', () => {
     });
 
     it('should return 400 for invalid email format', async () => {
-      const response = await request(API_BASE_URL)
+      const response = await request(TEST_CONFIG.API_BASE_URL)
         .put('/api/users/profile')
         .set('Authorization', `Bearer ${authToken}`)
         .send({ email: 'invalid-email' });
@@ -72,7 +72,7 @@ describe('Profile Update Endpoints', () => {
     });
 
     it('should return 400 for password less than 6 characters', async () => {
-      const response = await request(API_BASE_URL)
+      const response = await request(TEST_CONFIG.API_BASE_URL)
         .put('/api/users/profile')
         .set('Authorization', `Bearer ${authToken}`)
         .send({
@@ -86,7 +86,7 @@ describe('Profile Update Endpoints', () => {
     });
 
     it('should return 401 for incorrect current password', async () => {
-      const response = await request(API_BASE_URL)
+      const response = await request(TEST_CONFIG.API_BASE_URL)
         .put('/api/users/profile')
         .set('Authorization', `Bearer ${authToken}`)
         .send({
@@ -100,7 +100,7 @@ describe('Profile Update Endpoints', () => {
     });
 
     it('should return 401 without authentication token', async () => {
-      const response = await request(API_BASE_URL)
+      const response = await request(TEST_CONFIG.API_BASE_URL)
         .put('/api/users/profile')
         .send({ email: 'test@example.com' });
 

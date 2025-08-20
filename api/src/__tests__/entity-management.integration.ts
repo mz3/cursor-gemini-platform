@@ -1,6 +1,6 @@
 import request from 'supertest';
+import { TEST_CONFIG } from './config.js';
 
-const API_BASE_URL = process.env.API_URL || 'http://localhost:4001';
 
 describe('Entity Management Integration Tests', () => {
   let testUserId: string;
@@ -9,7 +9,7 @@ describe('Entity Management Integration Tests', () => {
 
   beforeAll(async () => {
     // Login to get auth token using admin user
-    const loginRes = await request(API_BASE_URL)
+    const loginRes = await request(TEST_CONFIG.API_BASE_URL)
       .post('/api/users/login')
       .send({ email: 'admin@platform.com', password: 'admin123' });
     authToken = loginRes.body.token;
@@ -33,7 +33,7 @@ describe('Entity Management Integration Tests', () => {
         userId: testUserId
       };
 
-      const schemaResponse = await request(API_BASE_URL)
+      const schemaResponse = await request(TEST_CONFIG.API_BASE_URL)
         .post('/api/schemas')
         .set('Authorization', `Bearer ${authToken}`)
         .send(schemaData)
@@ -57,7 +57,7 @@ describe('Entity Management Integration Tests', () => {
         }
       };
 
-      const entityResponse = await request(API_BASE_URL)
+      const entityResponse = await request(TEST_CONFIG.API_BASE_URL)
         .post('/api/entities')
         .set('Authorization', `Bearer ${authToken}`)
         .send(entityData)
@@ -84,7 +84,7 @@ describe('Entity Management Integration Tests', () => {
         }
       };
 
-      const entityResponse2 = await request(API_BASE_URL)
+      const entityResponse2 = await request(TEST_CONFIG.API_BASE_URL)
         .post('/api/entities')
         .set('Authorization', `Bearer ${authToken}`)
         .send(entityData2)
@@ -97,7 +97,7 @@ describe('Entity Management Integration Tests', () => {
       expect(createdEntity2.data.inStock).toBe(false);
 
       // Step 4: Get all entities for the schema
-      const entitiesResponse = await request(API_BASE_URL)
+      const entitiesResponse = await request(TEST_CONFIG.API_BASE_URL)
         .get(`/api/entities/schema/${testSchemaId}`)
         .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
@@ -108,7 +108,7 @@ describe('Entity Management Integration Tests', () => {
       expect(entities[1].schemaId).toBe(testSchemaId);
 
       // Step 5: Get a specific entity
-      const specificEntityResponse = await request(API_BASE_URL)
+      const specificEntityResponse = await request(TEST_CONFIG.API_BASE_URL)
         .get(`/api/entities/${createdEntity.id}`)
         .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
@@ -135,7 +135,7 @@ describe('Entity Management Integration Tests', () => {
         userId: testUserId
       };
 
-      const schemaResponse = await request(API_BASE_URL)
+      const schemaResponse = await request(TEST_CONFIG.API_BASE_URL)
         .post('/api/schemas')
         .set('Authorization', `Bearer ${authToken}`)
         .send(schemaData)
@@ -155,7 +155,7 @@ describe('Entity Management Integration Tests', () => {
         }
       };
 
-      await request(API_BASE_URL)
+      await request(TEST_CONFIG.API_BASE_URL)
         .post('/api/entities')
         .set('Authorization', `Bearer ${authToken}`)
         .send(invalidEntityData)
@@ -174,7 +174,7 @@ describe('Entity Management Integration Tests', () => {
         }
       };
 
-      await request(API_BASE_URL)
+      await request(TEST_CONFIG.API_BASE_URL)
         .post('/api/entities')
         .set('Authorization', `Bearer ${authToken}`)
         .send(invalidTypeData)
@@ -193,7 +193,7 @@ describe('Entity Management Integration Tests', () => {
         }
       };
 
-      const validEntityResponse = await request(API_BASE_URL)
+      const validEntityResponse = await request(TEST_CONFIG.API_BASE_URL)
         .post('/api/entities')
         .set('Authorization', `Bearer ${authToken}`)
         .send(validEntityData)
@@ -221,7 +221,7 @@ describe('Entity Management Integration Tests', () => {
         userId: testUserId
       };
 
-      const schemaResponse = await request(API_BASE_URL)
+      const schemaResponse = await request(TEST_CONFIG.API_BASE_URL)
         .post('/api/schemas')
         .set('Authorization', `Bearer ${authToken}`)
         .send(schemaData)
@@ -241,7 +241,7 @@ describe('Entity Management Integration Tests', () => {
         }
       };
 
-      const entityResponse = await request(API_BASE_URL)
+      const entityResponse = await request(TEST_CONFIG.API_BASE_URL)
         .post('/api/entities')
         .set('Authorization', `Bearer ${authToken}`)
         .send(entityData)
@@ -256,7 +256,7 @@ describe('Entity Management Integration Tests', () => {
         price: 12.99
       };
 
-      const updateResponse = await request(API_BASE_URL)
+      const updateResponse = await request(TEST_CONFIG.API_BASE_URL)
         .put(`/api/entities/${createdEntity.id}`)
         .set('Authorization', `Bearer ${authToken}`)
         .send({ data: updatedData })
@@ -281,7 +281,7 @@ describe('Entity Management Integration Tests', () => {
         userId: testUserId
       };
 
-      const schemaResponse = await request(API_BASE_URL)
+      const schemaResponse = await request(TEST_CONFIG.API_BASE_URL)
         .post('/api/schemas')
         .set('Authorization', `Bearer ${authToken}`)
         .send(schemaData)
@@ -300,7 +300,7 @@ describe('Entity Management Integration Tests', () => {
         }
       };
 
-      const entityResponse = await request(API_BASE_URL)
+      const entityResponse = await request(TEST_CONFIG.API_BASE_URL)
         .post('/api/entities')
         .set('Authorization', `Bearer ${authToken}`)
         .send(entityData)
@@ -309,13 +309,13 @@ describe('Entity Management Integration Tests', () => {
       const createdEntity = entityResponse.body;
 
       // Delete the entity
-      await request(API_BASE_URL)
+      await request(TEST_CONFIG.API_BASE_URL)
         .delete(`/api/entities/${createdEntity.id}`)
         .set('Authorization', `Bearer ${authToken}`)
         .expect(204);
 
       // Verify entity is deleted
-      await request(API_BASE_URL)
+      await request(TEST_CONFIG.API_BASE_URL)
         .get(`/api/entities/${createdEntity.id}`)
         .set('Authorization', `Bearer ${authToken}`)
         .expect(404);

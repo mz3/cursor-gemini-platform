@@ -3,8 +3,7 @@ import { AppDataSource } from '../config/database.js';
 import { Schema } from '../entities/Schema.js';
 import { Prompt } from '../entities/Prompt.js';
 import { PromptVersion } from '../entities/PromptVersion.js';
-
-const API_BASE_URL = process.env.API_URL || 'http://localhost:4001';
+import { TEST_CONFIG } from './config.js';
 
 describe('Prompt API Integration Tests', () => {
   let token: string;
@@ -13,7 +12,7 @@ describe('Prompt API Integration Tests', () => {
 
   beforeAll(async () => {
     // Login to get token and userId
-    const res = await request(API_BASE_URL)
+    const res = await request(TEST_CONFIG.API_BASE_URL)
       .post('/api/users/login')
       .send({ email: 'admin@platform.com', password: 'admin123' });
     token = res.body.token;
@@ -29,7 +28,7 @@ describe('Prompt API Integration Tests', () => {
         description: 'A test prompt for integration testing'
       };
 
-      const res = await request(API_BASE_URL)
+      const res = await request(TEST_CONFIG.API_BASE_URL)
         .post('/api/prompts')
         .set('Authorization', `Bearer ${token}`)
         .send(promptData);
@@ -49,7 +48,7 @@ describe('Prompt API Integration Tests', () => {
     });
 
     it('should fail with missing required fields', async () => {
-      const res = await request(API_BASE_URL)
+      const res = await request(TEST_CONFIG.API_BASE_URL)
         .post('/api/prompts')
         .set('Authorization', `Bearer ${token}`)
         .send({ name: 'Test Prompt' }); // Missing content
@@ -66,7 +65,7 @@ describe('Prompt API Integration Tests', () => {
         description: 'Prompt for generating React components'
       };
 
-      const res = await request(API_BASE_URL)
+      const res = await request(TEST_CONFIG.API_BASE_URL)
         .post('/api/prompts')
         .set('Authorization', `Bearer ${token}`)
         .send(promptData);
@@ -85,7 +84,7 @@ describe('Prompt API Integration Tests', () => {
         description: 'Updated description for the test prompt'
       };
 
-      const res = await request(API_BASE_URL)
+      const res = await request(TEST_CONFIG.API_BASE_URL)
         .put(`/api/prompts/${createdPromptId}`)
         .set('Authorization', `Bearer ${token}`)
         .send(updateData);
@@ -107,7 +106,7 @@ describe('Prompt API Integration Tests', () => {
         content: 'Updated content'
       };
 
-      const res = await request(API_BASE_URL)
+      const res = await request(TEST_CONFIG.API_BASE_URL)
         .put(`/api/prompts/${fakeId}`)
         .set('Authorization', `Bearer ${token}`)
         .send(updateData);
@@ -121,7 +120,7 @@ describe('Prompt API Integration Tests', () => {
         content: 'This is the third version of the test prompt content'
       };
 
-      const res = await request(API_BASE_URL)
+      const res = await request(TEST_CONFIG.API_BASE_URL)
         .put(`/api/prompts/${createdPromptId}`)
         .set('Authorization', `Bearer ${token}`)
         .send(updateData);
@@ -136,7 +135,7 @@ describe('Prompt API Integration Tests', () => {
 
   describe('GET /api/prompts/:id/versions', () => {
     it('should return all versions of a prompt', async () => {
-      const res = await request(API_BASE_URL)
+      const res = await request(TEST_CONFIG.API_BASE_URL)
         .get(`/api/prompts/${createdPromptId}/versions`)
         .set('Authorization', `Bearer ${token}`);
 
@@ -164,7 +163,7 @@ describe('Prompt API Integration Tests', () => {
     it('should fail to get versions of non-existent prompt', async () => {
       const fakeId = '00000000-0000-0000-0000-000000000000';
 
-      const res = await request(API_BASE_URL)
+      const res = await request(TEST_CONFIG.API_BASE_URL)
         .get(`/api/prompts/${fakeId}/versions`)
         .set('Authorization', `Bearer ${token}`);
 
@@ -175,7 +174,7 @@ describe('Prompt API Integration Tests', () => {
 
   describe('GET /api/prompts', () => {
     it('should return only the latest version of each prompt', async () => {
-      const res = await request(API_BASE_URL)
+      const res = await request(TEST_CONFIG.API_BASE_URL)
         .get('/api/prompts')
         .set('Authorization', `Bearer ${token}`);
 
@@ -192,7 +191,7 @@ describe('Prompt API Integration Tests', () => {
 
   describe('GET /api/prompts/:id', () => {
     it('should return a specific prompt by ID', async () => {
-      const res = await request(API_BASE_URL)
+      const res = await request(TEST_CONFIG.API_BASE_URL)
         .get(`/api/prompts/${createdPromptId}`)
         .set('Authorization', `Bearer ${token}`);
 
@@ -205,7 +204,7 @@ describe('Prompt API Integration Tests', () => {
     it('should fail to get non-existent prompt', async () => {
       const fakeId = '00000000-0000-0000-0000-000000000000';
 
-      const res = await request(API_BASE_URL)
+      const res = await request(TEST_CONFIG.API_BASE_URL)
         .get(`/api/prompts/${fakeId}`)
         .set('Authorization', `Bearer ${token}`);
 
@@ -225,7 +224,7 @@ describe('Prompt API Integration Tests', () => {
           description: 'A test prompt for deletion'
         };
 
-        const createRes = await request(API_BASE_URL)
+        const createRes = await request(TEST_CONFIG.API_BASE_URL)
           .post('/api/prompts')
           .set('Authorization', `Bearer ${token}`)
           .send(promptData);
@@ -234,21 +233,21 @@ describe('Prompt API Integration Tests', () => {
         createdPromptId = createRes.body.id;
       }
 
-      const res = await request(API_BASE_URL)
+      const res = await request(TEST_CONFIG.API_BASE_URL)
         .delete(`/api/prompts/${createdPromptId}`)
         .set('Authorization', `Bearer ${token}`);
 
       expect(res.status).toBe(204);
 
       // Verify that the prompt and all its versions are deleted
-      const getRes = await request(API_BASE_URL)
+      const getRes = await request(TEST_CONFIG.API_BASE_URL)
         .get(`/api/prompts/${createdPromptId}`)
         .set('Authorization', `Bearer ${token}`);
 
       expect(getRes.status).toBe(404);
 
       // Verify that the versions endpoint also returns 404
-      const versionsRes = await request(API_BASE_URL)
+      const versionsRes = await request(TEST_CONFIG.API_BASE_URL)
         .get(`/api/prompts/${createdPromptId}/versions`)
         .set('Authorization', `Bearer ${token}`);
 
@@ -258,7 +257,7 @@ describe('Prompt API Integration Tests', () => {
     it('should fail to delete non-existent prompt', async () => {
       const fakeId = '00000000-0000-0000-0000-000000000000';
 
-      const res = await request(API_BASE_URL)
+      const res = await request(TEST_CONFIG.API_BASE_URL)
         .delete(`/api/prompts/${fakeId}`)
         .set('Authorization', `Bearer ${token}`);
 

@@ -3,7 +3,7 @@ import { AppDataSource } from '../config/database.js';
 import { Schema } from '../entities/Schema.js';
 import { Relationship } from '../entities/Relationship.js';
 
-const API_BASE_URL = process.env.API_URL || 'http://localhost:4001';
+import { TEST_CONFIG } from './config.js';
 
 describe('POST /api/schemas', () => {
   let token: string;
@@ -12,14 +12,14 @@ describe('POST /api/schemas', () => {
 
   beforeAll(async () => {
     // Login to get token and userId
-    const res = await request(API_BASE_URL)
+    const res = await request(TEST_CONFIG.API_BASE_URL)
       .post('/api/users/login')
       .send({ email: 'admin@platform.com', password: 'admin123' });
     token = res.body.token;
     userId = res.body.user.id;
 
     // Create a Project schema (parent)
-    const projectRes = await request(API_BASE_URL)
+    const projectRes = await request(TEST_CONFIG.API_BASE_URL)
       .post('/api/schemas')
       .set('Authorization', `Bearer ${token}`)
       .send({
@@ -38,7 +38,7 @@ describe('POST /api/schemas', () => {
       schema: { fields: [{ name: 'field1', type: 'string', required: true }] },
       userId
     };
-    const res = await request(API_BASE_URL)
+    const res = await request(TEST_CONFIG.API_BASE_URL)
       .post('/api/schemas')
       .set('Authorization', `Bearer ${token}`)
       .send(schemaData);
@@ -49,7 +49,7 @@ describe('POST /api/schemas', () => {
   });
 
   it('should fail with missing required fields', async () => {
-    const res = await request(API_BASE_URL)
+    const res = await request(TEST_CONFIG.API_BASE_URL)
       .post('/api/schemas')
       .set('Authorization', `Bearer ${token}`)
       .send({});
@@ -80,7 +80,7 @@ describe('POST /api/schemas', () => {
         }
       ]
     };
-    const res = await request(API_BASE_URL)
+    const res = await request(TEST_CONFIG.API_BASE_URL)
       .post('/api/schemas')
       .set('Authorization', `Bearer ${token}`)
       .send(schemaData);
