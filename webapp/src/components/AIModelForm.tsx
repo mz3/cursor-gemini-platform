@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { AIModel, CreateAIModelDto, UpdateAIModelDto } from '../services/aiModelService';
+import { TestTube } from 'lucide-react';
 
 interface AIModelFormProps {
   initialData?: AIModel;
@@ -31,6 +32,12 @@ const AIModelForm: React.FC<AIModelFormProps> = ({
     secretId: ''
   });
   const [localError, setLocalError] = useState<string>('');
+  const [testConnectionStatus, setTestConnectionStatus] = useState<{
+    testing: boolean;
+    connected?: boolean;
+    error?: string;
+    models?: string[];
+  }>({ testing: false });
 
   useEffect(() => {
     if (initialData) {
@@ -105,7 +112,7 @@ const AIModelForm: React.FC<AIModelFormProps> = ({
       case 'deepseek':
         return 'deepseek-chat';
       case 'local':
-        return 'gemma-2b-it';
+        return 'google/gemma-3-12b'; // Default to Gemma 3 12B
       default:
         return '';
     }
@@ -120,11 +127,63 @@ const AIModelForm: React.FC<AIModelFormProps> = ({
     }
   };
 
+  const getLocalModelSuggestions = () => {
+    return [
+      { id: 'google/gemma-3-12b', name: 'Gemma 3 12B', description: 'Google\'s latest Gemma model' },
+      { id: 'google/gemma-2-27b', name: 'Gemma 2 27B', description: 'Large Gemma 2 model' },
+      { id: 'google/gemma-2-9b', name: 'Gemma 2 9B', description: 'Medium Gemma 2 model' },
+      { id: 'meta-llama/Llama-3.1-8B-Instruct', name: 'Llama 3.1 8B', description: 'Meta\'s Llama 3.1 model' },
+      { id: 'microsoft/Phi-3-mini-4k-instruct', name: 'Phi-3 Mini', description: 'Microsoft\'s Phi-3 model' },
+      { id: 'Qwen/Qwen2.5-7B-Instruct', name: 'Qwen 2.5 7B', description: 'Alibaba\'s Qwen model' }
+    ];
+  };
+
   const handleProviderChange = (provider: string) => {
     handleChange('provider', provider);
     // Set default values for the selected provider
     handleChange('modelId', getDefaultModelId(provider));
     handleChange('baseUrl', getDefaultBaseUrl(provider));
+  };
+
+  const handleTestConnection = async () => {
+    if (form.provider !== 'local' || !form.baseUrl) {
+      return;
+    }
+
+    setTestConnectionStatus({ testing: true });
+
+    try {
+      const response = await fetch(`${form.baseUrl}/models`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        signal: AbortSignal.timeout(5000)
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json() as { data: Array<{ id: string }> };
+      
+      if (!data.data || data.data.length === 0) {
+        throw new Error('No models found in LM Studio');
+      }
+
+      const models = data.data.map(model => model.id);
+      setTestConnectionStatus({
+        testing: false,
+        connected: true,
+        models
+      });
+    } catch (error) {
+      setTestConnectionStatus({
+        testing: false,
+        connected: false,
+        error: error instanceof Error ? error.message : 'Connection failed'
+      });
+    }
   };
 
   return (
@@ -201,15 +260,37 @@ const AIModelForm: React.FC<AIModelFormProps> = ({
 
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Model ID *</label>
-          <input
-            type="text"
-            value={form.modelId}
-            onChange={e => handleChange('modelId', e.target.value)}
-            required
-            disabled={readOnly}
-            className="mt-1 block w-full border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-gray-100 sm:text-sm"
-            placeholder="e.g. gemini-1.5-flash"
-          />
+          <div className="mt-1 relative">
+            <input
+              type="text"
+              value={form.modelId}
+              onChange={e => handleChange('modelId', e.target.value)}
+              required
+              disabled={readOnly}
+              className="block w-full border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-gray-100 sm:text-sm"
+              placeholder="e.g. google/gemma-3-12b"
+            />
+            {form.provider === 'local' && (
+              <div className="mt-2">
+                <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
+                  Popular Local Models:
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {getLocalModelSuggestions().map(model => (
+                    <button
+                      key={model.id}
+                      type="button"
+                      onClick={() => handleChange('modelId', model.id)}
+                      className="text-left p-2 text-xs border border-gray-200 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                    >
+                      <div className="font-medium text-gray-900 dark:text-gray-100">{model.name}</div>
+                      <div className="text-gray-500 dark:text-gray-400">{model.description}</div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -228,14 +309,57 @@ const AIModelForm: React.FC<AIModelFormProps> = ({
 
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Base URL</label>
-          <input
-            type="text"
-            value={form.baseUrl}
-            onChange={e => handleChange('baseUrl', e.target.value)}
-            disabled={readOnly}
-            className="mt-1 block w-full border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-gray-100 sm:text-sm"
-            placeholder="e.g. http://localhost:1234/v1"
-          />
+          <div className="mt-1 flex space-x-2">
+            <input
+              type="text"
+              value={form.baseUrl}
+              onChange={e => handleChange('baseUrl', e.target.value)}
+              disabled={readOnly}
+              className="flex-1 border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-gray-100 sm:text-sm"
+              placeholder="e.g. http://localhost:1234/v1"
+            />
+            {form.provider === 'local' && (
+              <button
+                type="button"
+                onClick={handleTestConnection}
+                disabled={testConnectionStatus.testing || !form.baseUrl}
+                className="px-3 py-2 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 dark:bg-blue-900/20 dark:border-blue-800 dark:text-blue-400 dark:hover:bg-blue-900/40 disabled:opacity-50"
+              >
+                <TestTube className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+          {form.provider === 'local' && testConnectionStatus.connected && (
+            <div className="mt-2 p-2 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-md">
+              <p className="text-xs text-green-600 dark:text-green-400">
+                ✅ Connected! Found {testConnectionStatus.models?.length || 0} model(s)
+              </p>
+              {testConnectionStatus.models && testConnectionStatus.models.length > 0 && (
+                <div className="mt-1">
+                  <p className="text-xs text-green-600 dark:text-green-400 font-medium">Available models:</p>
+                  <div className="mt-1 space-y-1">
+                    {testConnectionStatus.models.slice(0, 3).map(model => (
+                      <div key={model} className="text-xs text-green-600 dark:text-green-400 font-mono">
+                        • {model}
+                      </div>
+                    ))}
+                    {testConnectionStatus.models.length > 3 && (
+                      <div className="text-xs text-green-600 dark:text-green-400">
+                        ... and {testConnectionStatus.models.length - 3} more
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+          {form.provider === 'local' && testConnectionStatus.error && (
+            <div className="mt-2 p-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md">
+              <p className="text-xs text-red-600 dark:text-red-400">
+                ❌ Connection failed: {testConnectionStatus.error}
+              </p>
+            </div>
+          )}
         </div>
       </div>
 

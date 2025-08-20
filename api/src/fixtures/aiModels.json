@@ -1,143 +1,109 @@
 [
   {
-    "name": "gemini-flash",
-    "displayName": "Gemini 2.5 Flash",
-    "description": "Google's fastest and most cost-effective model for high-frequency tasks",
+    "name": "gemini-1.5-flash",
+    "displayName": "Gemini 1.5 Flash",
+    "description": "Google's fastest Gemini model for real-time applications",
     "provider": "gemini",
-    "modelId": "gemini-2.5-flash",
+    "modelId": "gemini-1.5-flash",
     "apiVersion": "v1",
-    "capabilities": ["text", "vision", "code", "function_calling", "json_mode"],
-    "configuration": {
-      "maxTokens": 8192,
-      "temperature": 0.7,
-      "topP": 0.95,
-      "topK": 40
-    },
-    "isActive": true,
-    "isDefault": true,
-    "userId": "admin@platform.com",
-    "secretId": "00000000-0000-0000-0000-000000000001"
-  },
-  {
-    "name": "gemini-pro",
-    "displayName": "Gemini 2.5 Pro",
-    "description": "Google's most capable model for complex reasoning and advanced tasks",
-    "provider": "gemini",
-    "modelId": "gemini-2.5-pro",
-    "apiVersion": "v1",
-    "capabilities": ["text", "vision", "code", "function_calling", "json_mode"],
-    "configuration": {
-      "maxTokens": 8192,
-      "temperature": 0.7,
-      "topP": 0.95,
-      "topK": 40
-    },
-    "isActive": true,
-    "isDefault": false,
-    "userId": "admin@platform.com",
-    "secretId": "00000000-0000-0000-0000-000000000001"
-  },
-  {
-    "name": "gpt-4o",
-    "displayName": "GPT-4o",
-    "description": "OpenAI's flagship multimodal model with vision and advanced reasoning",
-    "provider": "openai",
-    "modelId": "gpt-4o",
-    "apiVersion": "v1",
-    "capabilities": ["text", "vision", "code", "function_calling", "json_mode"],
-    "configuration": {
-      "maxTokens": 4096,
-      "temperature": 0.7,
-      "topP": 1.0
-    },
-    "isActive": true,
-    "isDefault": false,
-    "userId": "system@platform.com"
-  },
-  {
-    "name": "gpt-4o-mini",
-    "displayName": "GPT-4o Mini",
-    "description": "OpenAI's efficient model for faster, cost-effective tasks",
-    "provider": "openai",
-    "modelId": "gpt-4o-mini",
-    "apiVersion": "v1",
-    "capabilities": ["text", "vision", "code", "function_calling", "json_mode"],
-    "configuration": {
-      "maxTokens": 16384,
-      "temperature": 0.7,
-      "topP": 1.0
-    },
-    "isActive": true,
-    "isDefault": false,
-    "userId": "system@platform.com"
-  },
-  {
-    "name": "claude-sonnet",
-    "displayName": "Claude 3.5 Sonnet",
-    "description": "Anthropic's most intelligent model for complex reasoning and coding",
-    "provider": "anthropic",
-    "modelId": "claude-3-5-sonnet-20241022",
-    "apiVersion": "2023-06-01",
-    "capabilities": ["text", "vision", "code"],
-    "configuration": {
-      "maxTokens": 8192,
-      "temperature": 0.7,
-      "topP": 1.0
-    },
-    "isActive": true,
-    "isDefault": false,
-    "userId": "system@platform.com"
-  },
-  {
-    "name": "claude-haiku",
-    "displayName": "Claude 3.5 Haiku",
-    "description": "Anthropic's fastest model for quick, lightweight tasks",
-    "provider": "anthropic",
-    "modelId": "claude-3-5-haiku-20241022",
-    "apiVersion": "2023-06-01",
-    "capabilities": ["text", "vision", "code"],
-    "configuration": {
-      "maxTokens": 8192,
-      "temperature": 0.7,
-      "topP": 1.0
-    },
-    "isActive": true,
-    "isDefault": false,
-    "userId": "system@platform.com"
-  },
-  {
-    "name": "deepseek-coder",
-    "displayName": "DeepSeek Coder V2.5",
-    "description": "DeepSeek's specialized coding model with excellent programming capabilities",
-    "provider": "deepseek",
-    "modelId": "deepseek-coder",
-    "apiVersion": "v1",
-    "capabilities": ["text", "code", "function_calling"],
-    "configuration": {
-      "maxTokens": 8192,
-      "temperature": 0.3,
-      "topP": 0.95,
-      "topK": 50
-    },
-    "isActive": true,
-    "isDefault": false,
-    "userId": "system@platform.com"
-  },
-  {
-    "name": "local-gemma",
-    "displayName": "Gemma 2 (Local)",
-    "description": "Google's Gemma 2 running locally via LM Studio",
-    "provider": "local",
-    "modelId": "gemma-2-9b-it",
-    "baseUrl": "http://localhost:1234/v1",
-    "capabilities": ["text", "code"],
+    "capabilities": "text,code,reasoning",
     "configuration": {
       "maxTokens": 8192,
       "temperature": 0.7,
       "topP": 0.95
     },
-    "isActive": false,
+    "isActive": true,
+    "isDefault": true,
+    "userId": "admin@platform.com",
+    "secretId": "gemini-api-key"
+  },
+  {
+    "name": "gemini-1.5-pro",
+    "displayName": "Gemini 1.5 Pro",
+    "description": "Google's most capable Gemini model for complex tasks",
+    "provider": "gemini",
+    "modelId": "gemini-1.5-pro",
+    "apiVersion": "v1",
+    "capabilities": "text,code,reasoning,vision",
+    "configuration": {
+      "maxTokens": 32768,
+      "temperature": 0.7,
+      "topP": 0.95
+    },
+    "isActive": true,
     "isDefault": false,
-    "userId": "system@platform.com"
+    "userId": "admin@platform.com",
+    "secretId": "gemini-api-key"
+  },
+  {
+    "name": "gpt-4o",
+    "displayName": "GPT-4o",
+    "description": "OpenAI's latest GPT-4 model with improved performance",
+    "provider": "openai",
+    "modelId": "gpt-4o",
+    "apiVersion": "v1",
+    "capabilities": "text,code,reasoning,vision",
+    "configuration": {
+      "maxTokens": 4096,
+      "temperature": 0.7,
+      "topP": 0.95
+    },
+    "isActive": true,
+    "isDefault": false,
+    "userId": "admin@platform.com",
+    "secretId": "openai-api-key"
+  },
+  {
+    "name": "claude-3-5-sonnet",
+    "displayName": "Claude 3.5 Sonnet",
+    "description": "Anthropic's Claude 3.5 Sonnet model",
+    "provider": "anthropic",
+    "modelId": "claude-3-5-sonnet-20241022",
+    "apiVersion": "v1",
+    "capabilities": "text,code,reasoning",
+    "configuration": {
+      "maxTokens": 4096,
+      "temperature": 0.7,
+      "topP": 0.95
+    },
+    "isActive": true,
+    "isDefault": false,
+    "userId": "admin@platform.com",
+    "secretId": "anthropic-api-key"
+  },
+  {
+    "name": "deepseek-chat",
+    "displayName": "DeepSeek Chat",
+    "description": "DeepSeek's chat model",
+    "provider": "deepseek",
+    "modelId": "deepseek-chat",
+    "apiVersion": "v1",
+    "capabilities": "text,code,reasoning",
+    "configuration": {
+      "maxTokens": 4096,
+      "temperature": 0.7,
+      "topP": 0.95
+    },
+    "isActive": true,
+    "isDefault": false,
+    "userId": "admin@platform.com",
+    "secretId": "deepseek-api-key"
+  },
+  {
+    "name": "gemma-3-12b",
+    "displayName": "Gemma 3 12B (Local)",
+    "description": "Google's Gemma 3 12B model running locally via LM Studio",
+    "provider": "local",
+    "modelId": "google/gemma-3-12b",
+    "baseUrl": "http://localhost:1234/v1",
+    "capabilities": "text,code,reasoning",
+    "configuration": {
+      "maxTokens": 4096,
+      "temperature": 0.7,
+      "topP": 0.95
+    },
+    "isActive": true,
+    "isDefault": false,
+    "userId": "admin@platform.com"
   }
 ]

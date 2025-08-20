@@ -21,6 +21,13 @@ export interface LocalLLMResponse {
   };
 }
 
+export interface LocalLLMModelInfo {
+  id: string;
+  object: string;
+  created: number;
+  owned_by: string;
+}
+
 export class LocalLLMService {
   private secretService = new SecretService();
 
@@ -41,13 +48,8 @@ export class LocalLLMService {
     }
     messages.push({ role: 'user', content: prompt });
 
-    const requestBody = {
-      model: aiModel.modelId,
-      messages,
-      temperature,
-      max_tokens: maxTokens,
-      stream: false
-    };
+    // Model-specific configurations
+    const requestBody = this.buildRequestBody(aiModel, messages, temperature, maxTokens);
 
     try {
       const response = await fetch(url, {
@@ -59,7 +61,8 @@ export class LocalLLMService {
       });
 
       if (!response.ok) {
-        throw new Error(`Local LLM API error: ${response.status} ${response.statusText}`);
+        const errorText = await response.text();
+        throw new Error(`Local LLM API error: ${response.status} ${response.statusText} - ${errorText}`);
       }
 
       const data = await response.json() as LocalLLMResponse;
@@ -70,7 +73,32 @@ export class LocalLLMService {
     }
   }
 
-  async testConnection(aiModel: AIModel): Promise<boolean> {
+  private buildRequestBody(
+    aiModel: AIModel,
+    messages: Array<{ role: string; content: string }>,
+    temperature: number,
+    maxTokens: number
+  ) {
+    const baseBody = {
+      model: aiModel.modelId,
+      messages,
+      temperature,
+      max_tokens: maxTokens,
+      stream: false
+    };
+
+    // Add model-specific configurations
+    if (aiModel.configuration) {
+      return {
+        ...baseBody,
+        ...aiModel.configuration
+      };
+    }
+
+    return baseBody;
+  }
+
+  async testConnection(aiModel: AIModel): Promise<{ connected: boolean; models?: string[]; error?: string }> {
     try {
       const baseUrl = aiModel.baseUrl || 'http://localhost:1234';
       const url = `${baseUrl}/v1/models`;
@@ -79,17 +107,73 @@ export class LocalLLMService {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json'
-        }
+        },
+        // Add timeout for local connections
+        signal: AbortSignal.timeout(5000)
       });
 
       if (!response.ok) {
-        return false;
+        return {
+          connected: false,
+          error: `HTTP ${response.status}: ${response.statusText}`
+        };
       }
 
-      const data = await response.json() as { data: Array<{ id: string }> };
-      return data.data && data.data.length > 0;
+      const data = await response.json() as { data: LocalLLMModelInfo[] };
+      
+      if (!data.data || data.data.length === 0) {
+        return {
+          connected: false,
+          error: 'No models found in LM Studio'
+        };
+      }
+
+      const models = data.data.map(model => model.id);
+      
+      return {
+        connected: true,
+        models
+      };
     } catch (error) {
       console.error('Local LLM connection test failed:', error);
+      return {
+        connected: false,
+        error: error instanceof Error ? error.message : 'Connection failed'
+      };
+    }
+  }
+
+  async getAvailableModels(aiModel: AIModel): Promise<string[]> {
+    try {
+      const baseUrl = aiModel.baseUrl || 'http://localhost:1234';
+      const url = `${baseUrl}/v1/models`;
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        signal: AbortSignal.timeout(5000)
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch models: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json() as { data: LocalLLMModelInfo[] };
+      return data.data?.map(model => model.id) || [];
+    } catch (error) {
+      console.error('Failed to get available models:', error);
+      throw new Error(`Failed to get available models: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  async validateModel(aiModel: AIModel): Promise<boolean> {
+    try {
+      const availableModels = await this.getAvailableModels(aiModel);
+      return availableModels.includes(aiModel.modelId);
+    } catch (error) {
+      console.error('Model validation failed:', error);
       return false;
     }
   }

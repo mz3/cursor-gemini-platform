@@ -1,33 +1,41 @@
-# TODOs
+# Platform Development Todos
 
-## Completed
-- [x] Delete existing GitHub issues related to LLM integration
-- [x] Create new GitHub issues for AI models feature and local LLM support
-- [x] Create feature branch for AI models implementation
-- [x] Create AIModel TypeORM entity with LLM providers and configuration
-- [x] Generate and run database migration for AIModel table
-- [x] Update Bot entity to include AIModel relationship
-- [x] Create AIModel routes and service for CRUD operations
-- [x] Update Gemini service to work with new AIModel system
-- [x] Create services for ChatGPT, Claude, and other LLMs
-- [x] Create React components for AIModel management with LLM icons
-- [x] Add AIModel fixtures for default LLM configurations
-- [x] Test LLM services and API endpoints
+## Completed ✅
 
-## Completed
-- [x] Update Bot create/edit forms to include LLM selection
-- [x] Create LLM test interface on AIModel view page
-- [x] Copy all LLM services to bot service
-- [x] Update bot service LLMServiceFactory to support all providers
-- [x] Update cursor rules with new AI models patterns
+### AI Models Feature (Issue #31)
+- ✅ Add AIModel entity with provider enum
+- ✅ Implement LLMServiceFactory for provider selection
+- ✅ Add individual LLM services (Gemini, OpenAI, Claude, DeepSeek)
+- ✅ Create AI Models CRUD routes and frontend components
+- ✅ Integrate AI Models with Bot functionality
+- ✅ Add secrets management for API keys
+- ✅ Update bot worker to use LLMServiceFactory
+- ✅ Add comprehensive test coverage
+- ✅ Reduce console noise across the application
+- ✅ Fix WebSocket connection issues
 
-## Pending
-- [ ] Frontend integration with backend LLM services
-- [ ] LLM provider icons and UI components
-- [ ] Test chat interface for LLMs
-- [ ] Local LLM support implementation
-- [ ] Documentation updates
-description:
-globs:
-alwaysApply: false
----
+## In Progress 🔄
+
+### Local LLM Support (Issue #32)
+- 🔄 Enhance LocalLLMService for better Gemma 3 12B support
+- 🔄 Add model suggestions and validation in frontend
+- 🔄 Improve error handling and connection testing
+- 🔄 Add test connection functionality in forms
+- 🔄 Create Gemma 3 12B fixture for testing
+
+## Planned 📋
+
+### Local LLM Support (Issue #32) - Remaining Tasks
+- 📋 Add model validation against available LM Studio models
+- 📋 Implement model-specific configuration presets
+- 📋 Add support for model fine-tuning configurations
+- 📋 Create documentation for LM Studio setup
+- 📋 Add performance monitoring for local models
+- 📋 Implement fallback mechanisms for local model failures
+
+### Future Enhancements
+- 📋 Add support for other local LLM servers (Ollama, vLLM, etc.)
+- 📋 Implement model quantization and optimization
+- 📋 Add model performance benchmarking
+- 📋 Create model comparison tools
+- 📋 Add support for custom model training workflows
