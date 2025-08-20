@@ -28,6 +28,7 @@ interface AuthContextType {
   isFeatureEnabled: (key: string) => boolean;
   hasRole: (role: string) => boolean;
   refreshFeatureFlags: () => Promise<void>;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -126,6 +127,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  const refreshUser = async () => {
+    try {
+      await fetchUser();
+    } catch (error) {
+      console.error('Failed to refresh user data:', error);
+    }
+  };
+
   const isFeatureEnabled = (key: string): boolean => {
     return featureFlagService.isEnabled(key);
   };
@@ -172,7 +181,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     featureFlags,
     isFeatureEnabled,
     hasRole,
-    refreshFeatureFlags
+    refreshFeatureFlags,
+    refreshUser
   };
 
   return (

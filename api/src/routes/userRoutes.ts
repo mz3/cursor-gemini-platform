@@ -234,6 +234,70 @@ router.put('/settings', async (req: Request, res: Response, next: NextFunction) 
   }
 });
 
+// PUT /api/users/profile - Update user profile (email and password)
+router.put('/profile', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { userId } = extractUserFromToken(req);
+    const { email, currentPassword, newPassword } = req.body;
+
+    const user = await userRepository.findOne({
+      where: { id: userId },
+      relations: ['role']
+    });
+
+    if (!user || !user.isActive) {
+      throw new NotFoundError('User');
+    }
+
+    // Update email if provided
+    if (email && email !== user.email) {
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        throw new ValidationError('Please provide a valid email address');
+      }
+
+      // Check if email is already taken
+      const existingUser = await userRepository.findOne({ where: { email } });
+      if (existingUser && existingUser.id !== userId) {
+        throw new ConflictError('A user with this email already exists');
+      }
+
+      user.email = email;
+    }
+
+    // Update password if provided
+    if (currentPassword && newPassword) {
+      // Validate current password
+      const isValidPassword = await bcrypt.compare(currentPassword, user.password);
+      if (!isValidPassword) {
+        throw new AuthenticationError('Current password is incorrect');
+      }
+
+      // Validate new password strength
+      if (newPassword.length < 6) {
+        throw new ValidationError('Password must be at least 6 characters long');
+      }
+
+      // Hash new password
+      user.password = await bcrypt.hash(newPassword, 10);
+    }
+
+    // Save updated user
+    const updatedUser = await userRepository.save(user);
+
+    return res.json({
+      id: updatedUser.id,
+      email: updatedUser.email,
+      firstName: updatedUser.firstName,
+      lastName: updatedUser.lastName,
+      role: updatedUser.role?.name || updatedUser.legacyRole || 'user'
+    });
+  } catch (error) {
+    return next(error);
+  }
+});
+
 // GET /api/users/feature-flags - Get feature flags for the current user
 router.get('/feature-flags', async (req: Request, res: Response, next: NextFunction) => {
   try {
