@@ -20,7 +20,7 @@ describe('Profile Update Endpoints', () => {
   describe('PUT /api/users/profile', () => {
     it('should update user email successfully', async () => {
       const newEmail = 'newemail@example.com';
-      
+
       const response = await request(API_BASE_URL)
         .put('/api/users/profile')
         .set('Authorization', `Bearer ${authToken}`)
@@ -34,7 +34,7 @@ describe('Profile Update Endpoints', () => {
 
     it('should update user password successfully', async () => {
       const newPassword = 'newpassword123';
-      
+
       const response = await request(API_BASE_URL)
         .put('/api/users/profile')
         .set('Authorization', `Bearer ${authToken}`)

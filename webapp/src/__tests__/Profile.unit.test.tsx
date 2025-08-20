@@ -46,7 +46,7 @@ const renderWithProviders = (component: React.ReactElement) => {
 describe('Profile Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    
+
     // Setup default mock for useAuth
     mockUseAuth.mockReturnValue({
       user: mockUser,
@@ -67,7 +67,7 @@ describe('Profile Component', () => {
 
   it('renders profile page with user information', () => {
     renderWithProviders(<Profile />);
-    
+
     expect(screen.getByText('Profile')).toBeInTheDocument();
     expect(screen.getByText('Manage your account settings')).toBeInTheDocument();
     expect(screen.getByText('Account Information')).toBeInTheDocument();
@@ -77,34 +77,34 @@ describe('Profile Component', () => {
 
   it('displays current user email in the form', () => {
     renderWithProviders(<Profile />);
-    
+
     const emailInput = screen.getByLabelText('Email');
     expect(emailInput).toHaveValue('test@example.com');
   });
 
   it('allows email input changes', () => {
     renderWithProviders(<Profile />);
-    
+
     const emailInput = screen.getByLabelText('Email');
     fireEvent.change(emailInput, { target: { value: 'newemail@example.com' } });
-    
+
     expect(emailInput).toHaveValue('newemail@example.com');
   });
 
   it('validates password confirmation', async () => {
     renderWithProviders(<Profile />);
-    
+
     const currentPasswordInput = screen.getByLabelText('Current Password');
     const newPasswordInput = screen.getByLabelText('New Password');
     const confirmPasswordInput = screen.getByLabelText('Confirm New Password');
-    
+
     fireEvent.change(currentPasswordInput, { target: { value: 'currentpass' } });
     fireEvent.change(newPasswordInput, { target: { value: 'newpass' } });
     fireEvent.change(confirmPasswordInput, { target: { value: 'differentpass' } });
-    
+
     const submitButton = screen.getByText('Update Profile');
     fireEvent.click(submitButton);
-    
+
     await waitFor(() => {
       expect(screen.getByText('Passwords do not match')).toBeInTheDocument();
     });
@@ -112,18 +112,18 @@ describe('Profile Component', () => {
 
   it('validates password length', async () => {
     renderWithProviders(<Profile />);
-    
+
     const currentPasswordInput = screen.getByLabelText('Current Password');
     const newPasswordInput = screen.getByLabelText('New Password');
     const confirmPasswordInput = screen.getByLabelText('Confirm New Password');
-    
+
     fireEvent.change(currentPasswordInput, { target: { value: 'currentpass' } });
     fireEvent.change(newPasswordInput, { target: { value: '123' } });
     fireEvent.change(confirmPasswordInput, { target: { value: '123' } });
-    
+
     const submitButton = screen.getByText('Update Profile');
     fireEvent.click(submitButton);
-    
+
     await waitFor(() => {
       expect(screen.getByText('Password must be at least 6 characters long')).toBeInTheDocument();
     });
@@ -131,16 +131,16 @@ describe('Profile Component', () => {
 
   it('requires current password when changing password', async () => {
     renderWithProviders(<Profile />);
-    
+
     const newPasswordInput = screen.getByLabelText('New Password');
     const confirmPasswordInput = screen.getByLabelText('Confirm New Password');
-    
+
     fireEvent.change(newPasswordInput, { target: { value: 'newpassword' } });
     fireEvent.change(confirmPasswordInput, { target: { value: 'newpassword' } });
-    
+
     const submitButton = screen.getByText('Update Profile');
     fireEvent.click(submitButton);
-    
+
     await waitFor(() => {
       expect(screen.getByText('Current password is required to change password')).toBeInTheDocument();
     });

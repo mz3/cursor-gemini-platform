@@ -60,7 +60,7 @@ const Profile: React.FC = () => {
       ...prev,
       [name]: value
     }));
-    
+
     // Clear error for this field when user starts typing
     if (errors[name as keyof ProfileFormData]) {
       setErrors(prev => ({
@@ -81,13 +81,13 @@ const Profile: React.FC = () => {
       await api.put('/users/profile', {
         email: formData.email
       });
-      
+
       setSuccessMessage('Email updated successfully!');
       setFormData(prev => ({
         ...prev,
         email: formData.email
       }));
-      
+
       // Refresh user data to update the context
       await refreshUser();
     } catch (error: any) {
@@ -110,7 +110,7 @@ const Profile: React.FC = () => {
         currentPassword: formData.currentPassword,
         newPassword: formData.newPassword
       });
-      
+
       setSuccessMessage('Password updated successfully!');
       setFormData(prev => ({
         ...prev,
@@ -128,7 +128,7 @@ const Profile: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (formData.newPassword || formData.confirmPassword || formData.currentPassword) {
       await handlePasswordUpdate();
     } else {
@@ -158,7 +158,7 @@ const Profile: React.FC = () => {
         <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Account Information</h2>
         </div>
-        
+
         <div className="p-6">
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Email Section */}
@@ -167,7 +167,7 @@ const Profile: React.FC = () => {
                 <Mail className="h-5 w-5 text-gray-400 mr-2" />
                 <h3 className="text-md font-medium text-gray-900 dark:text-gray-100">Email Address</h3>
               </div>
-              
+
               <div>
                 <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Email
@@ -179,8 +179,8 @@ const Profile: React.FC = () => {
                   value={formData.email}
                   onChange={handleInputChange}
                   className={`mt-1 block w-full rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 ${
-                    errors.email 
-                      ? 'border-red-300 dark:border-red-600 dark:bg-gray-700 dark:text-gray-100' 
+                    errors.email
+                      ? 'border-red-300 dark:border-red-600 dark:bg-gray-700 dark:text-gray-100'
                       : 'border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100'
                   }`}
                   placeholder="Enter your email address"
@@ -197,7 +197,7 @@ const Profile: React.FC = () => {
                 <Lock className="h-5 w-5 text-gray-400 mr-2" />
                 <h3 className="text-md font-medium text-gray-900 dark:text-gray-100">Change Password</h3>
               </div>
-              
+
               <div className="space-y-4">
                 <div>
                   <label htmlFor="currentPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -210,8 +210,8 @@ const Profile: React.FC = () => {
                     value={formData.currentPassword}
                     onChange={handleInputChange}
                     className={`mt-1 block w-full rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 ${
-                      errors.currentPassword 
-                        ? 'border-red-300 dark:border-red-600 dark:bg-gray-700 dark:text-gray-100' 
+                      errors.currentPassword
+                        ? 'border-red-300 dark:border-red-600 dark:bg-gray-700 dark:text-gray-100'
                         : 'border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100'
                     }`}
                     placeholder="Enter your current password"
@@ -232,8 +232,8 @@ const Profile: React.FC = () => {
                     value={formData.newPassword}
                     onChange={handleInputChange}
                     className={`mt-1 block w-full rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 ${
-                      errors.newPassword 
-                        ? 'border-red-300 dark:border-red-600 dark:bg-gray-700 dark:text-gray-100' 
+                      errors.newPassword
+                        ? 'border-red-300 dark:border-red-600 dark:bg-gray-700 dark:text-gray-100'
                         : 'border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100'
                     }`}
                     placeholder="Enter your new password"
@@ -254,8 +254,8 @@ const Profile: React.FC = () => {
                     value={formData.confirmPassword}
                     onChange={handleInputChange}
                     className={`mt-1 block w-full rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 ${
-                      errors.confirmPassword 
-                        ? 'border-red-300 dark:border-red-600 dark:bg-gray-700 dark:text-gray-100' 
+                      errors.confirmPassword
+                        ? 'border-red-300 dark:border-red-600 dark:bg-gray-700 dark:text-gray-100'
                         : 'border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100'
                     }`}
                     placeholder="Confirm your new password"
