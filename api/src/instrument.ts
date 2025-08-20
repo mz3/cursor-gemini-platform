@@ -2,7 +2,7 @@ import * as Sentry from "@sentry/node";
 
 // Disable Sentry for local development
 if (process.env.NODE_ENV === 'development') {
-  console.log('Sentry disabled for local development');
+  // console.log('Sentry disabled for local development'); // Removed to reduce console noise
 } else {
   Sentry.init({
     dsn: process.env.SENTRY_DSN || "https://f82f1699af07069af82167a32b2500ac@o4509857517731841.ingest.us.sentry.io/4509857533132800",

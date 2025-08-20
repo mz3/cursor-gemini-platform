@@ -8,6 +8,31 @@ jest.mock('../config/environment.js', () => ({
   }
 }));
 
+// Mock SecretService
+jest.mock('../services/secretService.js', () => ({
+  SecretService: jest.fn().mockImplementation(() => ({
+    findById: jest.fn().mockResolvedValue({
+      id: 'test-secret-id',
+      key: 'GEMINI_API_KEY',
+      userId: 'test-user'
+    }),
+    getSecretValueByKey: jest.fn().mockResolvedValue('test-api-key')
+  }))
+}));
+
+// Mock GoogleGenerativeAI
+jest.mock('@google/generative-ai', () => ({
+  GoogleGenerativeAI: jest.fn().mockImplementation(() => ({
+    getGenerativeModel: jest.fn().mockReturnValue({
+      generateContent: jest.fn().mockResolvedValue({
+        response: {
+          text: jest.fn().mockReturnValue('This is a mock response from the GeminiService test.')
+        }
+      })
+    })
+  }))
+}));
+
 import { GeminiService } from '../services/geminiService.js';
 
 describe('GeminiService', () => {
@@ -37,14 +62,37 @@ describe('GeminiService', () => {
     });
 
     it('should generate a response with valid input', async () => {
+      const mockAIModel = {
+        id: 'test-id',
+        name: 'test-model',
+        displayName: 'Test Model',
+        provider: 'gemini' as const,
+        modelId: 'gemini-2.5-flash',
+        userId: 'test-user',
+        isActive: true,
+        isDefault: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        user: {} as any,
+        secret: undefined,
+        secretId: 'test-secret-id',
+        description: undefined,
+        apiVersion: undefined,
+        baseUrl: undefined,
+        capabilities: undefined,
+        configuration: undefined
+      };
+
       const result = await geminiService.generateResponse(
+        mockAIModel,
+        'How are you?',
         'You are a helpful assistant.',
-        'User: Hello\nAssistant: Hi there!',
-        'How are you?'
+        0.7,
+        1000
       );
 
-      expect(result.response).toBe('This is a mock response from the GeminiService test. I am a helpful AI assistant and I understand your message.');
-      expect(result.tokensUsed).toBeGreaterThan(0);
+      expect(typeof result).toBe('string');
+      expect(result.length).toBeGreaterThan(0);
     });
   });
 });

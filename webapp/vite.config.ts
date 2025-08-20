@@ -5,8 +5,6 @@ import react from '@vitejs/plugin-react';
 const isDocker = process.env.VITE_DOCKER === 'true';
 const apiTarget = isDocker ? 'http://api:4000' : 'http://localhost:4001';
 
-console.log('apiTarget', apiTarget);
-
 export default defineConfig({
   plugins: [react()],
   server: {

@@ -181,7 +181,7 @@ export const useWebSocket = (options: UseWebSocketOptions = {}) => {
     if (autoConnect && token && !isConnected && !isConnecting) {
       connect();
     }
-  }, [autoConnect, token, isConnected, isConnecting, connect]);
+  }, [autoConnect, token]); // Remove isConnected and isConnecting from dependencies
 
   // Cleanup on unmount
   useEffect(() => {
@@ -192,23 +192,8 @@ export const useWebSocket = (options: UseWebSocketOptions = {}) => {
     };
   }, []);
 
-  // Update connection status
-  useEffect(() => {
-    const updateStatus = () => {
-      const status = wsService.getConnectionStatus();
-      setIsConnected(status.connected);
-      setIsConnecting(status.connecting);
-      setReconnectAttempts(status.reconnectAttempts);
-    };
-
-    // Update immediately
-    updateStatus();
-
-    // Set up interval to check status
-    const interval = setInterval(updateStatus, 1000);
-
-    return () => clearInterval(interval);
-  }, []);
+  // Remove the frequent status update effect that was causing re-renders
+  // The connection status is already managed by the WebSocket service events
 
   return {
     // State

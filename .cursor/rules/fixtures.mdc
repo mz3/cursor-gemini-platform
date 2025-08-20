@@ -1,0 +1,8 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+
+- Do not hard-code IDs in fixtures
+- When adding new fixtures to the app, drop the database and then re-seed the database

@@ -95,6 +95,32 @@ docker exec api-dev2 npm run seed
 docker exec api-dev2 npm run seed:build
 ```
 
+### Webapp Node Modules Management
+
+**CRITICAL**: When adding new node modules to the webapp, you must reset the container and its volumes to ensure the new dependencies are properly installed.
+
+```bash
+# Stop and remove webapp container
+docker stop webapp-dev1
+docker rm webapp-dev1
+
+# Rebuild webapp container (this will install new node modules)
+docker-compose -f docker-compose.dev1.yml -p platform-dev1 build webapp
+
+# Start the rebuilt webapp container
+docker-compose -f docker-compose.dev1.yml -p platform-dev1 up -d webapp
+
+# Verify the container started successfully
+docker logs webapp-dev1
+```
+
+**Why this is necessary**: The webapp container uses volume mounts for development, and node modules are installed during the Docker build process. When you add new dependencies to `package.json`, the container needs to be rebuilt to install the new modules. Simply restarting the container won't install new dependencies.
+
+**Alternative for development**: If you're actively developing and need to add dependencies frequently, you can also:
+1. Add the dependency to `package.json`
+2. Rebuild the container: `docker-compose -f docker-compose.dev1.yml -p platform-dev1 build webapp`
+3. Restart the container: `docker-compose -f docker-compose.dev1.yml -p platform-dev1 restart webapp`
+
 ### Logging and Debugging
 ```bash
 # View recent logs for specific service

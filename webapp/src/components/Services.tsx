@@ -27,9 +27,7 @@ const Services: React.FC = () => {
 
   const fetchServices = async () => {
     try {
-      console.log('Fetching services...');
       const response = await api.get('/services');
-      console.log('Services response:', response);
       setServices(response.data);
       setError(null);
     } catch (error: any) {

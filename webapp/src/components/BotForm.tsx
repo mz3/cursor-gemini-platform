@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import ErrorDisplay from './ErrorDisplay';
+import { aiModelApi, AIModel } from '../services/aiModelService';
 
 interface Bot {
   id?: string;
@@ -7,7 +9,7 @@ interface Bot {
   displayName: string;
   description: string;
   isActive: boolean;
-  modelId?: string;
+  aiModelId?: string;
 }
 
 interface BotFormProps {
@@ -30,9 +32,14 @@ const BotForm: React.FC<BotFormProps> = ({
     displayName: '',
     description: '',
     isActive: true,
-    modelId: ''
+    aiModelId: ''
   });
   const [localError, setLocalError] = useState<string>('');
+
+  const { data: aiModels = [] } = useQuery({
+    queryKey: ['ai-models'],
+    queryFn: aiModelApi.getAll,
+  });
 
   useEffect(() => {
     if (initialData) {
@@ -45,6 +52,23 @@ const BotForm: React.FC<BotFormProps> = ({
     // Clear local error when user starts typing
     if (localError) {
       setLocalError('');
+    }
+  };
+
+  const getProviderIcon = (provider: string) => {
+    switch (provider) {
+      case 'gemini':
+        return '🤖';
+      case 'openai':
+        return '🧠';
+      case 'anthropic':
+        return '🎭';
+      case 'deepseek':
+        return '🔍';
+      case 'local':
+        return '🏠';
+      default:
+        return '🤖';
     }
   };
 
@@ -117,15 +141,20 @@ const BotForm: React.FC<BotFormProps> = ({
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700">Schema ID</label>
-        <input
-          type="text"
-          value={form.modelId || ''}
-          onChange={e => handleChange('modelId', e.target.value)}
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">AI Model</label>
+        <select
+          value={form.aiModelId || ''}
+          onChange={e => handleChange('aiModelId', e.target.value)}
           disabled={readOnly}
-          className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-          placeholder="Optional model ID"
-        />
+          className="mt-1 block w-full border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-gray-100 sm:text-sm"
+        >
+          <option value="">Select an AI Model</option>
+          {aiModels.map((model) => (
+            <option key={model.id} value={model.id}>
+              {getProviderIcon(model.provider)} {model.displayName} ({model.provider})
+            </option>
+          ))}
+        </select>
       </div>
 
       <div>

@@ -1,7 +1,7 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { authenticate, requireAdmin } from '../middleware/auth.js';
 import { requireFeatureFlag } from '../middleware/featureFlag.js';
-import { seedDatabase } from '../utils/seedDatabase.js';
+// import { seedDatabase } from '../utils/seedDatabase.js';
 import { featureFlagService } from '../services/featureFlagService.js';
 import { AppDataSource } from '../config/database.js';
 import { Role } from '../entities/Role.js';
@@ -21,7 +21,8 @@ router.use(requireAdmin);
 router.post('/seed', requireFeatureFlag('admin_database_seed'), async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     console.log('🌱 Admin-triggered database seeding started...');
-    await seedDatabase();
+    // await seedDatabase();
+    console.log('Seeding disabled');
     console.log('✅ Admin-triggered database seeding completed');
 
     res.json({

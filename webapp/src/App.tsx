@@ -42,6 +42,10 @@ import AdminDashboard from './components/AdminDashboard';
 import Secrets from './components/Secrets';
 import CreateSecret from './components/CreateSecret';
 import EditSecret from './components/EditSecret';
+import AIModels from './components/AIModels';
+import CreateAIModel from './components/CreateAIModel';
+import EditAIModel from './components/EditAIModel';
+import ViewAIModel from './components/ViewAIModel';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { cn } from './utils/cn';
 
@@ -49,7 +53,7 @@ import { cn } from './utils/cn';
 initializeSentry();
 
 // Debug: Log all environment variables at startup
-console.log('VITE ENV:', import.meta.env);
+// console.log('VITE ENV:', import.meta.env); // Removed to reduce console noise
 
 const AppContent: React.FC = () => {
   const { user, logout, loading, darkMode, hasRole, isFeatureEnabled } = useAuth();
@@ -86,6 +90,7 @@ const AppContent: React.FC = () => {
     { name: 'Schemas', href: '/schemas', icon: Database },
     { name: 'Services', href: '/services', icon: Server },
     { name: 'Secrets', href: '/secrets', icon: Key },
+    { name: 'AI Models', href: '/ai-models', icon: Bot },
     { name: 'Settings', href: '/settings', icon: SettingsIcon },
     { name: 'Tools', href: '/tools', icon: Wrench },
     { name: 'Workflows', href: '/workflows', icon: WorkflowIcon },
@@ -207,6 +212,10 @@ const AppContent: React.FC = () => {
             <Route path="/secrets" element={<Secrets />} />
             <Route path="/secrets/create" element={<CreateSecret />} />
             <Route path="/secrets/:id/edit" element={<EditSecret />} />
+            <Route path="/ai-models" element={<AIModels />} />
+            <Route path="/ai-models/create" element={<CreateAIModel />} />
+            <Route path="/ai-models/:id" element={<ViewAIModel />} />
+            <Route path="/ai-models/:id/edit" element={<EditAIModel />} />
             <Route path="/services" element={<Services />} />
             <Route path="/services/create" element={<CreateService />} />
             <Route path="/services/:id" element={<ViewService />} />
@@ -237,7 +246,7 @@ const App: React.FC = () => {
   return (
     <SentryErrorBoundary fallback={<div>Something went wrong. Please refresh the page.</div>}>
       <AuthProvider>
-        <Router>
+        <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
           <AppContent />
         </Router>
       </AuthProvider>

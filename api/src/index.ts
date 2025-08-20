@@ -25,15 +25,16 @@ import entityRoutes from './routes/entityRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import { secretRoutes } from './routes/secretRoutes.js';
 import { serviceRoutes } from './routes/serviceRoutes.js';
+import aiModelRoutes from './routes/aiModelRoutes.js';
 import { errorHandler } from './middleware/errorHandler.js';
 
 import ChatWebSocketServer from './websocket/chatServer.js';
 import MessageHandler from './websocket/messageHandler.js';
 import BotResponseService from './services/botResponseService.js';
 
-console.log('🚀 Starting Platform API...');
+console.log('🚀 Starting Meta-Application Platform API...');
 console.log('📅 Current time:', new Date().toISOString());
-console.log('🌍 Environment:', process.env.NODE_ENV || 'development');
+// console.log('🌍 Environment:', process.env.NODE_ENV || 'development'); // Removed to reduce console noise
 
 dotenv.config();
 
@@ -89,6 +90,7 @@ app.use('/api/entities', entityRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/secrets', secretRoutes);
 app.use('/api/services', serviceRoutes);
+app.use('/api/ai-models', aiModelRoutes);
 
 console.log('✅ API routes configured');
 
@@ -99,7 +101,7 @@ if (process.env.NODE_ENV !== 'development') {
 
 // Error handling
 app.use(errorHandler);
-console.log('⚠️ Error handler configured');
+// console.log('⚠️ Error handler configured'); // Removed to reduce console noise
 
 // Initialize and start server
 async function startServer() {
