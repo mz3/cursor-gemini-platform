@@ -8,6 +8,7 @@ import bcrypt from 'bcryptjs';
 
 describe('Profile Update Endpoints', () => {
   let authToken: string;
+  let originalPassword: string;
 
   beforeAll(async () => {
     // Login to get token
@@ -15,6 +16,24 @@ describe('Profile Update Endpoints', () => {
       .post('/api/users/login')
       .send({ email: 'admin@platform.com', password: 'admin123' });
     authToken = res.body.token;
+    
+    // Store original password for cleanup
+    originalPassword = 'admin123';
+  });
+
+  afterAll(async () => {
+    // Reset admin user password back to original
+    try {
+      const userRepository = AppDataSource.getRepository(User);
+      const adminUser = await userRepository.findOne({ where: { email: 'admin@platform.com' } });
+      if (adminUser) {
+        const hashedPassword = await bcrypt.hash(originalPassword, 10);
+        adminUser.password = hashedPassword;
+        await userRepository.save(adminUser);
+      }
+    } catch (error) {
+      console.error('Failed to reset admin password:', error);
+    }
   });
 
   describe('PUT /api/users/profile', () => {
@@ -67,8 +86,9 @@ describe('Profile Update Endpoints', () => {
         .send({ email: 'invalid-email' });
 
       expect(response.status).toBe(400);
-      expect(response.body).toHaveProperty('message');
-      expect(response.body.message).toContain('valid email address');
+      expect(response.body).toHaveProperty('error');
+      expect(response.body.error).toHaveProperty('message');
+      expect(response.body.error.message).toContain('valid email address');
     });
 
     it('should return 400 for password less than 6 characters', async () => {
@@ -81,8 +101,9 @@ describe('Profile Update Endpoints', () => {
         });
 
       expect(response.status).toBe(400);
-      expect(response.body).toHaveProperty('message');
-      expect(response.body.message).toContain('6 characters long');
+      expect(response.body).toHaveProperty('error');
+      expect(response.body.error).toHaveProperty('message');
+      expect(response.body.error.message).toContain('6 characters long');
     });
 
     it('should return 401 for incorrect current password', async () => {
@@ -95,8 +116,9 @@ describe('Profile Update Endpoints', () => {
         });
 
       expect(response.status).toBe(401);
-      expect(response.body).toHaveProperty('message');
-      expect(response.body.message).toContain('incorrect');
+      expect(response.body).toHaveProperty('error');
+      expect(response.body.error).toHaveProperty('message');
+      expect(response.body.error.message).toContain('incorrect');
     });
 
     it('should return 401 without authentication token', async () => {
@@ -105,7 +127,8 @@ describe('Profile Update Endpoints', () => {
         .send({ email: 'test@example.com' });
 
       expect(response.status).toBe(401);
-      expect(response.body).toHaveProperty('message');
+      expect(response.body).toHaveProperty('error');
+      expect(response.body.error).toHaveProperty('message');
     });
   });
 });

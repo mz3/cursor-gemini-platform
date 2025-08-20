@@ -9,7 +9,7 @@
   },
   {
     "email": "admin@platform.com",
-    "password": "hashed_password_here",
+    "password": "password123",
     "firstName": "Admin",
     "lastName": "User",
     "role": "admin",

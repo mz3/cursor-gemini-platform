@@ -8,6 +8,7 @@ describe('POST /api/users/login', () => {
     const res = await request(TEST_CONFIG.API_BASE_URL)
       .post('/api/users/login')
       .send({ email: TEST_CONFIG.TEST_USER.email, password: TEST_CONFIG.TEST_USER.password });
+
     expect(res.status).toBe(200);
     expect(res.body).toHaveProperty('token');
     expect(res.body.user).toMatchObject({

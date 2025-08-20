@@ -268,6 +268,22 @@ export const seedDatabase = async (): Promise<void> => {
           idMapping.users[userData.email] = savedUser.id;
           console.log(`✅ Created user: ${userData.email} with role: ${userData.role}`);
         } else {
+          // In sync mode, update existing user's password to ensure it's correct
+          if (process.env.NODE_ENV === 'seeding') {
+            const hashedPassword = await bcrypt.hash('admin123', 10);
+            const role = await roleRepository.findOne({ where: { name: userData.role } });
+
+            existingUser.password = hashedPassword;
+            existingUser.firstName = userData.firstName;
+            existingUser.lastName = userData.lastName;
+            existingUser.isActive = userData.isActive;
+            existingUser.roleId = role?.id;
+            existingUser.legacyRole = userData.role;
+
+            const updatedUser = await userRepository.save(existingUser);
+            createdUsers.push(updatedUser);
+            console.log(`🔄 Updated user: ${userData.email} with role: ${userData.role}`);
+          }
           idMapping.users[userData.email] = existingUser.id;
           console.log(`ℹ️  User already exists: ${userData.email}`);
         }
