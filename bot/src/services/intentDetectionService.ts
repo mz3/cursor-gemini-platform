@@ -1,5 +1,6 @@
-import { GeminiService } from './geminiService.js';
 import { BotTool } from '../entities/BotTool.js';
+import { AIModel } from '../entities/AIModel.js';
+import { LLMServiceFactory } from './llmServiceFactory.js';
 
 export interface DetectedIntent {
   toolName: string;
@@ -14,10 +15,26 @@ export interface ToolCall {
 }
 
 export class IntentDetectionService {
-  private geminiService: GeminiService;
+  private aiModel: AIModel | null = null;
 
   constructor() {
-    this.geminiService = new GeminiService();
+    // Will be set when needed
+  }
+
+  private async getDefaultAIModel(userId: string): Promise<AIModel> {
+    if (!this.aiModel) {
+      // Get the default AI model for the user
+      const { AppDataSource } = await import('../config/database.js');
+      const aiModelRepository = AppDataSource.getRepository(AIModel);
+      this.aiModel = await aiModelRepository.findOne({
+        where: { userId, isDefault: true, isActive: true }
+      });
+
+      if (!this.aiModel) {
+        throw new Error('No default AI model found for user');
+      }
+    }
+    return this.aiModel;
   }
 
   async detectToolCalls(
@@ -35,13 +52,16 @@ export class IntentDetectionService {
     const conversationHistory = ''; // We could pass this in if needed
 
     try {
-      const response = await this.geminiService.generateResponse(
+      const aiModel = await this.getDefaultAIModel(userId);
+      const llmResponse = await LLMServiceFactory.generateResponse(
+        aiModel,
+        message,
         systemPrompt,
-        conversationHistory,
-        message
+        0.1, // Low temperature for more deterministic responses
+        1000
       );
 
-      return this.parseLLMResponse(response.response, availableTools, userId);
+      return this.parseLLMResponse(llmResponse.content, availableTools, userId);
     } catch (error) {
       console.error('Error detecting intent:', error);
       return [];

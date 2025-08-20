@@ -1,0 +1,33 @@
+# TODOs
+
+## Completed
+- [x] Delete existing GitHub issues related to LLM integration
+- [x] Create new GitHub issues for AI models feature and local LLM support
+- [x] Create feature branch for AI models implementation
+- [x] Create AIModel TypeORM entity with LLM providers and configuration
+- [x] Generate and run database migration for AIModel table
+- [x] Update Bot entity to include AIModel relationship
+- [x] Create AIModel routes and service for CRUD operations
+- [x] Update Gemini service to work with new AIModel system
+- [x] Create services for ChatGPT, Claude, and other LLMs
+- [x] Create React components for AIModel management with LLM icons
+- [x] Add AIModel fixtures for default LLM configurations
+- [x] Test LLM services and API endpoints
+
+## Completed
+- [x] Update Bot create/edit forms to include LLM selection
+- [x] Create LLM test interface on AIModel view page
+- [x] Copy all LLM services to bot service
+- [x] Update bot service LLMServiceFactory to support all providers
+- [x] Update cursor rules with new AI models patterns
+
+## Pending
+- [ ] Frontend integration with backend LLM services
+- [ ] LLM provider icons and UI components
+- [ ] Test chat interface for LLMs
+- [ ] Local LLM support implementation
+- [ ] Documentation updates
+description:
+globs:
+alwaysApply: false
+---

@@ -4,7 +4,8 @@ import { BotInstance, BotInstanceStatus } from '../entities/BotInstance.js';
 import { ChatMessage, MessageRole } from '../entities/ChatMessage.js';
 import { Bot } from '../entities/Bot.js';
 import { BotTool } from '../entities/BotTool.js';
-import { GeminiService } from './geminiService.js';
+import { AIModel } from '../entities/AIModel.js';
+import { LLMServiceFactory } from './llmServiceFactory.js';
 import { ToolExecutionService } from './toolExecutionService.js';
 import { IntentDetectionService } from './intentDetectionService.js';
 
@@ -70,10 +71,10 @@ const processBotMessage = async (
       await botInstanceRepository.save(instance);
     }
 
-    // Get bot with prompts and tools
+    // Get bot with prompts, tools, and AI model
     const bot = await botRepository.findOne({
       where: { id: botId },
-      relations: ['prompts', 'prompts.versions', 'tools']
+      relations: ['prompts', 'prompts.versions', 'tools', 'aiModel']
     });
 
     if (!bot) {
@@ -161,23 +162,39 @@ const processMessage = async (
     : promptContext;
 
   try {
-    const geminiService = new GeminiService();
-    const geminiResult = await geminiService.generateResponse(
-      enhancedContext,
-      conversationHistory,
+    // Use the bot's AI model if available, otherwise fall back to default
+    let aiModel = bot.aiModel;
+
+    if (!aiModel) {
+      // Get the default AI model for the user
+      const aiModelRepository = AppDataSource.getRepository(AIModel);
+      aiModel = await aiModelRepository.findOne({
+        where: { userId: instance.userId, isDefault: true, isActive: true }
+      });
+
+      if (!aiModel) {
+        throw new Error('No AI model configured for this bot');
+      }
+    }
+
+    // Generate response using the LLMServiceFactory
+    const llmResponse = await LLMServiceFactory.generateResponse(
+      aiModel,
       message,
-      instance.userId
+      enhancedContext,
+      0.7, // temperature
+      1000 // maxTokens
     );
 
     // Combine thoughts with the response
-    const fullResponse = thoughts + '\n' + geminiResult.response;
+    const fullResponse = thoughts + '\n' + llmResponse.content;
 
     return chatMessageRepository.create({
       botInstanceId: instance.id,
       userId: instance.userId,
       role: MessageRole.BOT,
       content: fullResponse,
-      tokensUsed: geminiResult.tokensUsed
+      tokensUsed: llmResponse.usage?.total_tokens || estimateTokenCount(fullResponse)
     });
   } catch (error) {
     console.error('Failed to generate bot response:', error);

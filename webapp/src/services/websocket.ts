@@ -42,6 +42,7 @@ class WebSocketService {
   private maxReconnectAttempts = 5;
   private reconnectDelay = 1000;
   private isConnecting = false;
+  private connectionPromise: Promise<void> | null = null;
   private eventHandlers: WebSocketEventHandlers = {};
 
   constructor() {
@@ -50,67 +51,60 @@ class WebSocketService {
 
   private setupEventHandlers() {
     if (this.socket) {
-      this.socket.on('connect', () => {
-        console.log('🔌 WebSocket connected');
-        this.reconnectAttempts = 0;
-        this.eventHandlers.onConnect?.();
-      });
-
-      this.socket.on('disconnect', (reason: string) => {
-        console.log('🔌 WebSocket disconnected:', reason);
-        this.eventHandlers.onDisconnect?.();
-
-        if (reason === 'io server disconnect') {
-          // Server disconnected us, try to reconnect
-          this.reconnect();
-        }
-      });
-
-      this.socket.on('connect_error', (error: Error) => {
-        console.error('🔌 WebSocket connection error:', error);
-        this.eventHandlers.onError?.(error);
-
-        if (this.reconnectAttempts < this.maxReconnectAttempts) {
-          this.reconnect();
-        }
-      });
-
-      this.socket.on('new-message', (message: ChatMessage) => {
-        console.log('📨 Received new message:', message.id);
+      this.socket.on('message', (message: ChatMessage) => {
         this.eventHandlers.onMessage?.(message);
       });
 
       this.socket.on('bot-status-update', (status: BotStatusUpdate) => {
-        console.log('📊 Received bot status update:', status.status);
         this.eventHandlers.onStatusUpdate?.(status);
       });
 
-      this.socket.on('conversation-history', (messages: ChatMessage[]) => {
-        console.log('📚 Received conversation history:', messages.length, 'messages');
-        this.eventHandlers.onConversationHistory?.(messages);
-      });
-
       this.socket.on('typing-indicator', (indicator: TypingIndicator) => {
-        console.log('⌨️ Received typing indicator:', indicator);
         this.eventHandlers.onTypingIndicator?.(indicator);
       });
 
+      this.socket.on('conversation-cleared', (data: { botId: string; userId: string }) => {
+        this.eventHandlers.onConversationCleared?.(data);
+      });
+
+      this.socket.on('conversation-history', (messages: ChatMessage[]) => {
+        this.eventHandlers.onConversationHistory?.(messages);
+      });
+
+      this.socket.on('disconnect', () => {
+        this.eventHandlers.onDisconnect?.();
+      });
+
+      this.socket.on('reconnect', () => {
+        this.eventHandlers.onReconnect?.();
+      });
+
       this.socket.on('error', (error: Error) => {
-        console.error('🔌 WebSocket error:', error);
         this.eventHandlers.onError?.(error);
       });
     }
   }
 
   public connect(token: string): Promise<void> {
-    return new Promise((resolve, reject) => {
-      if (this.isConnecting) {
-        reject(new Error('Connection already in progress'));
-        return;
-      }
+    // If already connected, return existing promise
+    if (this.socket?.connected) {
+      return Promise.resolve();
+    }
 
-      this.isConnecting = true;
+    // If already connecting, return the existing connection promise
+    if (this.isConnecting && this.connectionPromise) {
+      return this.connectionPromise;
+    }
 
+    // If there's an existing socket but not connected, disconnect it first
+    if (this.socket && !this.socket.connected) {
+      this.socket.disconnect();
+      this.socket = null;
+    }
+
+    this.isConnecting = true;
+
+    this.connectionPromise = new Promise((resolve, reject) => {
       try {
         // When running in Docker, use relative URLs to leverage Vite proxy
         // When running locally, use the full URL
@@ -130,19 +124,24 @@ class WebSocketService {
 
         this.socket.on('connect', () => {
           this.isConnecting = false;
+          this.connectionPromise = null;
           resolve();
         });
 
         this.socket.on('connect_error', (error: Error) => {
           this.isConnecting = false;
+          this.connectionPromise = null;
           reject(error);
         });
 
       } catch (error) {
         this.isConnecting = false;
+        this.connectionPromise = null;
         reject(error);
       }
     });
+
+    return this.connectionPromise;
   }
 
   public disconnect(): void {
@@ -150,6 +149,8 @@ class WebSocketService {
       this.socket.disconnect();
       this.socket = null;
     }
+    this.isConnecting = false;
+    this.connectionPromise = null;
   }
 
   public joinBot(botId: string): void {

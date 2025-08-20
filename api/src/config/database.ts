@@ -24,6 +24,7 @@ import { Permission } from '../entities/Permission.js';
 import { FeatureFlag } from '../entities/FeatureFlag.js';
 import { Secret } from '../entities/Secret.js';
 import { Service } from '../entities/Service.js';
+import { AIModel } from '../entities/AIModel.js';
 
 // Helper to determine if running from dist (production build), ESM compatible
 // Use a different approach for test environment to avoid import.meta issues
@@ -63,7 +64,8 @@ export const AppDataSource = new DataSource({
     Permission,
     FeatureFlag,
     Secret,
-    Service
+    Service,
+    AIModel
   ],
   migrations: [
     isDist ? 'dist/migrations/*.js' : 'src/migrations/*.ts'

@@ -2,6 +2,7 @@ import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateCol
 import { User } from './User.js';
 import { Prompt } from './Prompt.js';
 import { BotTool } from './BotTool.js';
+import { AIModel } from './AIModel.js';
 
 @Entity('bots')
 export class Bot {
@@ -21,7 +22,13 @@ export class Bot {
   isActive!: boolean;
 
   @Column({ default: 'gemini-2.5-flash' })
-  model!: string;
+  model!: string; // Keep for backward compatibility, will be deprecated
+
+  @ManyToOne(() => AIModel, { nullable: true, onDelete: 'SET NULL' })
+  aiModel?: Relation<AIModel>;
+
+  @Column({ nullable: true })
+  aiModelId?: string;
 
   @ManyToOne(() => User, { onDelete: 'CASCADE' })
   user!: Relation<User>;

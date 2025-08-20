@@ -1,6 +1,7 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import config from '../config/environment.js';
 import { SecretService } from './secretService.js';
+import { AIModel } from '../entities/AIModel.js';
 
 export interface GeminiResponse {
   response: string;
@@ -39,7 +40,7 @@ export class GeminiService {
     return genAI.getGenerativeModel({ model: modelName });
   }
 
-  async generateResponse(
+  async generateResponseWithContext(
     promptContext: string,
     conversationHistory: string,
     userMessage: string,
@@ -95,5 +96,39 @@ Assistant:`;
     // Simple estimation: ~4 characters per token
     // This is a rough approximation for English text
     return Math.ceil(text.length / 4);
+  }
+
+  // New method to match LLMService interface
+  async generateResponse(
+    aiModel: AIModel,
+    prompt: string,
+    systemPrompt?: string,
+    temperature: number = 0.7,
+    maxTokens: number = 1000
+  ): Promise<string> {
+    try {
+      const apiKey = await this.getApiKey(aiModel.userId);
+      const genAI = new GoogleGenerativeAI(apiKey);
+      const model = genAI.getGenerativeModel({ model: aiModel.modelId });
+
+      const fullPrompt = systemPrompt ? `${systemPrompt}\n\n${prompt}` : prompt;
+      const result = await model.generateContent(fullPrompt);
+      const response = await result.response;
+
+      return response.text();
+    } catch (error) {
+      console.error('Gemini API request failed:', error);
+      throw new Error(`Gemini API request failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  async testConnection(aiModel: AIModel): Promise<boolean> {
+    try {
+      await this.generateResponse(aiModel, 'Hello', undefined, 0.1, 10);
+      return true;
+    } catch (error) {
+      console.error('Gemini connection test failed:', error);
+      return false;
+    }
   }
 }

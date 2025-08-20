@@ -58,7 +58,17 @@ export class BotExecutionService {
 
     const isOwner = bot.userId === userId;
     const isAdmin = user.role?.name === 'admin';
-    const isSystemBot = bot.userId === 'b881aae8-8828-43a5-9aad-4e0703a46c59'; // System user ID
+
+    // Get the actual system user ID
+    const systemUser = await AppDataSource.getRepository('User').findOne({
+      where: { email: 'system@platform.com' }
+    });
+    const isSystemBot = systemUser && bot.userId === systemUser.id;
+
+
+
+    // Temporary debug logging
+    console.log('🔐 Auth check:', { userId, botUserId: bot.userId, userRole: user.role?.name, isOwner, isAdmin, isSystemBot });
 
     if (!isOwner && !(isAdmin && isSystemBot)) {
       throw new Error('Unauthorized to start this bot');
@@ -188,7 +198,12 @@ export class BotExecutionService {
 
     const isOwner = bot.userId === userId;
     const isAdmin = user.role?.name === 'admin';
-    const isSystemBot = bot.userId === 'b881aae8-8828-43a5-9aad-4e0703a46c59'; // System user ID
+
+    // Get the actual system user ID
+    const systemUser = await AppDataSource.getRepository('User').findOne({
+      where: { email: 'system@platform.com' }
+    });
+    const isSystemBot = systemUser && bot.userId === systemUser.id;
 
     if (!isOwner && !(isAdmin && isSystemBot)) {
       throw new Error('Unauthorized to use this bot');

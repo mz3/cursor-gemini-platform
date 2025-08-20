@@ -9,7 +9,7 @@ const isSentryEnabled = SENTRY_DSN && NODE_ENV !== 'development';
 
 export function initializeSentry() {
   if (!isSentryEnabled) {
-    console.log('Sentry disabled for local development or missing DSN');
+    // console.log('Sentry disabled for local development or missing DSN'); // Removed to reduce console noise
     return;
   }
 
