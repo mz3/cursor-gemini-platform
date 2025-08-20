@@ -2,6 +2,8 @@ import { Router, Request, Response, NextFunction } from 'express';
 import { BotExecutionService } from '../services/botExecutionService.js';
 import jwt from 'jsonwebtoken';
 
+console.log('🚀 Bot execution routes module loaded');
+
 const router = Router();
 
 // Authentication middleware

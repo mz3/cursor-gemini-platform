@@ -209,8 +209,13 @@ describe('Bot Execution API Integration Tests', () => {
       expect(response.body).toHaveProperty('botResponse');
       expect(response.body.userMessage).toHaveProperty('content', testMessage);
       expect(response.body.botResponse).toHaveProperty('content');
+      expect(response.body.botResponse).toHaveProperty('status', 'processing');
       expect(typeof response.body.botResponse.content).toBe('string');
-      expect(response.body.botResponse.content.length).toBeGreaterThan(0);
+      
+      // In production mode, the initial response has empty content and processing status
+      // The actual response is generated asynchronously
+      expect(response.body.botResponse.content).toBe('');
+      expect(response.body.botResponse.id).toMatch(/^pending-/);
     });
 
     it('should return 400 when userId is missing', async () => {
@@ -292,8 +297,9 @@ describe('Bot Execution API Integration Tests', () => {
         .expect(200);
 
       expect(chatResponse.body.userMessage.content).toBe('Hello, how are you?');
-      expect(chatResponse.body.botResponse.content).toBeDefined();
-      expect(chatResponse.body.botResponse.content.length).toBeGreaterThan(0);
+      expect(chatResponse.body.botResponse).toHaveProperty('status', 'processing');
+      expect(chatResponse.body.botResponse.content).toBe('');
+      expect(chatResponse.body.botResponse.id).toMatch(/^pending-/);
 
       // Step 3: Get conversation history
       const historyResponse = await request(TEST_CONFIG.API_BASE_URL)
@@ -363,8 +369,9 @@ describe('Bot Execution API Integration Tests', () => {
           .expect(200);
 
         expect(response.body.userMessage.content).toBe(message);
-        expect(response.body.botResponse.content).toBeDefined();
-        expect(response.body.botResponse.content.length).toBeGreaterThan(0);
+        expect(response.body.botResponse).toHaveProperty('status', 'processing');
+        expect(response.body.botResponse.content).toBe('');
+        expect(response.body.botResponse.id).toMatch(/^pending-/);
       }
 
       // Stop bot
@@ -387,7 +394,7 @@ describe('Bot Execution API Integration Tests', () => {
       expect(response.body).toHaveProperty('error');
     });
 
-    it('should ignore body userId and use token userId', async () => {
+    it('should use token userId and ignore invalid body userId', async () => {
       const response = await request(TEST_CONFIG.API_BASE_URL)
         .post(`/api/bot-execution/${testBotId}/start`)
         .set('Authorization', `Bearer ${authToken}`)
