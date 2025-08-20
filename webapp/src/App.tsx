@@ -42,6 +42,7 @@ import AdminDashboard from './components/AdminDashboard';
 import Secrets from './components/Secrets';
 import CreateSecret from './components/CreateSecret';
 import EditSecret from './components/EditSecret';
+import Profile from './components/Profile';
 import PrivateRoute from './components/PrivateRoute';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { cn } from './utils/cn';
@@ -82,6 +83,7 @@ const AppContent: React.FC = () => {
     { name: 'Entities', href: '/entity-manager', icon: Layers },
     { name: 'Features', href: '/features', icon: Zap },
     { name: 'Prompts', href: '/prompts', icon: MessageSquare },
+    { name: 'Profile', href: '/profile', icon: User },
     { name: 'Schemas', href: '/schemas', icon: Database },
     { name: 'Services', href: '/services', icon: Server },
     { name: 'Secrets', href: '/secrets', icon: Key },
@@ -216,6 +218,7 @@ const AppContent: React.FC = () => {
             <Route path="/services/:id" element={<PrivateRoute><ViewService /></PrivateRoute>} />
             <Route path="/services/:id/edit" element={<PrivateRoute><EditService /></PrivateRoute>} />
             <Route path="/tools" element={<PrivateRoute><Tools /></PrivateRoute>} />
+            <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
             <Route path="/settings" element={<PrivateRoute><Settings /></PrivateRoute>} />
             <Route path="/entity-manager" element={<PrivateRoute><Entities /></PrivateRoute>} />
             <Route path="/admin" element={<PrivateRoute><AdminDashboard /></PrivateRoute>} />
