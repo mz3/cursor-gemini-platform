@@ -3,7 +3,7 @@
 import 'reflect-metadata';
 import dotenv from 'dotenv';
 import { initializeDatabase } from '../config/database.js';
-// import { seedDatabase } from '../utils/seedDatabase.js';
+import { seedDatabase } from '../utils/seedDatabase.js';
 
 // Load environment variables
 dotenv.config();
@@ -18,8 +18,8 @@ async function runSeeding() {
     console.log('✅ Database initialized successfully');
 
     console.log('🌱 Seeding database with initial data...');
-    // await seedDatabase();
-    console.log('✅ Database seeded successfully (disabled)');
+    await seedDatabase();
+    console.log('✅ Database seeded successfully');
 
     console.log('🎉 Seeding completed successfully!');
     process.exit(0);

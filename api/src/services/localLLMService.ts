@@ -35,12 +35,15 @@ export class LocalLLMService {
     aiModel: AIModel,
     prompt: string,
     systemPrompt?: string,
-    temperature: number = 0.7,
-    maxTokens: number = 1000
+    temperature: number = 0.3,
+    maxTokens: number = 200
   ): Promise<string> {
     // For local LLMs, we typically don't need API keys, but we might need other configuration
     const baseUrl = aiModel.baseUrl || 'http://localhost:1234';
-    const url = `${baseUrl}/v1/chat/completions`;
+    // Check if baseUrl already ends with /v1 to avoid double /v1/v1
+    const url = baseUrl.endsWith('/v1')
+      ? `${baseUrl}/chat/completions`
+      : `${baseUrl}/v1/chat/completions`;
 
     const messages = [];
     if (systemPrompt) {
@@ -57,7 +60,9 @@ export class LocalLLMService {
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(requestBody)
+        body: JSON.stringify(requestBody),
+        // Add timeout for faster responses
+        signal: AbortSignal.timeout(30000) // 30 second timeout
       });
 
       if (!response.ok) {
@@ -66,6 +71,9 @@ export class LocalLLMService {
       }
 
       const data = await response.json() as LocalLLMResponse;
+      console.log('Local LLM response data:', JSON.stringify(data, null, 2));
+      console.log('Choices array:', data.choices);
+      console.log('First choice:', data.choices?.[0]);
       return data.choices[0]?.message?.content || 'No response generated';
     } catch (error) {
       console.error('Local LLM API request failed:', error);
@@ -83,8 +91,13 @@ export class LocalLLMService {
       model: aiModel.modelId,
       messages,
       temperature,
-      max_tokens: maxTokens,
-      stream: false
+      stream: false,
+      // Add performance optimizations
+      top_p: 0.9,
+      top_k: 40,
+      repeat_penalty: 1.1,
+      // Reduce context window for faster processing
+      max_tokens: Math.min(maxTokens, 200)
     };
 
     // Add model-specific configurations
@@ -98,10 +111,13 @@ export class LocalLLMService {
     return baseBody;
   }
 
-  async testConnection(aiModel: AIModel): Promise<{ connected: boolean; models?: string[]; error?: string }> {
+  async testConnection(aiModel: AIModel): Promise<boolean> {
     try {
       const baseUrl = aiModel.baseUrl || 'http://localhost:1234';
-      const url = `${baseUrl}/v1/models`;
+      // Check if baseUrl already ends with /v1 to avoid double /v1/v1
+      const url = baseUrl.endsWith('/v1')
+        ? `${baseUrl}/models`
+        : `${baseUrl}/v1/models`;
 
       const response = await fetch(url, {
         method: 'GET',
@@ -113,40 +129,32 @@ export class LocalLLMService {
       });
 
       if (!response.ok) {
-        return {
-          connected: false,
-          error: `HTTP ${response.status}: ${response.statusText}`
-        };
+        console.error(`Local LLM connection failed: HTTP ${response.status}: ${response.statusText}`);
+        return false;
       }
 
       const data = await response.json() as { data: LocalLLMModelInfo[] };
-      
+
       if (!data.data || data.data.length === 0) {
-        return {
-          connected: false,
-          error: 'No models found in LM Studio'
-        };
+        console.error('Local LLM connection failed: No models found in LM Studio');
+        return false;
       }
 
-      const models = data.data.map(model => model.id);
-      
-      return {
-        connected: true,
-        models
-      };
+      console.log(`Local LLM connected successfully. Available models: ${data.data.map(model => model.id).join(', ')}`);
+      return true;
     } catch (error) {
       console.error('Local LLM connection test failed:', error);
-      return {
-        connected: false,
-        error: error instanceof Error ? error.message : 'Connection failed'
-      };
+      return false;
     }
   }
 
   async getAvailableModels(aiModel: AIModel): Promise<string[]> {
     try {
       const baseUrl = aiModel.baseUrl || 'http://localhost:1234';
-      const url = `${baseUrl}/v1/models`;
+      // Check if baseUrl already ends with /v1 to avoid double /v1/v1
+      const url = baseUrl.endsWith('/v1')
+        ? `${baseUrl}/models`
+        : `${baseUrl}/v1/models`;
 
       const response = await fetch(url, {
         method: 'GET',

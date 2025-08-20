@@ -120,7 +120,7 @@ export class LocalLLMService {
       }
 
       const data = await response.json() as { data: LocalLLMModelInfo[] };
-      
+
       if (!data.data || data.data.length === 0) {
         return {
           connected: false,
@@ -129,7 +129,7 @@ export class LocalLLMService {
       }
 
       const models = data.data.map(model => model.id);
-      
+
       return {
         connected: true,
         models

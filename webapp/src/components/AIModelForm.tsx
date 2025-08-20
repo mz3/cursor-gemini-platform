@@ -166,7 +166,7 @@ const AIModelForm: React.FC<AIModelFormProps> = ({
       }
 
       const data = await response.json() as { data: Array<{ id: string }> };
-      
+
       if (!data.data || data.data.length === 0) {
         throw new Error('No models found in LM Studio');
       }
