@@ -16,7 +16,7 @@ describe('Profile Update Endpoints', () => {
       .post('/api/users/login')
       .send({ email: 'admin@platform.com', password: 'admin123' });
     authToken = res.body.token;
-    
+
     // Store original password for cleanup
     originalPassword = 'admin123';
   });

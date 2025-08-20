@@ -235,6 +235,9 @@ export class BotExecutionService {
     await chatMessageRepository.save(userMessage);
 
     // Check if we're in test environment to provide immediate mock response
+    console.log('🔍 NODE_ENV check:', process.env.NODE_ENV);
+    console.log('🔍 Current working directory:', process.cwd());
+    console.log('🔍 Environment variables:', Object.keys(process.env).filter(key => key.includes('NODE')));
     if (process.env.NODE_ENV === 'test') {
       console.log('🧪 Test environment detected, using mock response');
       // Create immediate mock bot response for testing

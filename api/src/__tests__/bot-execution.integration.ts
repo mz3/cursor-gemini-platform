@@ -80,7 +80,7 @@ describe('Bot Execution API Integration Tests', () => {
     }
 
     // Log the test setup for debugging
-    console.log('Test setup:', { testBotId, testUserId });
+    console.log('Test setup:', { testBotId, testUserId, authToken: authToken ? 'present' : 'missing' });
   });
 
   describe('POST /api/bot-execution/:botId/start', () => {
@@ -202,6 +202,8 @@ describe('Bot Execution API Integration Tests', () => {
         .set('Authorization', `Bearer ${authToken}`)
         .send({ userId: testUserId, message: testMessage })
         .expect(200);
+
+      console.log('Chat response:', JSON.stringify(response.body, null, 2));
 
       expect(response.body).toHaveProperty('userMessage');
       expect(response.body).toHaveProperty('botResponse');

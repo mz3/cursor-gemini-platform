@@ -77,9 +77,12 @@ router.get('/:botId/status', authenticateUser, async (req: Request, res: Respons
 // POST /api/bot-execution/:botId/chat - Send a message to a bot
 router.post('/:botId/chat', authenticateUser, async (req: Request, res: Response, next: NextFunction) => {
   try {
+    console.log('🚀 Bot chat route called');
     const { botId } = req.params;
     const { message } = req.body;
     const userId = (req as any).user.userId;
+
+    console.log('🚀 Route params:', { botId, message, userId });
 
     if (!message) {
       return res.status(400).json({ error: 'message is required' });
@@ -88,9 +91,12 @@ router.post('/:botId/chat', authenticateUser, async (req: Request, res: Response
       return res.status(400).json({ error: 'botId is required' });
     }
 
+    console.log('🚀 Calling BotExecutionService.sendMessage');
     const result = await BotExecutionService.sendMessage(botId, userId, message);
+    console.log('🚀 BotExecutionService.sendMessage result:', result);
     return res.json(result);
   } catch (error) {
+    console.log('🚀 Bot chat route error:', error);
     return next(error);
   }
 });

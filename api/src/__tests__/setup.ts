@@ -27,6 +27,7 @@ console.log = (...args: any[]) => {
       !message.includes('Mock BotExecutionService.sendMessage called') &&
       !message.includes('Mock response:') &&
       !message.includes('🧪 Test environment detected, using mock response') &&
+      // !message.includes('🔍 NODE_ENV check:') &&
       !message.includes('🌐 Production environment, queuing message for async processing')
   ) {
     originalConsoleLog(...args);
