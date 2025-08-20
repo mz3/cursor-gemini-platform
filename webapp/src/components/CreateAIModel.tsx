@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
-import { aiModelApi, CreateAIModelDto } from '../services/aiModelService';
+import { aiModelApi, CreateAIModelDto, UpdateAIModelDto } from '../services/aiModelService';
 import AIModelForm from './AIModelForm';
 
 const CreateAIModel: React.FC = () => {
@@ -18,9 +18,9 @@ const CreateAIModel: React.FC = () => {
     },
   });
 
-  const handleSubmit = async (data: CreateAIModelDto) => {
+  const handleSubmit = async (data: CreateAIModelDto | UpdateAIModelDto) => {
     setError('');
-    await createMutation.mutateAsync(data);
+    await createMutation.mutateAsync(data as CreateAIModelDto);
   };
 
   return (

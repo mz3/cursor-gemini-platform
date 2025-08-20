@@ -12,9 +12,10 @@ interface ProfileFormData {
 }
 
 const Profile: React.FC = () => {
-  const { user, setError, clearError, refreshUser } = useAuth();
+  const { user, clearError, refreshUser } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState<ProfileFormData>({
     email: user?.email || '',
     currentPassword: '',
@@ -74,7 +75,7 @@ const Profile: React.FC = () => {
     if (!validateForm()) return;
 
     setIsLoading(true);
-    clearError();
+    setError(null);
     setSuccessMessage(null);
 
     try {
@@ -102,7 +103,7 @@ const Profile: React.FC = () => {
     if (!validateForm()) return;
 
     setIsLoading(true);
-    clearError();
+    setError(null);
     setSuccessMessage(null);
 
     try {
@@ -149,6 +150,17 @@ const Profile: React.FC = () => {
             <CheckCircle className="h-5 w-5 text-green-400" />
             <div className="ml-3">
               <p className="text-sm text-green-800 dark:text-green-200">{successMessage}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {error && (
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md p-4">
+          <div className="flex">
+            <AlertCircle className="h-5 w-5 text-red-400" />
+            <div className="ml-3">
+              <p className="text-sm text-red-800 dark:text-red-200">{error}</p>
             </div>
           </div>
         </div>

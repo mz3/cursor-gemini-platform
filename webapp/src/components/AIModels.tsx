@@ -117,7 +117,7 @@ const AIModels: React.FC = () => {
       </div>
 
       <div className="p-6">
-        <ErrorDisplay error={error?.message} />
+        <ErrorDisplay error={error?.message ?? null} />
 
         <div className="flex space-x-4 mb-6">
           <div className="flex-1">
@@ -188,7 +188,7 @@ const AIModels: React.FC = () => {
                         {model.displayName}
                       </div>
                       <div className="text-sm text-gray-500 dark:text-gray-400">
-                        {model.description || '-'}
+                        {model.description ?? '-'}
                       </div>
                     </div>
                   </td>
