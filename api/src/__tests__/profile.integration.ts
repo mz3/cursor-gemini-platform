@@ -4,6 +4,7 @@ import { TEST_CONFIG } from './config.js';
 describe('Profile Update Endpoints', () => {
   let authToken: string;
   let originalPassword: string;
+  let uniqueEmail: string;
 
   beforeAll(async () => {
     // Login to get token
@@ -14,6 +15,9 @@ describe('Profile Update Endpoints', () => {
 
     // Store original password for cleanup
     originalPassword = 'admin123';
+    
+    // Generate unique email for testing
+    uniqueEmail = `test-${Date.now()}@example.com`;
   });
 
   afterAll(async () => {
@@ -33,15 +37,13 @@ describe('Profile Update Endpoints', () => {
 
   describe('PUT /api/users/profile', () => {
     it('should update user email successfully', async () => {
-      const newEmail = 'newemail@example.com';
-
       const response = await request(TEST_CONFIG.API_BASE_URL)
         .put('/api/users/profile')
         .set('Authorization', `Bearer ${authToken}`)
-        .send({ email: newEmail });
+        .send({ email: uniqueEmail });
 
       expect(response.status).toBe(200);
-      expect(response.body).toHaveProperty('email', newEmail);
+      expect(response.body).toHaveProperty('email', uniqueEmail);
       expect(response.body).toHaveProperty('firstName', 'Admin');
       expect(response.body).toHaveProperty('lastName', 'User');
     });
@@ -66,7 +68,7 @@ describe('Profile Update Endpoints', () => {
       const loginResponse = await request(TEST_CONFIG.API_BASE_URL)
         .post('/api/users/login')
         .send({
-          email: 'newemail@example.com',
+          email: uniqueEmail,
           password: newPassword
         });
 
@@ -83,7 +85,7 @@ describe('Profile Update Endpoints', () => {
       expect(response.status).toBe(400);
       expect(response.body).toHaveProperty('error');
       expect(response.body.error).toHaveProperty('message');
-      expect(response.body.error.message).toContain('valid email address');
+      expect(response.body.error.message).toContain('Please provide a valid email address');
     });
 
     it('should return 400 for password less than 6 characters', async () => {
@@ -91,7 +93,7 @@ describe('Profile Update Endpoints', () => {
         .put('/api/users/profile')
         .set('Authorization', `Bearer ${authToken}`)
         .send({
-          currentPassword: 'admin123',
+          currentPassword: 'newpassword123', // Use the password that was set in previous test
           newPassword: '123'
         });
 

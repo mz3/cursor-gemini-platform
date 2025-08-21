@@ -1,3 +1,5 @@
+import { GeminiService } from '../services/geminiService.js';
+
 // Mock config module
 jest.mock('../config/environment.js', () => ({
   default: {
@@ -32,8 +34,6 @@ jest.mock('@google/generative-ai', () => ({
     })
   }))
 }));
-
-import { GeminiService } from '../services/geminiService.js';
 
 describe('GeminiService', () => {
   let geminiService: GeminiService;
