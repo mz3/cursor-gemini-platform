@@ -14,15 +14,28 @@ const chatMessageRepository = AppDataSource.getRepository(ChatMessage);
 const botRepository = AppDataSource.getRepository(Bot);
 const botToolRepository = AppDataSource.getRepository(BotTool);
 
+let processingInterval: NodeJS.Timeout | null = null;
+
 export const startBotWorker = async (): Promise<void> => {
-  console.log('🤖 Starting bot processing worker...');
+  console.log('🤖 Starting bot processing worker with hot reload support - v2...');
 
   // Start listening to bot message queues
-  setInterval(async () => {
+  processingInterval = setInterval(async () => {
     await processBotMessages();
   }, 1000);
 
   console.log('✅ Bot worker started, listening for bot messages...');
+};
+
+export const stopBotWorker = async (): Promise<void> => {
+  console.log('🛑 Stopping bot processing worker...');
+  
+  if (processingInterval) {
+    clearInterval(processingInterval);
+    processingInterval = null;
+  }
+  
+  console.log('✅ Bot worker stopped');
 };
 
 const processBotMessages = async (): Promise<void> => {

@@ -87,7 +87,7 @@ services:
   bot-worker:
     build:
       context: ../bot
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev2
     container_name: bot-worker-dev2
     environment:
       NODE_ENV: development
