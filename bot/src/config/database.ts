@@ -14,6 +14,7 @@ import { Entity } from '../entities/Entity.js';
 import { Workflow } from '../entities/Workflow.js';
 import { WorkflowAction } from '../entities/WorkflowAction.js';
 import { Secret } from '../entities/Secret.js';
+import { AIModel } from '../entities/AIModel.js';
 
 export const AppDataSource = new DataSource({
   type: 'postgres',
@@ -39,7 +40,8 @@ export const AppDataSource = new DataSource({
     Entity,
     Workflow,
     WorkflowAction,
-    Secret
+    Secret,
+    AIModel
   ],
   migrations: [],
   subscribers: [],

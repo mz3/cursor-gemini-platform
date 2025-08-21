@@ -29,12 +29,12 @@ export const startBotWorker = async (): Promise<void> => {
 
 export const stopBotWorker = async (): Promise<void> => {
   console.log('🛑 Stopping bot processing worker...');
-  
+
   if (processingInterval) {
     clearInterval(processingInterval);
     processingInterval = null;
   }
-  
+
   console.log('✅ Bot worker stopped');
 };
 
@@ -87,7 +87,7 @@ const processBotMessage = async (
     // Get bot with prompts, tools, and AI model
     const bot = await botRepository.findOne({
       where: { id: botId },
-      relations: ['prompts', 'prompts.versions', 'tools', 'aiModel']
+      relations: ['prompts', 'prompts.versions', 'tools']
     });
 
     if (!bot) {
@@ -175,19 +175,14 @@ const processMessage = async (
     : promptContext;
 
   try {
-    // Use the bot's AI model if available, otherwise fall back to default
-    let aiModel = bot.aiModel;
+    // Get the default AI model for the user
+    const aiModelRepository = AppDataSource.getRepository(AIModel);
+    const aiModel = await aiModelRepository.findOne({
+      where: { userId: instance.userId, isDefault: true, isActive: true }
+    });
 
     if (!aiModel) {
-      // Get the default AI model for the user
-      const aiModelRepository = AppDataSource.getRepository(AIModel);
-      aiModel = await aiModelRepository.findOne({
-        where: { userId: instance.userId, isDefault: true, isActive: true }
-      });
-
-      if (!aiModel) {
-        throw new Error('No AI model configured for this bot');
-      }
+      throw new Error('No AI model configured for this bot');
     }
 
     // Generate response using the LLMServiceFactory

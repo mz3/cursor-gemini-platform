@@ -23,7 +23,7 @@ export interface LLMService {
     maxTokens?: number
   ): Promise<string>;
 
-  testConnection(aiModel: AIModel): Promise<boolean>;
+  testConnection(aiModel: AIModel): Promise<boolean | { connected: boolean; models?: string[]; error?: string }>;
 }
 
 export class LLMServiceFactory {
@@ -70,6 +70,13 @@ export class LLMServiceFactory {
 
   static async testConnection(aiModel: AIModel): Promise<boolean> {
     const service = this.getService(aiModel.provider);
-    return await service.testConnection(aiModel);
+    const result = await service.testConnection(aiModel);
+
+    // Handle different return types
+    if (typeof result === 'boolean') {
+      return result;
+    } else {
+      return result.connected;
+    }
   }
 }

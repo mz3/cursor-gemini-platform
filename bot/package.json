@@ -5,10 +5,10 @@
   "type": "module",
   "main": "dist/index.js",
   "scripts": {
-    "build": "echo 'Skipping TypeScript compilation for now' && cp -r src/* dist/ 2>/dev/null || true",
+    "build": "tsc",
     "start": "node dist/index.js",
-    "dev": "nodemon --exec \"node --loader ts-node/esm\" src/index.ts",
-    "dev:watch": "nodemon --watch src --ext ts,js --exec \"node --loader ts-node/esm\" src/index.ts",
+    "dev": "nodemon --exec \"npm run build && node dist/index.js\"",
+    "dev:watch": "nodemon --watch src --ext ts,js --exec \"npm run build && node dist/index.js\"",
     "test": "node --experimental-vm-modules node_modules/.bin/jest --config=jest.config.js --passWithNoTests",
     "test:watch": "node --experimental-vm-modules node_modules/.bin/jest --config=jest.config.js --watch",
     "test:coverage": "node --experimental-vm-modules node_modules/.bin/jest --config=jest.config.js --coverage",

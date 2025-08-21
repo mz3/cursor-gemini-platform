@@ -8,7 +8,7 @@
     "dist/**",
     "node_modules/**"
   ],
-  "exec": "node --loader ts-node/esm src/index.ts",
+  "exec": "npm run build && node dist/index.js",
   "env": {
     "NODE_ENV": "development"
   },

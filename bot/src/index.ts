@@ -4,6 +4,7 @@ import { initializeDatabase } from './config/database.js';
 import { initializeRedis } from './config/redis.js';
 import { startBotWorker, stopBotWorker } from './services/botWorkerService.js';
 
+// Test comment for hot reload - v2 (updated)
 dotenv.config();
 
 let isShuttingDown = false;
