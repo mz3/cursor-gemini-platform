@@ -143,7 +143,7 @@ router.post('/:id/generate', async (req: Request, res: Response) => {
       maxTokens || 1000
     );
 
-    return res.json(response);
+    return res.json({ response: response.content });
   } catch (error) {
     console.error('❌ Error generating response for AI model:', id);
     console.error('📝 Request details:', { prompt, systemPrompt, temperature, maxTokens });

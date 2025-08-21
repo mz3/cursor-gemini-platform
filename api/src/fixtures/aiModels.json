@@ -95,7 +95,7 @@
     "description": "Google's Gemma 3 12B model running locally via LM Studio",
     "provider": "local",
     "modelId": "google/gemma-3-12b",
-    "baseUrl": "http://localhost:1234/v1",
+    "baseUrl": "http://10.5.0.2:1234/v1",
     "capabilities": "text,code,reasoning",
     "configuration": {
       "maxTokens": 4096,
@@ -104,6 +104,23 @@
     },
     "isActive": true,
     "isDefault": false,
+    "userId": "system@platform.com"
+  },
+  {
+    "name": "mythomax-l2-13b",
+    "displayName": "MythoMax L2 13B (Local)",
+    "description": "MythoMax L2 13B model running locally via LM Studio",
+    "provider": "local",
+    "modelId": "mythomax-l2-13b",
+    "baseUrl": "http://10.5.0.2:1234/v1",
+    "capabilities": "text,code,reasoning",
+    "configuration": {
+      "maxTokens": 4096,
+      "temperature": 0.7,
+      "topP": 0.95
+    },
+    "isActive": true,
+    "isDefault": true,
     "userId": "system@platform.com"
   }
 ]

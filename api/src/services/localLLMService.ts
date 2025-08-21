@@ -71,7 +71,7 @@ export class LocalLLMService {
         },
         body: JSON.stringify(requestBody),
         // Add timeout for local LLM responses
-        signal: AbortSignal.timeout(120000) // 120 second timeout
+        signal: AbortSignal.timeout(300000) // 300 second timeout
       });
 
       const responseTime = Date.now() - startTime;
@@ -123,12 +123,12 @@ export class LocalLLMService {
 
       if (error instanceof Error) {
         if (error.name === 'TimeoutError') {
-          console.error('⏰ Request timed out after 60 seconds');
+          console.error('⏰ Request timed out after 300 seconds');
           console.error('🔍 This could be due to:');
           console.error('   - LM Studio not responding quickly enough');
           console.error('   - Network connectivity issues');
           console.error('   - LM Studio being overloaded');
-          throw new Error(`Local LLM request timed out after 60 seconds. Please check if LM Studio is running and responsive.`);
+          throw new Error(`Local LLM request timed out after 300 seconds. Please check if LM Studio is running and responsive.`);
         } else if (error.name === 'TypeError' && error.message.includes('fetch')) {
           console.error('🌐 Network connectivity issue detected');
           throw new Error(`Network error: Cannot reach LM Studio at ${url}. Please check if LM Studio is running and accessible.`);
