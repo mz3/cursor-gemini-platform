@@ -102,8 +102,9 @@ export const errorHandler = (
 
   // Handle specific error types
   if (err.name === 'ValidationError') {
-    message = 'Validation failed';
-    userMessage = 'Please check your input and try again';
+    // Preserve the original validation message
+    message = err.message;
+    userMessage = err.message;
   } else if (err.name === 'TokenExpiredError') {
     statusCode = 401;
     message = 'Token expired';
