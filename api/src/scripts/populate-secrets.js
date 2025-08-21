@@ -41,7 +41,7 @@ function populateSecretFixture(fixturePath, envKey, description) {
       type: "api_key",
       provider: description.toLowerCase(),
       isActive: true,
-      userId: "00000000-0000-0000-0000-000000000001"
+      userId: "system@platform.com"
     }
   ];
 
@@ -76,6 +76,24 @@ function main() {
   // Populate GitHub key
   const githubPath = path.join(fixturesDir, 'github-key.json');
   if (!populateSecretFixture(githubPath, 'GITHUB_API_KEY', 'GitHub')) {
+    success = false;
+  }
+
+  // Populate OpenAI key
+  const openaiPath = path.join(fixturesDir, 'openai-key.json');
+  if (!populateSecretFixture(openaiPath, 'OPENAI_API_KEY', 'OpenAI')) {
+    success = false;
+  }
+
+  // Populate Anthropic key
+  const anthropicPath = path.join(fixturesDir, 'anthropic-key.json');
+  if (!populateSecretFixture(anthropicPath, 'ANTHROPIC_API_KEY', 'Anthropic')) {
+    success = false;
+  }
+
+  // Populate DeepSeek key
+  const deepseekPath = path.join(fixturesDir, 'deepseek-key.json');
+  if (!populateSecretFixture(deepseekPath, 'DEEPSEEK_API_KEY', 'DeepSeek')) {
     success = false;
   }
 

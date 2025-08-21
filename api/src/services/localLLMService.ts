@@ -2,11 +2,11 @@ import { SecretService } from './secretService.js';
 import { AIModel } from '../entities/AIModel.js';
 
 export interface LocalLLMResponse {
-  id: string;
-  object: string;
-  created: number;
-  model: string;
-  choices: Array<{
+  id?: string;
+  object?: string;
+  created?: number;
+  model?: string;
+  choices?: Array<{
     index: number;
     message: {
       role: string;
@@ -14,11 +14,16 @@ export interface LocalLLMResponse {
     };
     finish_reason: string;
   }>;
-  usage: {
+  message?: {
+    role: string;
+    content: string;
+  };
+  usage?: {
     prompt_tokens: number;
     completion_tokens: number;
     total_tokens: number;
   };
+  system_fingerprint?: string;
 }
 
 export interface LocalLLMModelInfo {
@@ -54,30 +59,85 @@ export class LocalLLMService {
     // Model-specific configurations
     const requestBody = this.buildRequestBody(aiModel, messages, temperature, maxTokens);
 
-    try {
+        try {
+      const startTime = Date.now();
+      console.log('🚀 Making request to LM Studio at:', url);
+      console.log('📤 Request body:', JSON.stringify(requestBody, null, 2));
+
       const response = await fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(requestBody),
-        // Add timeout for faster responses
-        signal: AbortSignal.timeout(30000) // 30 second timeout
+        // Add timeout for local LLM responses
+        signal: AbortSignal.timeout(120000) // 120 second timeout
       });
+
+      const responseTime = Date.now() - startTime;
+      console.log('📥 Response received after', responseTime, 'ms');
+      console.log('📥 Response status:', response.status);
+      console.log('📥 Response headers:', Object.fromEntries(response.headers.entries()));
 
       if (!response.ok) {
         const errorText = await response.text();
+        console.error('❌ LM Studio returned error status:', response.status, response.statusText);
+        console.error('❌ Error response body:', errorText);
         throw new Error(`Local LLM API error: ${response.status} ${response.statusText} - ${errorText}`);
       }
 
-      const data = await response.json() as LocalLLMResponse;
-      console.log('Local LLM response data:', JSON.stringify(data, null, 2));
-      console.log('Choices array:', data.choices);
-      console.log('First choice:', data.choices?.[0]);
-      return data.choices[0]?.message?.content || 'No response generated';
+            const data = await response.json() as LocalLLMResponse;
+              console.log('Local LLM response data:', JSON.stringify(data, null, 2));
+        console.log('Response type:', typeof data);
+        console.log('Has choices:', !!data.choices);
+        console.log('Choices length:', data.choices?.length);
+        console.log('Has message:', !!data.message);
+
+        // Log the first choice in detail
+        if (data.choices && data.choices.length > 0) {
+          console.log('First choice:', JSON.stringify(data.choices[0], null, 2));
+          console.log('First choice message:', JSON.stringify(data.choices[0]?.message, null, 2));
+          console.log('First choice content:', data.choices[0]?.message?.content);
+          console.log('Content type:', typeof data.choices[0]?.message?.content);
+          console.log('Content length:', data.choices[0]?.message?.content?.length);
+        }
+
+      // Handle both OpenAI-compatible format (choices array) and LM Studio format (direct message)
+      if (data.choices && data.choices.length > 0) {
+        console.log('Using OpenAI-compatible format');
+        const content = data.choices[0]?.message?.content;
+        console.log('Extracted content:', content);
+        return content || 'No response generated';
+      } else if (data.message) {
+        console.log('Using LM Studio format');
+        const content = data.message.content;
+        console.log('Extracted content:', content);
+        return content || 'No response generated';
+      } else {
+        console.error('Unexpected response format:', data);
+        console.error('Response keys:', Object.keys(data));
+        throw new Error('Unexpected response format from LM Studio');
+      }
     } catch (error) {
-      console.error('Local LLM API request failed:', error);
-      throw new Error(`Local LLM API request failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      console.error('❌ Local LLM API request failed:', error);
+
+      if (error instanceof Error) {
+        if (error.name === 'TimeoutError') {
+          console.error('⏰ Request timed out after 60 seconds');
+          console.error('🔍 This could be due to:');
+          console.error('   - LM Studio not responding quickly enough');
+          console.error('   - Network connectivity issues');
+          console.error('   - LM Studio being overloaded');
+          throw new Error(`Local LLM request timed out after 60 seconds. Please check if LM Studio is running and responsive.`);
+        } else if (error.name === 'TypeError' && error.message.includes('fetch')) {
+          console.error('🌐 Network connectivity issue detected');
+          throw new Error(`Network error: Cannot reach LM Studio at ${url}. Please check if LM Studio is running and accessible.`);
+        } else {
+          throw new Error(`Local LLM API request failed: ${error.message}`);
+        }
+      } else {
+        throw new Error(`Local LLM API request failed: ${String(error)}`);
+      }
     }
   }
 
@@ -96,8 +156,8 @@ export class LocalLLMService {
       top_p: 0.9,
       top_k: 40,
       repeat_penalty: 1.1,
-      // Reduce context window for faster processing
-      max_tokens: Math.min(maxTokens, 200)
+      // Allow longer responses for better conversation quality
+      max_tokens: Math.min(maxTokens, 2048)
     };
 
     // Add model-specific configurations

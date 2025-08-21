@@ -3,6 +3,7 @@ import { User } from './User.js';
 import { Prompt } from './Prompt.js';
 import { BotTool } from './BotTool.js';
 import { BotInstance } from './BotInstance.js';
+import { AIModel } from './AIModel.js';
 
 @Entity('bots')
 export class Bot {
@@ -23,6 +24,12 @@ export class Bot {
 
   @Column({ default: 'gemini-2.5-flash' })
   model!: string;
+
+  @Column({ nullable: true })
+  aiModelId?: string;
+
+  @ManyToOne(() => AIModel, { nullable: true })
+  aiModel?: Relation<AIModel>;
 
   @ManyToOne(() => User, { onDelete: 'CASCADE' })
   user!: Relation<User>;

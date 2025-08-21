@@ -2,41 +2,41 @@
   {
     "name": "code-generation",
     "description": "Generate application code based on schemas",
-    "userId": "system"
+    "userId": "system@platform.com"
   },
   {
     "name": "schema-creation",
     "description": "Create data schemas from natural language",
-    "userId": "system"
+    "userId": "system@platform.com"
   },
   {
     "name": "workflow-generation",
     "description": "Generate workflow automation scripts",
-    "userId": "system"
+    "userId": "system@platform.com"
   },
   {
     "name": "component-generation",
     "description": "Generate UI components from specifications",
-    "userId": "system"
+    "userId": "system@platform.com"
   },
   {
     "name": "api-documentation",
     "description": "Generate API documentation from models",
-    "userId": "system"
+    "userId": "system@platform.com"
   },
   {
     "name": "platform-support",
     "description": "Customer support and platform assistance",
-    "userId": "system"
+    "userId": "system@platform.com"
   },
   {
     "name": "code-builder",
     "description": "Docker container building and deployment",
-    "userId": "system"
+    "userId": "system@platform.com"
   },
   {
     "name": "sysadmin",
     "description": "System administration and server management",
-    "userId": "system"
+    "userId": "system@platform.com"
   }
 ]

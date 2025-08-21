@@ -221,6 +221,7 @@ const AppContent: React.FC = () => {
             <Route path="/ai-models" element={<PrivateRoute><AIModels /></PrivateRoute>} />
             <Route path="/ai-models/create" element={<PrivateRoute><CreateAIModel /></PrivateRoute>} />
             <Route path="/ai-models/:id" element={<PrivateRoute><ViewAIModel /></PrivateRoute>} />
+            <Route path="/ai-models/:id/chat" element={<PrivateRoute><ViewAIModel /></PrivateRoute>} />
             <Route path="/ai-models/:id/edit" element={<PrivateRoute><EditAIModel /></PrivateRoute>} />
             <Route path="/services" element={<PrivateRoute><Services /></PrivateRoute>} />
             <Route path="/services/create" element={<PrivateRoute><CreateService /></PrivateRoute>} />

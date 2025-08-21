@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate, Link, useLocation } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { Edit, TestTube, MessageSquare, ArrowLeft, Send, Loader2 } from 'lucide-react';
 import { aiModelApi, AIModel, GenerateResponseRequest } from '../services/aiModelService';
@@ -7,6 +7,8 @@ import { aiModelApi, AIModel, GenerateResponseRequest } from '../services/aiMode
 const ViewAIModel: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
+  const isChatRoute = location.pathname.includes('/chat');
   const [prompt, setPrompt] = useState('');
   const [systemPrompt, setSystemPrompt] = useState('');
   const [temperature, setTemperature] = useState(0.7);
@@ -155,14 +157,16 @@ const ViewAIModel: React.FC = () => {
               </div>
             </div>
             <div className="flex items-center space-x-2">
-              <button
-                onClick={handleTestConnection}
-                disabled={testConnectionMutation.isPending}
-                className="inline-flex items-center px-3 py-2 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 dark:bg-blue-900/20 dark:border-blue-800 dark:text-blue-400 dark:hover:bg-blue-900/40"
-              >
-                <TestTube className="w-4 h-4 mr-2" />
-                {testConnectionMutation.isPending ? 'Testing...' : 'Test Connection'}
-              </button>
+              {!isChatRoute && (
+                <button
+                  onClick={handleTestConnection}
+                  disabled={testConnectionMutation.isPending}
+                  className="inline-flex items-center px-3 py-2 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 dark:bg-blue-900/20 dark:border-blue-800 dark:text-blue-400 dark:hover:bg-blue-900/40"
+                >
+                  <TestTube className="w-4 h-4 mr-2" />
+                  {testConnectionMutation.isPending ? 'Testing...' : 'Test Connection'}
+                </button>
+              )}
               <Link
                 to={`/ai-models/${id}/edit`}
                 className="inline-flex items-center px-3 py-2 text-sm font-medium text-white bg-primary-600 border border-transparent rounded-md hover:bg-primary-700"
@@ -174,84 +178,86 @@ const ViewAIModel: React.FC = () => {
           </div>
         </div>
 
-        <div className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">
-                Model Information
-              </h3>
-              <dl className="space-y-3">
-                <div>
-                  <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">Provider</dt>
-                  <dd className="mt-1">
-                    <span className={`inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full ${getProviderColor(aiModel.provider)}`}>
-                      <span className="mr-1">{getProviderIcon(aiModel.provider)}</span>
-                      {aiModel.provider.charAt(0).toUpperCase() + aiModel.provider.slice(1)}
-                    </span>
-                  </dd>
-                </div>
-                <div>
-                  <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">Model ID</dt>
-                  <dd className="mt-1 text-sm text-gray-900 dark:text-gray-100">{aiModel.modelId}</dd>
-                </div>
-                <div>
-                  <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">Status</dt>
-                  <dd className="mt-1">
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                      aiModel.isActive
-                        ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
-                        : 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400'
-                    }`}>
-                      {aiModel.isActive ? 'Active' : 'Inactive'}
-                    </span>
-                  </dd>
-                </div>
-                {aiModel.isDefault && (
+        {!isChatRoute && (
+          <div className="p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">
+                  Model Information
+                </h3>
+                <dl className="space-y-3">
                   <div>
-                    <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">Default</dt>
+                    <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">Provider</dt>
                     <dd className="mt-1">
-                      <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400">
-                        Default Model
+                      <span className={`inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full ${getProviderColor(aiModel.provider)}`}>
+                        <span className="mr-1">{getProviderIcon(aiModel.provider)}</span>
+                        {aiModel.provider.charAt(0).toUpperCase() + aiModel.provider.slice(1)}
                       </span>
                     </dd>
                   </div>
-                )}
-              </dl>
-            </div>
+                  <div>
+                    <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">Model ID</dt>
+                    <dd className="mt-1 text-sm text-gray-900 dark:text-gray-100">{aiModel.modelId}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">Status</dt>
+                    <dd className="mt-1">
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                        aiModel.isActive
+                          ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
+                          : 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400'
+                      }`}>
+                        {aiModel.isActive ? 'Active' : 'Inactive'}
+                      </span>
+                    </dd>
+                  </div>
+                  {aiModel.isDefault && (
+                    <div>
+                      <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">Default</dt>
+                      <dd className="mt-1">
+                        <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400">
+                          Default Model
+                        </span>
+                      </dd>
+                    </div>
+                  )}
+                </dl>
+              </div>
 
-            <div>
-              <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">
-                Configuration
-              </h3>
-              <dl className="space-y-3">
-                {aiModel.apiVersion && (
-                  <div>
-                    <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">API Version</dt>
-                    <dd className="mt-1 text-sm text-gray-900 dark:text-gray-100">{aiModel.apiVersion}</dd>
-                  </div>
-                )}
-                {aiModel.baseUrl && (
-                  <div>
-                    <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">Base URL</dt>
-                    <dd className="mt-1 text-sm text-gray-900 dark:text-gray-100 font-mono">{aiModel.baseUrl}</dd>
-                  </div>
-                )}
-                {aiModel.capabilities && (
-                  <div>
-                    <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">Capabilities</dt>
-                    <dd className="mt-1 text-sm text-gray-900 dark:text-gray-100">{aiModel.capabilities}</dd>
-                  </div>
-                )}
-                {aiModel.secretId && (
-                  <div>
-                    <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">Secret ID</dt>
-                    <dd className="mt-1 text-sm text-gray-900 dark:text-gray-100">{aiModel.secretId}</dd>
-                  </div>
-                )}
-              </dl>
+              <div>
+                <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">
+                  Configuration
+                </h3>
+                <dl className="space-y-3">
+                  {aiModel.apiVersion && (
+                    <div>
+                      <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">API Version</dt>
+                      <dd className="mt-1 text-sm text-gray-900 dark:text-gray-100">{aiModel.apiVersion}</dd>
+                    </div>
+                  )}
+                  {aiModel.baseUrl && (
+                    <div>
+                      <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">Base URL</dt>
+                      <dd className="mt-1 text-sm text-gray-900 dark:text-gray-100 font-mono">{aiModel.baseUrl}</dd>
+                    </div>
+                  )}
+                  {aiModel.capabilities && (
+                    <div>
+                      <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">Capabilities</dt>
+                      <dd className="mt-1 text-sm text-gray-900 dark:text-gray-100">{aiModel.capabilities}</dd>
+                    </div>
+                  )}
+                  {aiModel.secretId && (
+                    <div>
+                      <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">Secret ID</dt>
+                      <dd className="mt-1 text-sm text-gray-900 dark:text-gray-100">{aiModel.secretId}</dd>
+                    </div>
+                  )}
+                </dl>
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Test Chat */}
@@ -259,7 +265,7 @@ const ViewAIModel: React.FC = () => {
         <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center">
             <MessageSquare className="w-5 h-5 mr-2" />
-            Test Chat
+            {isChatRoute ? `Chat with ${aiModel.displayName}` : 'Test Chat'}
           </h3>
         </div>
 

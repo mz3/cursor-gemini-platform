@@ -40,7 +40,8 @@ export class IntentDetectionService {
   async detectToolCalls(
     message: string,
     tools: BotTool[],
-    userId: string
+    userId: string,
+    aiModel?: AIModel
   ): Promise<ToolCall[]> {
     const availableTools = tools.filter(tool => tool.isActive);
 
@@ -52,9 +53,10 @@ export class IntentDetectionService {
     const conversationHistory = ''; // We could pass this in if needed
 
     try {
-      const aiModel = await this.getDefaultAIModel(userId);
+      // Use provided AI model or fall back to default
+      const modelToUse = aiModel || await this.getDefaultAIModel(userId);
       const llmResponse = await LLMServiceFactory.generateResponse(
-        aiModel,
+        modelToUse,
         message,
         systemPrompt,
         0.1, // Low temperature for more deterministic responses

@@ -85,6 +85,19 @@ const processBotMessage = async (
       throw new Error('Bot has no prompts configured');
     }
 
+    // Debug: Check if AI model is loaded
+    console.log(`🔍 Bot AI model check:`, {
+      botId: bot.id,
+      botName: bot.name,
+      aiModelId: bot.aiModelId,
+      aiModel: bot.aiModel ? {
+        id: bot.aiModel.id,
+        name: bot.aiModel.name,
+        provider: bot.aiModel.provider,
+        baseUrl: bot.aiModel.baseUrl
+      } : null
+    });
+
     // Save user message
     const userMessage = chatMessageRepository.create({
       botInstanceId: instance.id,
@@ -134,7 +147,7 @@ const processMessage = async (
   const promptContext = buildPromptContext(bot);
 
   // Check if message contains tool calls
-  const toolCalls = await detectToolCalls(message, bot.tools, instance);
+  const toolCalls = await detectToolCalls(message, bot.tools, instance, bot);
 
   let toolResults = '';
   let thoughts = '';
@@ -176,6 +189,8 @@ const processMessage = async (
         throw new Error('No AI model configured for this bot');
       }
     }
+
+    console.log(`🤖 Using AI model: ${aiModel.name} (${aiModel.provider}) - Base URL: ${aiModel.baseUrl}`);
 
     // Generate response using the LLMServiceFactory
     const llmResponse = await LLMServiceFactory.generateResponse(
@@ -223,13 +238,14 @@ const buildPromptContext = (bot: Bot): string => {
 const detectToolCalls = async (
   message: string,
   tools: BotTool[],
-  instance: BotInstance
+  instance: BotInstance,
+  bot: Bot
 ): Promise<Array<{tool: BotTool, params: Record<string, any>}>> => {
   const intentDetectionService = new IntentDetectionService();
 
   try {
     console.log(`🔍 Using LLM to detect intent for message: "${message}"`);
-    const toolCalls = await intentDetectionService.detectToolCalls(message, tools, instance.userId);
+    const toolCalls = await intentDetectionService.detectToolCalls(message, tools, instance.userId, bot.aiModel);
 
     console.log(`🔧 LLM detected ${toolCalls.length} tool call(s)`);
     for (const toolCall of toolCalls) {

@@ -14,8 +14,8 @@
     },
     "isActive": true,
     "isDefault": true,
-    "userId": "admin@platform.com",
-    "secretId": "gemini-api-key"
+    "userId": "system@platform.com",
+    "secretId": "GEMINI_API_KEY"
   },
   {
     "name": "gemini-1.5-pro",
@@ -32,8 +32,8 @@
     },
     "isActive": true,
     "isDefault": false,
-    "userId": "admin@platform.com",
-    "secretId": "gemini-api-key"
+    "userId": "system@platform.com",
+    "secretId": "GEMINI_API_KEY"
   },
   {
     "name": "gpt-4o",
@@ -50,8 +50,8 @@
     },
     "isActive": true,
     "isDefault": false,
-    "userId": "admin@platform.com",
-    "secretId": "openai-api-key"
+    "userId": "system@platform.com",
+    "secretId": "OPENAI_API_KEY"
   },
   {
     "name": "claude-3-5-sonnet",
@@ -68,8 +68,8 @@
     },
     "isActive": true,
     "isDefault": false,
-    "userId": "admin@platform.com",
-    "secretId": "anthropic-api-key"
+    "userId": "system@platform.com",
+    "secretId": "ANTHROPIC_API_KEY"
   },
   {
     "name": "deepseek-chat",
@@ -86,8 +86,8 @@
     },
     "isActive": true,
     "isDefault": false,
-    "userId": "admin@platform.com",
-    "secretId": "deepseek-api-key"
+    "userId": "system@platform.com",
+    "secretId": "DEEPSEEK_API_KEY"
   },
   {
     "name": "gemma-3-12b",
@@ -104,6 +104,6 @@
     },
     "isActive": true,
     "isDefault": false,
-    "userId": "admin@platform.com"
+    "userId": "system@platform.com"
   }
 ]

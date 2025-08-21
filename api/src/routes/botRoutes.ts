@@ -30,7 +30,7 @@ router.get('/', authenticate, async (req: Request, res: Response, next: NextFunc
 
     const bots = await botRepository.find({
       where: whereConditions,
-      relations: ['prompts'],
+      relations: ['prompts', 'aiModel'],
       order: { createdAt: 'DESC' }
     });
     return res.json(bots);
@@ -60,7 +60,7 @@ router.get('/:id', authenticate, async (req: Request, res: Response, next: NextF
 
     const bot = await botRepository.findOne({
       where: whereConditions,
-      relations: ['prompts']
+      relations: ['prompts', 'aiModel']
     });
 
     if (!bot) {
@@ -77,7 +77,7 @@ router.get('/:id', authenticate, async (req: Request, res: Response, next: NextF
 router.post('/', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const userId = (req as any).user.userId;
-    const { name, displayName, description, promptIds } = req.body;
+    const { name, displayName, description, promptIds, aiModelId } = req.body;
 
     if (!name || !displayName) {
       return res.status(400).json({ error: 'Missing required fields' });
@@ -88,7 +88,8 @@ router.post('/', authenticate, async (req: Request, res: Response, next: NextFun
       displayName,
       description: description || '',
       userId,
-      isActive: true
+      isActive: true,
+      aiModelId: aiModelId || null
     });
 
     // If promptIds are provided, load the prompts and associate them
@@ -110,19 +111,20 @@ router.put('/:id', authenticate, async (req: Request, res: Response, next: NextF
     const userId = (req as any).user.userId;
     const bot = await botRepository.findOne({
       where: { id: req.params.id, userId },
-      relations: ['prompts']
+      relations: ['prompts', 'aiModel']
     });
 
     if (!bot) {
       return res.status(404).json({ error: 'Bot not found' });
     }
 
-    const { name, displayName, description, isActive, promptIds } = req.body;
+    const { name, displayName, description, isActive, promptIds, aiModelId } = req.body;
 
     if (name) bot.name = name;
     if (displayName) bot.displayName = displayName;
     if (description !== undefined) bot.description = description;
     if (isActive !== undefined) bot.isActive = isActive;
+    if (aiModelId !== undefined) bot.aiModelId = aiModelId;
 
     // Update prompt associations if provided
     if (promptIds !== undefined) {

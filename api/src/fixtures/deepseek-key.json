@@ -1,0 +1,14 @@
+[
+  {
+    "name": "DeepSeek API Key",
+    "description": "DeepSeek API key for service access",
+    "key": "DEEPSEEK_API_KEY",
+    "encryptedValue": "dummy_deepseek_key_for_development",
+    "type": "api_key",
+    "provider": "deepseek",
+    "isActive": true,
+    "userId": "system@platform.com",
+    "createdAt": "2025-01-01T00:00:00.000Z",
+    "updatedAt": "2025-01-01T00:00:00.000Z"
+  }
+]

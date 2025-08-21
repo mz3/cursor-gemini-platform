@@ -10,6 +10,7 @@ interface Bot {
   displayName: string;
   description: string;
   isActive: boolean;
+  aiModelId?: string;
   prompts: Array<{ id: string; name: string }>;
 }
 
@@ -37,7 +38,7 @@ const EditBot: React.FC = () => {
     }
   };
 
-  const handleSubmit = async (data: { name: string; displayName: string; description: string; isActive: boolean; modelId?: string }) => {
+  const handleSubmit = async (data: { name: string; displayName: string; description: string; isActive: boolean; aiModelId?: string }) => {
     setSaving(true);
     setError('');
     try {
@@ -95,6 +96,7 @@ const EditBot: React.FC = () => {
           displayName: bot.displayName,
           description: bot.description,
           isActive: bot.isActive,
+          aiModelId: bot.aiModelId,
         }}
         onSubmit={handleSubmit}
         loading={saving}

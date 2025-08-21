@@ -121,11 +121,11 @@ router.post('/:id/test', async (req: Request, res: Response) => {
 });
 
 router.post('/:id/generate', async (req: Request, res: Response) => {
-  try {
-    const userId = (req as any).user.userId;
-    const id = req.params.id!;
-    const { prompt, systemPrompt, temperature, maxTokens } = req.body;
+  const userId = (req as any).user.userId;
+  const id = req.params.id!;
+  const { prompt, systemPrompt, temperature, maxTokens } = req.body;
 
+  try {
     if (!prompt) {
       return res.status(400).json({ error: 'Prompt is required' });
     }
@@ -145,8 +145,17 @@ router.post('/:id/generate', async (req: Request, res: Response) => {
 
     return res.json(response);
   } catch (error) {
-    console.error('Error generating response:', error);
-    return res.status(500).json({ error: 'Internal server error' });
+    console.error('❌ Error generating response for AI model:', id);
+    console.error('📝 Request details:', { prompt, systemPrompt, temperature, maxTokens });
+    console.error('🔍 Error details:', {
+      name: error instanceof Error ? error.name : 'Unknown',
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : 'No stack trace'
+    });
+    return res.status(500).json({
+      error: 'Internal server error',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
   }
 });
 
