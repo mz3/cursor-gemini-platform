@@ -17,7 +17,7 @@ const botToolRepository = AppDataSource.getRepository(BotTool);
 let processingInterval: NodeJS.Timeout | null = null;
 
 export const startBotWorker = async (): Promise<void> => {
-  console.log('🤖 Starting bot processing worker with hot reload support - v2...');
+  console.log('🤖 Starting bot processing worker with hot reload support - v8 (SUCCESSFUL HOT RELOAD DEMONSTRATION)...');
 
   // Start listening to bot message queues
   processingInterval = setInterval(async () => {

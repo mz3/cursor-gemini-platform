@@ -72,3 +72,5 @@ export class AIModel {
   @UpdateDateColumn()
   updatedAt!: Date;
 }
+
+

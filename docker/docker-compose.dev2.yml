@@ -35,8 +35,8 @@ services:
 
   api:
     build:
-      context: ../api
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: docker/Dockerfile.api.dev2
     container_name: api-dev2
     environment:
       NODE_ENV: development
@@ -61,8 +61,8 @@ services:
     networks:
       - platform-net-dev2
     volumes:
-      - ../api:/app
-      - /app/node_modules
+      - ../api:/app/api
+      - /app/api/node_modules
 
   webapp:
     build:

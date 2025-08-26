@@ -52,7 +52,7 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { cn } from './utils/cn';
 
 // Initialize Sentry
-// Test comment for webapp hot reload
+// Test comment for webapp hot reload - final test after rebuild
 initializeSentry();
 
 // Debug: Log all environment variables at startup
