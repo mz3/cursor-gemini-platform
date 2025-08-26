@@ -94,9 +94,30 @@ export class MCPToolService {
   /**
    * Generic method to list entities
    */
-  private static async listEntities(entityType: string, config: MCPToolConfig, params: Record<string, any>): Promise<any> {
+  private static async listEntities(entityType: any, config: MCPToolConfig, params: Record<string, any>): Promise<any> {
     const { limit = 50, offset = 0 } = params;
     const userId = params.userId || config.userId;
+
+    // Special handling for platform-api-sdk tool to include system entities
+    let whereCondition: any;
+    if (config.userId === 'system@platform.com' && entityType === 'bots') {
+      // For system bots, include both user-owned and system-owned bots
+      // Get the system user ID from the database
+      const systemUser = await AppDataSource.getRepository(User).findOne({
+        where: { email: 'system@platform.com' }
+      });
+
+      if (systemUser) {
+        whereCondition = [
+          { userId: params.userId }, // User's own bots
+          { userId: systemUser.id }  // System bots
+        ];
+      } else {
+        whereCondition = { userId };
+      }
+    } else {
+      whereCondition = entityType === 'workflows' ? {} : { userId };
+    }
 
     let repository: any;
     switch (entityType) {
@@ -123,7 +144,7 @@ export class MCPToolService {
     }
 
     const entities = await repository.find({
-      where: entityType === 'workflows' ? {} : { userId },
+      where: whereCondition,
       take: limit,
       skip: offset,
       order: { createdAt: 'DESC' }

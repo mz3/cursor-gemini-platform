@@ -63,10 +63,19 @@ export class IntentDetectionService {
         1000
       );
 
-      return this.parseLLMResponse(llmResponse.content, availableTools, userId);
+      const toolCalls = this.parseLLMResponse(llmResponse.content, availableTools, userId);
+
+      // If LLM parsing failed or no valid tools found, try keyword-based detection as fallback
+      if (toolCalls.length === 0) {
+        console.log('🔄 LLM parsing failed or no valid tools found, trying keyword-based detection...');
+        return this.fallbackKeywordDetection(message, availableTools, userId);
+      }
+
+      return toolCalls;
     } catch (error) {
       console.error('Error detecting intent:', error);
-      return [];
+      console.log('🔄 Falling back to keyword-based detection...');
+      return this.fallbackKeywordDetection(message, availableTools, userId);
     }
   }
 
@@ -74,7 +83,7 @@ export class IntentDetectionService {
     const toolDescriptions = tools.map(tool => {
       const operations = this.getToolOperations(tool);
       return `
-Tool: ${tool.displayName} (${tool.name})
+Tool: ${tool.displayName} (EXACT NAME: ${tool.name})
 Type: ${tool.type}
 Description: ${tool.description || 'No description available'}
 Available Operations: ${operations.join(', ')}
@@ -93,7 +102,11 @@ ${this.getParameterExamples(tool)}
 Available Tools:
 ${toolDescriptions}
 
-IMPORTANT: You must respond with ONLY a valid JSON object in this exact format:
+CRITICAL: You must respond with ONLY a valid JSON object. Do not include any other text, explanations, or descriptions.
+
+IMPORTANT: Use the EXACT tool name (the part in parentheses) for the "toolName" field, NOT the display name.
+
+The JSON must be in this exact format:
 {
   "toolCalls": [
     {
@@ -108,18 +121,44 @@ IMPORTANT: You must respond with ONLY a valid JSON object in this exact format:
   ]
 }
 
-For model creation, extract these parameters:
-- name: The model name (required)
-- displayName: The display name (required - if not explicitly provided, use the same value as name)
-- description: Optional description
-- fields: Array of field objects with name, type, required, description
+Examples of valid responses:
 
-For field extraction, look for patterns like:
-- "field called 'name' that should be string type"
-- "name should be string type"
-- "age should be number type"
+For "list my AI models":
+{
+  "toolCalls": [
+    {
+      "toolName": "platform-api-sdk",
+      "operation": "list_ai_models",
+      "parameters": {
+      },
+      "confidence": 0.95
+    }
+  ]
+}
 
-Return an empty array if no tools should be called.`;
+For "create a schema called UserSchema":
+{
+  "toolCalls": [
+    {
+      "toolName": "platform-api-sdk",
+      "operation": "create_schema",
+      "parameters": {
+        "name": "UserSchema",
+        "displayName": "UserSchema",
+        "description": "Schema for user data",
+        "fields": []
+      },
+      "confidence": 0.95
+    }
+  ]
+}
+
+If no tools should be called, return:
+{
+  "toolCalls": []
+}
+
+Remember: ONLY return the JSON object, nothing else. Use the EXACT tool name, not the display name.`;
   }
 
   private getToolOperations(tool: BotTool): string[] {
@@ -181,11 +220,10 @@ Return an empty array if no tools should be called.`;
 - fields: [{"name": "email", "type": "string", "required": true}, {"name": "age", "type": "number", "required": false}]
 
 For list_schemas:
-- userId: "user-id-here"
+- (no parameters needed for platform-api-sdk)
 
 For get_schema:
-- id: "schema-id-here"
-- userId: "user-id-here"`;
+- id: "schema-id-here"`;
       case 'http_request':
         return `- url: "https://api.example.com/endpoint"
 - method: "GET"
@@ -204,14 +242,45 @@ For get_schema:
 
   private parseLLMResponse(response: string, tools: BotTool[], userId: string): ToolCall[] {
     try {
-      // Extract JSON from the response
-      const jsonMatch = response.match(/\{[\s\S]*\}/);
+      console.log('🔍 Parsing LLM response for tool calls...');
+      console.log('Raw response:', response);
+
+      // Check if the response looks like JSON
+      const trimmedResponse = response.trim();
+      if (!trimmedResponse.startsWith('{') || !trimmedResponse.includes('"toolCalls"')) {
+        console.log('❌ LLM response is not in expected JSON format, triggering fallback...');
+        return []; // Return empty array to trigger fallback
+      }
+
+      // Try to extract JSON from the response - look for the first valid JSON object
+      let jsonMatch = response.match(/\{[\s\S]*?\}/);
       if (!jsonMatch) {
-        console.log('No JSON found in LLM response:', response);
+        console.log('No JSON found in LLM response');
         return [];
       }
 
-      const parsed = JSON.parse(jsonMatch[0]);
+      let parsed;
+      try {
+        parsed = JSON.parse(jsonMatch[0]);
+      } catch (parseError) {
+        console.log('Failed to parse extracted JSON, trying to find valid JSON...');
+        // Try to find a valid JSON object by looking for the start and end
+        const startIdx = response.indexOf('{');
+        const endIdx = response.lastIndexOf('}');
+        if (startIdx !== -1 && endIdx !== -1 && endIdx > startIdx) {
+          const jsonStr = response.substring(startIdx, endIdx + 1);
+          try {
+            parsed = JSON.parse(jsonStr);
+          } catch (secondError) {
+            console.log('Failed to parse JSON even with manual extraction');
+            console.log('Raw response:', response);
+            return [];
+          }
+        } else {
+          console.log('Could not find valid JSON structure');
+          return [];
+        }
+      }
 
       if (!parsed.toolCalls || !Array.isArray(parsed.toolCalls)) {
         console.log('Invalid toolCalls format in LLM response:', parsed);
@@ -221,27 +290,136 @@ For get_schema:
       const toolCalls: ToolCall[] = [];
 
       for (const toolCall of parsed.toolCalls) {
+        if (!toolCall.toolName || !toolCall.operation) {
+          console.log('Invalid tool call format:', toolCall);
+          continue;
+        }
+
         const tool = tools.find(t => t.name === toolCall.toolName);
         if (!tool) {
           console.log(`Tool not found: ${toolCall.toolName}`);
           continue;
         }
 
-        // Add userId to parameters
+        // Add userId to parameters (but don't override for system tools)
         const params = {
           ...toolCall.parameters,
-          userId,
           operation: toolCall.operation
         };
+
+        // Only add userId if it's not already provided (for system tools like platform-api-sdk)
+        if (!params.userId) {
+          params.userId = userId;
+        }
 
         toolCalls.push({ tool, params });
       }
 
+      console.log(`✅ Successfully parsed ${toolCalls.length} tool calls`);
       return toolCalls;
     } catch (error) {
       console.error('Error parsing LLM response:', error);
       console.log('Raw response:', response);
       return [];
     }
+  }
+
+  private fallbackKeywordDetection(message: string, tools: BotTool[], userId: string): ToolCall[] {
+    const lowerMessage = message.toLowerCase();
+    const toolCalls: ToolCall[] = [];
+
+    console.log('🔍 Using keyword-based tool detection...');
+
+    // Check for AI models related requests
+    if (lowerMessage.includes('ai model') || lowerMessage.includes('ai models') || lowerMessage.includes('list my ai')) {
+      const platformTool = tools.find(t => t.name === 'platform-api-sdk');
+      if (platformTool) {
+        toolCalls.push({
+          tool: platformTool,
+          params: {
+            operation: 'list_ai_models'
+            // Don't add userId for platform-api-sdk - it uses its configured system userId
+          }
+        });
+        console.log('✅ Detected AI models list request via keywords');
+      }
+    }
+
+    // Check for schema related requests
+    if (lowerMessage.includes('schema') || lowerMessage.includes('schemas')) {
+      if (lowerMessage.includes('create') || lowerMessage.includes('new')) {
+        const platformTool = tools.find(t => t.name === 'platform-api-sdk');
+        if (platformTool) {
+          // Extract schema name from message
+          const nameMatch = message.match(/create.*?schema.*?called\s+["']?([^"'\s]+)["']?/i) ||
+                           message.match(/create.*?schema.*?named\s+["']?([^"'\s]+)["']?/i) ||
+                           message.match(/new.*?schema.*?called\s+["']?([^"'\s]+)["']?/i);
+
+          const schemaName = nameMatch ? nameMatch[1] : 'NewSchema';
+
+          toolCalls.push({
+            tool: platformTool,
+            params: {
+              operation: 'create_schema',
+              name: schemaName,
+              displayName: schemaName,
+              description: `Schema created from user request: ${message}`,
+              fields: []
+              // Don't add userId for platform-api-sdk - it uses its configured system userId
+            }
+          });
+          console.log(`✅ Detected schema creation request via keywords: ${schemaName}`);
+        }
+      } else if (lowerMessage.includes('list') || lowerMessage.includes('show')) {
+        const platformTool = tools.find(t => t.name === 'platform-api-sdk');
+        if (platformTool) {
+        toolCalls.push({
+          tool: platformTool,
+          params: {
+            operation: 'list_schemas'
+            // Don't add userId for platform-api-sdk - it uses its configured system userId
+          }
+        });
+          console.log('✅ Detected schema list request via keywords');
+        }
+      }
+    }
+
+    // Check for bot related requests
+    if (lowerMessage.includes('bot') || lowerMessage.includes('bots')) {
+      if (lowerMessage.includes('list') || lowerMessage.includes('show')) {
+        const platformTool = tools.find(t => t.name === 'platform-api-sdk');
+        if (platformTool) {
+          toolCalls.push({
+            tool: platformTool,
+            params: {
+              operation: 'list_bots'
+              // Don't add userId for platform-api-sdk - it uses its configured system userId
+            }
+          });
+          console.log('✅ Detected bot list request via keywords');
+        }
+      }
+    }
+
+    // Check for application related requests
+    if (lowerMessage.includes('app') || lowerMessage.includes('application') || lowerMessage.includes('applications')) {
+      if (lowerMessage.includes('list') || lowerMessage.includes('show')) {
+        const platformTool = tools.find(t => t.name === 'platform-api-sdk');
+        if (platformTool) {
+          toolCalls.push({
+            tool: platformTool,
+            params: {
+              operation: 'list_applications'
+              // Don't add userId for platform-api-sdk - it uses its configured system userId
+            }
+          });
+          console.log('✅ Detected application list request via keywords');
+        }
+      }
+    }
+
+    console.log(`🔍 Keyword detection found ${toolCalls.length} tool calls`);
+    return toolCalls;
   }
 }

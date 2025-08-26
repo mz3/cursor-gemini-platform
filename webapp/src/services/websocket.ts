@@ -46,43 +46,55 @@ class WebSocketService {
   private eventHandlers: WebSocketEventHandlers = {};
 
   constructor() {
-    this.setupEventHandlers();
+    // Event handlers will be set up when socket is created
   }
 
   private setupEventHandlers() {
-    if (this.socket) {
-      this.socket.on('message', (message: ChatMessage) => {
-        this.eventHandlers.onMessage?.(message);
-      });
+    if (!this.socket) return;
 
-      this.socket.on('bot-status-update', (status: BotStatusUpdate) => {
-        this.eventHandlers.onStatusUpdate?.(status);
-      });
+    this.socket.on('new-message', (message: ChatMessage) => {
+      console.log('🔌 WebSocket received message:', message);
+      this.eventHandlers.onMessage?.(message);
+    });
 
-      this.socket.on('typing-indicator', (indicator: TypingIndicator) => {
-        this.eventHandlers.onTypingIndicator?.(indicator);
-      });
+    this.socket.on('bot-status-update', (status: BotStatusUpdate) => {
+      console.log('🔌 WebSocket received bot status update:', status);
+      this.eventHandlers.onStatusUpdate?.(status);
+    });
 
-      this.socket.on('conversation-cleared', (data: { botId: string; userId: string }) => {
-        this.eventHandlers.onConversationCleared?.(data);
-      });
+    this.socket.on('typing-indicator', (indicator: TypingIndicator) => {
+      console.log('🔌 WebSocket received typing indicator:', indicator);
+      this.eventHandlers.onTypingIndicator?.(indicator);
+    });
 
-      this.socket.on('conversation-history', (messages: ChatMessage[]) => {
-        this.eventHandlers.onConversationHistory?.(messages);
-      });
+    this.socket.on('conversation-cleared', (data: { botId: string; userId: string }) => {
+      console.log('🔌 WebSocket received conversation cleared:', data);
+      this.eventHandlers.onConversationCleared?.(data);
+    });
 
-      this.socket.on('disconnect', () => {
-        this.eventHandlers.onDisconnect?.();
-      });
+    this.socket.on('conversation-history', (messages: ChatMessage[]) => {
+      console.log('🔌 WebSocket received conversation history:', messages);
+      this.eventHandlers.onConversationHistory?.(messages);
+    });
 
-      this.socket.on('reconnect', () => {
-        this.eventHandlers.onReconnect?.();
-      });
+    this.socket.on('disconnect', () => {
+      console.log('🔌 WebSocket disconnected');
+      this.eventHandlers.onDisconnect?.();
+    });
 
-      this.socket.on('error', (error: Error) => {
-        this.eventHandlers.onError?.(error);
-      });
-    }
+    this.socket.on('reconnect', () => {
+      console.log('🔌 WebSocket reconnected');
+      this.eventHandlers.onReconnect?.();
+    });
+
+    this.socket.on('error', (error: Error) => {
+      console.error('🔌 WebSocket error:', error);
+      this.eventHandlers.onError?.(error);
+    });
+
+    this.socket.on('connect', () => {
+      console.log('🔌 WebSocket connected successfully');
+    });
   }
 
   public connect(token: string): Promise<void> {
@@ -109,7 +121,9 @@ class WebSocketService {
         // When running in Docker, use relative URLs to leverage Vite proxy
         // When running locally, use the full URL
         const isDocker = import.meta.env.VITE_DOCKER === 'true';
-        const wsUrl = isDocker ? window.location.origin : (import.meta.env.VITE_API_URL || 'http://localhost:4001');
+        const wsUrl = isDocker ? '/' : (import.meta.env.VITE_API_URL || 'http://localhost:4001');
+
+        console.log('🔌 Connecting to WebSocket:', wsUrl, 'Docker:', isDocker);
 
         this.socket = io(wsUrl, {
           auth: { token },

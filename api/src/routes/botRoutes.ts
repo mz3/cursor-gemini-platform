@@ -4,6 +4,7 @@ import { Bot } from '../entities/Bot.js';
 import { Prompt } from '../entities/Prompt.js';
 import { User } from '../entities/User.js';
 import { authenticate } from '../middleware/auth.js';
+import { In } from 'typeorm';
 
 const router = Router();
 const botRepository = AppDataSource.getRepository(Bot);
@@ -109,8 +110,23 @@ router.post('/', authenticate, async (req: Request, res: Response, next: NextFun
 router.put('/:id', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const userId = (req as any).user.userId;
+
+    // Find system user for system bots
+    const systemUser = await AppDataSource.getRepository(User).findOne({
+      where: { email: 'system@platform.com' }
+    });
+
+    // Build user IDs array for the query
+    const userIds = [userId];
+    if (systemUser) {
+      userIds.push(systemUser.id);
+    }
+
     const bot = await botRepository.findOne({
-      where: { id: req.params.id, userId },
+      where: {
+        id: req.params.id,
+        userId: In(userIds)
+      },
       relations: ['prompts', 'aiModel']
     });
 
@@ -147,8 +163,23 @@ router.put('/:id', authenticate, async (req: Request, res: Response, next: NextF
 router.delete('/:id', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const userId = (req as any).user.userId;
+
+    // Find system user for system bots
+    const systemUser = await AppDataSource.getRepository(User).findOne({
+      where: { email: 'system@platform.com' }
+    });
+
+    // Build user IDs array for the query
+    const userIds = [userId];
+    if (systemUser) {
+      userIds.push(systemUser.id);
+    }
+
     const bot = await botRepository.findOne({
-      where: { id: req.params.id, userId }
+      where: {
+        id: req.params.id,
+        userId: In(userIds)
+      }
     });
 
     if (!bot) {
@@ -172,8 +203,22 @@ router.post('/:id/prompts', authenticate, async (req: Request, res: Response, ne
       return res.status(400).json({ error: 'promptIds array is required' });
     }
 
+    // Find system user for system bots
+    const systemUser = await AppDataSource.getRepository(User).findOne({
+      where: { email: 'system@platform.com' }
+    });
+
+    // Build user IDs array for the query
+    const userIds = [userId];
+    if (systemUser) {
+      userIds.push(systemUser.id);
+    }
+
     const bot = await botRepository.findOne({
-      where: { id: req.params.id, userId },
+      where: {
+        id: req.params.id,
+        userId: In(userIds)
+      },
       relations: ['prompts']
     });
 
@@ -195,8 +240,23 @@ router.post('/:id/prompts', authenticate, async (req: Request, res: Response, ne
 router.delete('/:id/prompts/:promptId', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const userId = (req as any).user.userId;
+
+    // Find system user for system bots
+    const systemUser = await AppDataSource.getRepository(User).findOne({
+      where: { email: 'system@platform.com' }
+    });
+
+    // Build user IDs array for the query
+    const userIds = [userId];
+    if (systemUser) {
+      userIds.push(systemUser.id);
+    }
+
     const bot = await botRepository.findOne({
-      where: { id: req.params.id, userId },
+      where: {
+        id: req.params.id,
+        userId: In(userIds)
+      },
       relations: ['prompts']
     });
 

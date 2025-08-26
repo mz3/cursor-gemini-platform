@@ -71,10 +71,10 @@ const processBotMessage = async (
       await botInstanceRepository.save(instance);
     }
 
-    // Get bot with prompts, tools, and AI model
+    // Get bot with prompts, tools, and AI model (including secret)
     const bot = await botRepository.findOne({
       where: { id: botId },
-      relations: ['prompts', 'prompts.versions', 'tools', 'aiModel']
+      relations: ['prompts', 'prompts.versions', 'tools', 'aiModel', 'aiModel.secret']
     });
 
     if (!bot) {
@@ -94,7 +94,10 @@ const processBotMessage = async (
         id: bot.aiModel.id,
         name: bot.aiModel.name,
         provider: bot.aiModel.provider,
-        baseUrl: bot.aiModel.baseUrl
+        modelId: bot.aiModel.modelId,
+        baseUrl: bot.aiModel.baseUrl,
+        secretId: bot.aiModel.secretId,
+        hasSecret: !!bot.aiModel.secret
       } : null
     });
 
@@ -179,10 +182,11 @@ const processMessage = async (
     let aiModel = bot.aiModel;
 
     if (!aiModel) {
-      // Get the default AI model for the user
+      // Get the default AI model for the user (including secret)
       const aiModelRepository = AppDataSource.getRepository(AIModel);
       aiModel = await aiModelRepository.findOne({
-        where: { userId: instance.userId, isDefault: true, isActive: true }
+        where: { userId: instance.userId, isDefault: true, isActive: true },
+        relations: ['secret']
       });
 
       if (!aiModel) {
@@ -190,7 +194,7 @@ const processMessage = async (
       }
     }
 
-    console.log(`🤖 Using AI model: ${aiModel.name} (${aiModel.provider}) - Base URL: ${aiModel.baseUrl}`);
+    console.log(`🤖 Using AI model: ${aiModel.name} (${aiModel.provider}) - Base URL: ${aiModel.baseUrl} - Secret ID: ${aiModel.secretId} - Has Secret: ${!!aiModel.secret}`);
 
     // Generate response using the LLMServiceFactory
     const llmResponse = await LLMServiceFactory.generateResponse(
@@ -245,6 +249,13 @@ const detectToolCalls = async (
 
   try {
     console.log(`🔍 Using LLM to detect intent for message: "${message}"`);
+    console.log(`🔍 AI Model for tool detection:`, {
+      id: bot.aiModel?.id,
+      name: bot.aiModel?.name,
+      provider: bot.aiModel?.provider,
+      modelId: bot.aiModel?.modelId,
+      baseUrl: bot.aiModel?.baseUrl
+    });
     const toolCalls = await intentDetectionService.detectToolCalls(message, tools, instance.userId, bot.aiModel);
 
     console.log(`🔧 LLM detected ${toolCalls.length} tool call(s)`);
