@@ -156,8 +156,8 @@ const ViewBot: React.FC = () => {
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Status</label>
                   <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium mt-1 ${
                     bot.isActive
-                      ? 'bg-green-100 text-green-800'
-                      : 'bg-gray-100 text-gray-800'
+                      ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
+                      : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200'
                   }`}>
                     {bot.isActive ? 'Active' : 'Inactive'}
                   </span>
@@ -238,18 +238,18 @@ const ViewBot: React.FC = () => {
 
           {/* Sidebar */}
           <div className="space-y-6">
-            <div className="bg-white shadow rounded-lg p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Bot Information</h3>
+            <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Bot Information</h3>
               <div className="space-y-4">
-                <div className="flex items-center text-sm text-gray-600">
+                <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
                   <Bot className="w-4 h-4 mr-2" />
                   <span>Bot ID: {bot.id}</span>
                 </div>
-                <div className="flex items-center text-sm text-gray-600">
+                <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
                   <Calendar className="w-4 h-4 mr-2" />
                   <span>Created: {new Date(bot.createdAt).toLocaleDateString()}</span>
                 </div>
-                <div className="flex items-center text-sm text-gray-600">
+                <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
                   <Calendar className="w-4 h-4 mr-2" />
                   <span>Updated: {new Date(bot.updatedAt).toLocaleDateString()}</span>
                 </div>
@@ -268,14 +268,14 @@ const ViewBot: React.FC = () => {
           ) : (
             <div className="flex items-center justify-center h-full">
               <div className="text-center">
-                <h3 className="text-lg font-medium text-gray-900 mb-2">Authentication Required</h3>
-                <p className="text-gray-600">Please log in to chat with this bot.</p>
+                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">Authentication Required</h3>
+                <p className="text-gray-600 dark:text-gray-400">Please log in to chat with this bot.</p>
               </div>
             </div>
           )}
         </div>
       ) : (
-        <div className="bg-white shadow rounded-lg p-6">
+        <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
           <BotTools botId={bot.id} />
         </div>
       )}

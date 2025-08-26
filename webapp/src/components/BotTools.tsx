@@ -185,25 +185,25 @@ export const BotTools: React.FC<BotToolsProps> = ({ botId }) => {
             const IconComponent = toolTypeIcons[tool.type as keyof typeof toolTypeIcons] || Settings;
 
             return (
-              <div key={tool.id} className="border rounded-lg p-4 bg-white">
+              <div key={tool.id} className="border rounded-lg p-4 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
                 <div className="flex justify-between items-start">
                   <div className="flex items-start space-x-3">
-                    <IconComponent className="w-5 h-5 text-gray-500 mt-1" />
+                    <IconComponent className="w-5 h-5 text-gray-500 dark:text-gray-400 mt-1" />
                     <div className="flex-1">
                       <div className="flex items-center space-x-2">
-                        <h4 className="font-medium">{tool.displayName}</h4>
-                        <span className="inline-block px-2 py-1 text-xs bg-gray-100 rounded">
+                        <h4 className="font-medium text-gray-900 dark:text-gray-100">{tool.displayName}</h4>
+                        <span className="inline-block px-2 py-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded">
                           {toolTypeLabels[tool.type as keyof typeof toolTypeLabels] || tool.type}
                         </span>
                         {tool.requiresAuth && (
-                          <span className="inline-block px-2 py-1 text-xs bg-yellow-100 text-yellow-800 rounded">
+                          <span className="inline-block px-2 py-1 text-xs bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-400 rounded">
                             Auth Required
                           </span>
                         )}
                       </div>
-                      <p className="text-sm text-gray-600 mt-1">{tool.description}</p>
-                      <p className="text-xs text-gray-500 mt-2">
-                        Trigger: <code className="bg-gray-100 px-1 rounded">{tool.name}</code>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{tool.description}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                        Trigger: <code className="bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 px-1 rounded">{tool.name}</code>
                       </p>
                     </div>
                   </div>
@@ -212,21 +212,21 @@ export const BotTools: React.FC<BotToolsProps> = ({ botId }) => {
                     <button
                       onClick={() => testTool(tool.id)}
                       disabled={testingTool === tool.id}
-                      className="p-1 text-blue-600 hover:bg-blue-50 rounded disabled:opacity-50"
+                      className="p-1 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded disabled:opacity-50"
                       title="Test Tool"
                     >
                       <Play className="w-4 h-4" />
                     </button>
                     <button
                       onClick={() => setEditingTool(tool)}
-                      className="p-1 text-gray-600 hover:bg-gray-50 rounded"
+                      className="p-1 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 rounded"
                       title="Edit Tool"
                     >
                       <Edit className="w-4 h-4" />
                     </button>
                     <button
                       onClick={() => deleteTool(tool.id)}
-                      className="p-1 text-red-600 hover:bg-red-50 rounded"
+                      className="p-1 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"
                       title="Delete Tool"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -258,20 +258,20 @@ export const BotTools: React.FC<BotToolsProps> = ({ botId }) => {
 
       {showToolSelector && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold">Select from Existing Tools</h3>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Select from Existing Tools</h3>
               <button
                 onClick={() => setShowToolSelector(false)}
-                className="text-gray-500 hover:text-gray-700"
+                className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {availableTools.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
-                <Settings className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+              <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                <Settings className="w-12 h-12 mx-auto mb-4 text-gray-300 dark:text-gray-600" />
                 <p>No available tools to add.</p>
                 <p className="text-sm">All system tools are already assigned to this bot.</p>
               </div>
@@ -353,36 +353,36 @@ const ToolForm: React.FC<ToolFormProps> = ({ tool, onSubmit, onCancel, toolTypes
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-        <h3 className="text-lg font-semibold mb-4">
+      <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+        <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">
           {tool ? 'Edit Tool' : 'Add New Tool'}
         </h3>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Tool Name (Internal)
               </label>
               <input
                 type="text"
                 value={formData.name}
                 onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-gray-100"
                 placeholder="weather_api"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Display Name
               </label>
               <input
                 type="text"
                 value={formData.displayName}
                 onChange={(e) => setFormData(prev => ({ ...prev, displayName: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-gray-100"
                 placeholder="Weather API"
                 required
               />
@@ -390,13 +390,13 @@ const ToolForm: React.FC<ToolFormProps> = ({ tool, onSubmit, onCancel, toolTypes
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Description
             </label>
             <textarea
               value={formData.description}
               onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-gray-100"
               rows={3}
               placeholder="Get weather information for a location"
               required
@@ -404,13 +404,13 @@ const ToolForm: React.FC<ToolFormProps> = ({ tool, onSubmit, onCancel, toolTypes
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Tool Type
             </label>
             <select
               value={formData.type}
               onChange={(e) => setFormData(prev => ({ ...prev, type: e.target.value }))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-gray-100"
               required
             >
               {Object.entries(toolTypes).map(([value, label]) => (
@@ -422,24 +422,24 @@ const ToolForm: React.FC<ToolFormProps> = ({ tool, onSubmit, onCancel, toolTypes
           {/* Tool-specific configuration */}
           {formData.type === 'http_request' && (
             <div className="space-y-2">
-              <h4 className="font-medium">HTTP Request Configuration</h4>
+              <h4 className="font-medium text-gray-900 dark:text-gray-100">HTTP Request Configuration</h4>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">URL</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">URL</label>
                   <input
                     type="text"
                     value={formData.config.url || ''}
                     onChange={(e) => updateConfig('url', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-gray-100"
                     placeholder="https://api.example.com/{{param1}}"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Method</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Method</label>
                   <select
                     value={formData.config.method || 'GET'}
                     onChange={(e) => updateConfig('method', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-gray-100"
                   >
                     <option value="GET">GET</option>
                     <option value="POST">POST</option>
@@ -453,14 +453,14 @@ const ToolForm: React.FC<ToolFormProps> = ({ tool, onSubmit, onCancel, toolTypes
 
           {formData.type === 'file_operation' && (
             <div className="space-y-2">
-              <h4 className="font-medium">File Operation Configuration</h4>
+              <h4 className="font-medium text-gray-900 dark:text-gray-100">File Operation Configuration</h4>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Operation</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Operation</label>
                   <select
                     value={formData.config.operation || 'read'}
                     onChange={(e) => updateConfig('operation', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-gray-100"
                   >
                     <option value="read">Read</option>
                     <option value="write">Write</option>
@@ -469,12 +469,12 @@ const ToolForm: React.FC<ToolFormProps> = ({ tool, onSubmit, onCancel, toolTypes
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Path</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Path</label>
                   <input
                     type="text"
                     value={formData.config.path || ''}
                     onChange={(e) => updateConfig('path', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-gray-100"
                     placeholder="/app/data/{{filename}}"
                   />
                 </div>
@@ -484,13 +484,13 @@ const ToolForm: React.FC<ToolFormProps> = ({ tool, onSubmit, onCancel, toolTypes
 
           {formData.type === 'custom_script' && (
             <div className="space-y-2">
-              <h4 className="font-medium">Custom Script Configuration</h4>
+              <h4 className="font-medium text-gray-900 dark:text-gray-100">Custom Script Configuration</h4>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">JavaScript Code</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">JavaScript Code</label>
                 <textarea
                   value={formData.config.script || ''}
                   onChange={(e) => updateConfig('script', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md font-mono text-sm"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md font-mono text-sm dark:bg-gray-700 dark:text-gray-100"
                   rows={6}
                   placeholder="// Your JavaScript code here&#10;return params.param1 + params.param2;"
                 />
@@ -504,9 +504,9 @@ const ToolForm: React.FC<ToolFormProps> = ({ tool, onSubmit, onCancel, toolTypes
                 type="checkbox"
                 checked={formData.isActive}
                 onChange={(e) => setFormData(prev => ({ ...prev, isActive: e.target.checked }))}
-                className="mr-2"
+                className="mr-2 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600 rounded"
               />
-              <span className="text-sm">Active</span>
+              <span className="text-sm text-gray-700 dark:text-gray-300">Active</span>
             </label>
 
             <label className="flex items-center">
@@ -514,9 +514,9 @@ const ToolForm: React.FC<ToolFormProps> = ({ tool, onSubmit, onCancel, toolTypes
                 type="checkbox"
                 checked={formData.requiresAuth}
                 onChange={(e) => setFormData(prev => ({ ...prev, requiresAuth: e.target.checked }))}
-                className="mr-2"
+                className="mr-2 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600 rounded"
               />
-              <span className="text-sm">Requires Authentication</span>
+              <span className="text-sm text-gray-700 dark:text-gray-300">Requires Authentication</span>
             </label>
           </div>
 
@@ -524,7 +524,7 @@ const ToolForm: React.FC<ToolFormProps> = ({ tool, onSubmit, onCancel, toolTypes
             <button
               type="button"
               onClick={onCancel}
-              className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
+              className="px-4 py-2 text-gray-600 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700"
             >
               Cancel
             </button>
