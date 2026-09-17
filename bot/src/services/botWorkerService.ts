@@ -84,10 +84,10 @@ const processBotMessage = async (
       await botInstanceRepository.save(instance);
     }
 
-    // Get bot with prompts, tools, and AI model
+    // Get bot with prompts, tools, and AI model (including secret)
     const bot = await botRepository.findOne({
       where: { id: botId },
-      relations: ['prompts', 'prompts.versions', 'tools']
+      relations: ['prompts', 'prompts.versions', 'tools', 'aiModel', 'aiModel.secret']
     });
 
     if (!bot) {
@@ -97,6 +97,22 @@ const processBotMessage = async (
     if (!bot.prompts.length) {
       throw new Error('Bot has no prompts configured');
     }
+
+    // Debug: Check if AI model is loaded
+    console.log(`🔍 Bot AI model check:`, {
+      botId: bot.id,
+      botName: bot.name,
+      aiModelId: bot.aiModelId,
+      aiModel: bot.aiModel ? {
+        id: bot.aiModel.id,
+        name: bot.aiModel.name,
+        provider: bot.aiModel.provider,
+        modelId: bot.aiModel.modelId,
+        baseUrl: bot.aiModel.baseUrl,
+        secretId: bot.aiModel.secretId,
+        hasSecret: !!bot.aiModel.secret
+      } : null
+    });
 
     // Save user message
     const userMessage = chatMessageRepository.create({
@@ -147,7 +163,7 @@ const processMessage = async (
   const promptContext = buildPromptContext(bot);
 
   // Check if message contains tool calls
-  const toolCalls = await detectToolCalls(message, bot.tools, instance);
+  const toolCalls = await detectToolCalls(message, bot.tools, instance, bot);
 
   let toolResults = '';
   let thoughts = '';
@@ -175,15 +191,23 @@ const processMessage = async (
     : promptContext;
 
   try {
-    // Get the default AI model for the user
-    const aiModelRepository = AppDataSource.getRepository(AIModel);
-    const aiModel = await aiModelRepository.findOne({
-      where: { userId: instance.userId, isDefault: true, isActive: true }
-    });
+    // Use the bot's AI model if available, otherwise fall back to default
+    let aiModel = bot.aiModel;
 
     if (!aiModel) {
-      throw new Error('No AI model configured for this bot');
+      // Get the default AI model for the user (including secret)
+      const aiModelRepository = AppDataSource.getRepository(AIModel);
+      aiModel = await aiModelRepository.findOne({
+        where: { userId: instance.userId, isDefault: true, isActive: true },
+        relations: ['secret']
+      });
+
+      if (!aiModel) {
+        throw new Error('No AI model configured for this bot');
+      }
     }
+
+    console.log(`🤖 Using AI model: ${aiModel.name} (${aiModel.provider}) - Base URL: ${aiModel.baseUrl} - Secret ID: ${aiModel.secretId} - Has Secret: ${!!aiModel.secret}`);
 
     // Generate response using the LLMServiceFactory
     const llmResponse = await LLMServiceFactory.generateResponse(
@@ -231,13 +255,21 @@ const buildPromptContext = (bot: Bot): string => {
 const detectToolCalls = async (
   message: string,
   tools: BotTool[],
-  instance: BotInstance
+  instance: BotInstance,
+  bot: Bot
 ): Promise<Array<{tool: BotTool, params: Record<string, any>}>> => {
   const intentDetectionService = new IntentDetectionService();
 
   try {
     console.log(`🔍 Using LLM to detect intent for message: "${message}"`);
-    const toolCalls = await intentDetectionService.detectToolCalls(message, tools, instance.userId);
+    console.log(`🔍 AI Model for tool detection:`, {
+      id: bot.aiModel?.id,
+      name: bot.aiModel?.name,
+      provider: bot.aiModel?.provider,
+      modelId: bot.aiModel?.modelId,
+      baseUrl: bot.aiModel?.baseUrl
+    });
+    const toolCalls = await intentDetectionService.detectToolCalls(message, tools, instance.userId, bot.aiModel);
 
     console.log(`🔧 LLM detected ${toolCalls.length} tool call(s)`);
     for (const toolCall of toolCalls) {

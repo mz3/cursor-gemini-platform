@@ -1,0 +1,14 @@
+[
+  {
+    "name": "OpenAI API Key",
+    "description": "OpenAI API key for service access",
+    "key": "OPENAI_API_KEY",
+    "encryptedValue": "dummy_openai_key_for_development",
+    "type": "api_key",
+    "provider": "openai",
+    "isActive": true,
+    "userId": "system@platform.com",
+    "createdAt": "2025-01-01T00:00:00.000Z",
+    "updatedAt": "2025-01-01T00:00:00.000Z"
+  }
+]

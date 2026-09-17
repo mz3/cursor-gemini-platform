@@ -1,0 +1,14 @@
+[
+  {
+    "name": "Anthropic API Key",
+    "description": "Anthropic API key for service access",
+    "key": "ANTHROPIC_API_KEY",
+    "encryptedValue": "dummy_anthropic_key_for_development",
+    "type": "api_key",
+    "provider": "anthropic",
+    "isActive": true,
+    "userId": "system@platform.com",
+    "createdAt": "2025-01-01T00:00:00.000Z",
+    "updatedAt": "2025-01-01T00:00:00.000Z"
+  }
+]

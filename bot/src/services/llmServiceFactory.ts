@@ -75,8 +75,10 @@ export class LLMServiceFactory {
     // Handle different return types
     if (typeof result === 'boolean') {
       return result;
-    } else {
+    } else if (typeof result === 'object' && result !== null) {
       return result.connected;
     }
+
+    return false;
   }
 }

@@ -15,29 +15,28 @@ export class GeminiService {
     this.secretService = new SecretService();
   }
 
-  private async getApiKey(userId?: string): Promise<string> {
-    // Try to get user-specific API key first if userId is provided
-    if (userId) {
-      const userApiKey = await this.secretService.getSecretValueByKey('GEMINI_API_KEY', userId) ||
-                         await this.secretService.getSecretValueByKey('GOOGLE_API_KEY', userId);
-      if (userApiKey) {
-        return userApiKey;
-      }
+  private async getApiKey(aiModel: AIModel): Promise<string> {
+    if (!aiModel.secretId) {
+      throw new Error('Gemini API key not configured for this model');
     }
 
-    // Fall back to system-wide API key
-    const systemApiKey = config.GEMINI_KEY || process.env.GEMINI_KEY;
-    if (!systemApiKey) {
-      throw new Error('Gemini API key not configured. Please add GEMINI_KEY environment variable or create a GEMINI_API_KEY secret.');
+    const secret = await this.secretService.findById(aiModel.secretId, aiModel.userId);
+    if (!secret) {
+      throw new Error('Gemini API key not found');
     }
 
-    return systemApiKey;
+    const apiKey = await this.secretService.getSecretValueByKey(secret.key, aiModel.userId);
+    if (!apiKey) {
+      throw new Error('Failed to retrieve Gemini API key');
+    }
+
+    return apiKey;
   }
 
-  private async getModelInstance(userId?: string, modelName: string = 'gemini-2.5-flash') {
-    const apiKey = await this.getApiKey(userId);
+  private async getModelInstance(aiModel: AIModel) {
+    const apiKey = await this.getApiKey(aiModel);
     const genAI = new GoogleGenerativeAI(apiKey);
-    return genAI.getGenerativeModel({ model: modelName });
+    return genAI.getGenerativeModel({ model: aiModel.modelId });
   }
 
   async generateResponseWithContext(
@@ -57,7 +56,14 @@ User: ${userMessage}
 Assistant:`;
 
     try {
-      const model = await this.getModelInstance(userId);
+      // For backward compatibility, try to get API key from environment if no AI model is provided
+      const apiKey = config.GEMINI_KEY || process.env.GEMINI_KEY;
+      if (!apiKey) {
+        throw new Error('Gemini API key not configured. Please add GEMINI_KEY environment variable or create a GEMINI_API_KEY secret.');
+      }
+
+      const genAI = new GoogleGenerativeAI(apiKey);
+      const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
       const result = await model.generateContent(systemPrompt);
       const response = result.response.text();
 
@@ -107,7 +113,7 @@ Assistant:`;
     maxTokens: number = 1000
   ): Promise<string> {
     try {
-      const apiKey = await this.getApiKey(aiModel.userId);
+      const apiKey = await this.getApiKey(aiModel);
       const genAI = new GoogleGenerativeAI(apiKey);
       const model = genAI.getGenerativeModel({ model: aiModel.modelId });
 

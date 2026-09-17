@@ -40,7 +40,10 @@ export class LocalLLMService {
   ): Promise<string> {
     // For local LLMs, we typically don't need API keys, but we might need other configuration
     const baseUrl = aiModel.baseUrl || 'http://localhost:1234';
-    const url = `${baseUrl}/v1/chat/completions`;
+    // Check if baseUrl already ends with /v1 to avoid double /v1/v1
+    const url = baseUrl.endsWith('/v1')
+      ? `${baseUrl}/chat/completions`
+      : `${baseUrl}/v1/chat/completions`;
 
     const messages = [];
     if (systemPrompt) {
@@ -66,7 +69,22 @@ export class LocalLLMService {
       }
 
       const data = await response.json() as LocalLLMResponse;
-      return data.choices[0]?.message?.content || 'No response generated';
+
+      // Debug: Log the response structure
+      console.log('🔍 Local LLM Response:', JSON.stringify(data, null, 2));
+
+      if (!data.choices || !Array.isArray(data.choices) || data.choices.length === 0) {
+        console.error('❌ Invalid response structure - no choices array:', data);
+        throw new Error('Invalid response structure from local LLM');
+      }
+
+      const content = data.choices[0]?.message?.content;
+      if (!content) {
+        console.error('❌ No content in response:', data.choices[0]);
+        throw new Error('No content in LLM response');
+      }
+
+      return content;
     } catch (error) {
       console.error('Local LLM API request failed:', error);
       throw new Error(`Local LLM API request failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -101,7 +119,10 @@ export class LocalLLMService {
   async testConnection(aiModel: AIModel): Promise<{ connected: boolean; models?: string[]; error?: string }> {
     try {
       const baseUrl = aiModel.baseUrl || 'http://localhost:1234';
-      const url = `${baseUrl}/v1/models`;
+      // Check if baseUrl already ends with /v1 to avoid double /v1/v1
+      const url = baseUrl.endsWith('/v1')
+        ? `${baseUrl}/models`
+        : `${baseUrl}/v1/models`;
 
       const response = await fetch(url, {
         method: 'GET',
@@ -146,7 +167,10 @@ export class LocalLLMService {
   async getAvailableModels(aiModel: AIModel): Promise<string[]> {
     try {
       const baseUrl = aiModel.baseUrl || 'http://localhost:1234';
-      const url = `${baseUrl}/v1/models`;
+      // Check if baseUrl already ends with /v1 to avoid double /v1/v1
+      const url = baseUrl.endsWith('/v1')
+        ? `${baseUrl}/models`
+        : `${baseUrl}/v1/models`;
 
       const response = await fetch(url, {
         method: 'GET',

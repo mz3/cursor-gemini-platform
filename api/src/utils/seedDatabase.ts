@@ -465,29 +465,30 @@ export const seedDatabase = async (): Promise<void> => {
 
       for (const botData of fixtures.bots) {
         try {
-          // Handle system bots - use system user ID if userId is "system"
-          const botUserId = botData.userId === 'system' && systemUser
+          // Handle system bots - use system user ID if userId is "system@platform.com"
+          const botUserId = botData.userId === 'system@platform.com' && systemUser
             ? systemUser.id
-            : savedUser!.id;
+            : idMapping.users[botData.userId] || savedUser!.id;
 
           const bot = botRepository.create({
             ...botData,
             userId: botUserId
           }) as any;
 
-          // Link to AI model based on model name - temporarily disabled
-          // if (botData.model) {
-          //   const aiModel = await aiModelRepository.findOne({
-          //     where: { modelId: botData.model }
-          //   });
-          //   if (aiModel) {
-          //     (bot as any).aiModel = aiModel;
-          //     (bot as any).aiModelId = aiModel.id;
-          //     console.log(`✅ Linked bot ${botData.name} to AI model ${aiModel.displayName}`);
-          //   } else {
-          //     console.warn(`AI model not found for bot ${botData.name} with model: ${botData.model}`);
-          //   }
-          // }
+          // Link to AI model if aiModelId is provided
+          if (botData.aiModelId) {
+            // Try to find AI model by name (for string references)
+            let aiModel = await aiModelRepository.findOne({
+              where: { name: botData.aiModelId }
+            });
+
+            if (aiModel) {
+              bot.aiModelId = aiModel.id;
+              console.log(`✅ Linked bot ${botData.name} to AI model ${aiModel.displayName}`);
+            } else {
+              console.warn(`AI model not found for bot ${botData.name} with aiModelId: ${botData.aiModelId}`);
+            }
+          }
 
           const savedBot = await botRepository.save(bot) as unknown as Bot;
           idMapping.bots[botData.name] = savedBot.id;
@@ -646,9 +647,11 @@ export const seedDatabase = async (): Promise<void> => {
     if (fixtures.relationships) {
       for (const relationshipData of fixtures.relationships) {
         try {
+          // Use email reference to get actual user ID from mapping
+          const userId = idMapping.users[relationshipData.userId] || savedUser!.id;
           const relationship = relationshipRepository.create({
             ...relationshipData,
-            userId: savedUser!.id
+            userId: userId
           });
           await relationshipRepository.save(relationship);
         } catch (error) {
@@ -756,18 +759,23 @@ export const seedDatabase = async (): Promise<void> => {
             userId: userId // Use mapped user ID
           }) as any;
 
-          // Link to secret if secretId is provided - temporarily disabled
-          // if (aiModelData.secretId) {
-          //   const secret = await secretRepository.findOne({
-          //     where: { id: aiModelData.secretId }
-          //   });
-          //   if (secret) {
-          //     aiModel.secretId = secret.id;
-          //     aiModel.secret = secret;
-          //   } else {
-          //     console.warn(`Secret not found for AI model ${aiModelData.name}: ${aiModelData.secretId}`);
-          //   }
-          // }
+                    // Link to secret if secretId is provided
+          if (aiModelData.secretId) {
+            // Try to find secret by name/key (for string references)
+            let secret = await secretRepository.findOne({
+              where: [
+                { name: aiModelData.secretId },
+                { key: aiModelData.secretId }
+              ]
+            });
+
+            if (secret) {
+              aiModel.secretId = secret.id;
+              aiModel.secret = secret;
+            } else {
+              console.warn(`Secret not found for AI model ${aiModelData.name}: ${aiModelData.secretId}`);
+            }
+          }
 
           await aiModelRepository.save(aiModel);
           console.log(`✅ Created AI model: ${aiModelData.displayName}`);

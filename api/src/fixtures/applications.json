@@ -9,7 +9,7 @@
       "technologies": ["nodejs", "typescript", "express", "typeorm", "postgresql"]
     },
     "status": "active",
-    "userId": "system"
+    "userId": "system@platform.com"
   },
   {
     "name": "webapp",
@@ -21,7 +21,7 @@
       "technologies": ["react", "typescript", "tailwind", "vite"]
     },
     "status": "active",
-    "userId": "system"
+    "userId": "system@platform.com"
   },
   {
     "name": "bot",
@@ -32,6 +32,6 @@
       "technologies": ["nodejs", "typescript", "redis", "docker"]
     },
     "status": "active",
-    "userId": "system"
+    "userId": "system@platform.com"
   }
 ]

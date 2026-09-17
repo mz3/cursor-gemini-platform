@@ -55,7 +55,6 @@ export class FixtureLoader {
       'roles',
       'permissions',
       'featureFlags',
-      'secrets',
       'services',
       'aiModels'
     ];
@@ -71,7 +70,39 @@ export class FixtureLoader {
       }
     }
 
+    // Load all secret files and combine them
+    fixtures.secrets = this.loadAllSecretFixtures();
+
     return fixtures;
+  }
+
+  /**
+   * Load all secret fixtures and combine them
+   * @returns Combined array of all secret fixtures
+   */
+  private loadAllSecretFixtures(): any[] {
+    const secretFiles = [
+      'gemini-key',
+      'github-key',
+      'openai-key',
+      'anthropic-key',
+      'deepseek-key'
+    ];
+
+    const allSecrets: any[] = [];
+
+    for (const secretFile of secretFiles) {
+      try {
+        const secrets = this.loadFixture(secretFile);
+        if (Array.isArray(secrets)) {
+          allSecrets.push(...secrets);
+        }
+      } catch (error) {
+        console.warn(`Warning: Could not load secret fixture '${secretFile}': ${error instanceof Error ? error.message : 'Unknown error'}`);
+      }
+    }
+
+    return allSecrets;
   }
 
   /**

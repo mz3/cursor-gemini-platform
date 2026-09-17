@@ -6,7 +6,7 @@
     "type": "mcp_tool",
     "config": {
       "platformEndpoint": "http://api:4000/api",
-      "userId": "system",
+      "userId": "system@platform.com",
       "permissions": ["read", "write", "execute"],
       "operations": [
         "list_schemas", "get_schema", "create_schema", "update_schema", "delete_schema",
@@ -126,7 +126,7 @@
     "type": "mcp_tool",
     "config": {
       "platformEndpoint": "http://api:4000/api",
-      "userId": "system",
+      "userId": "system@platform.com",
       "permissions": ["read", "write", "execute"],
       "operations": [
         "list_applications", "get_application", "create_application", "update_application", "delete_application",
@@ -391,7 +391,7 @@
     "config": {
       "apiEndpoint": "https://api.github.com",
       "graphqlEndpoint": "https://api.github.com/graphql",
-      "userId": "system",
+      "userId": "system@platform.com",
       "permissions": ["read", "write", "execute"],
       "githubSecretId": "",
       "operations": [

@@ -10,7 +10,7 @@
     "cascade": false,
     "nullable": true,
     "description": "A user can have many applications",
-    "userId": "system"
+    "userId": "system@platform.com"
   },
   {
     "name": "application-components",
@@ -23,7 +23,7 @@
     "cascade": true,
     "nullable": false,
     "description": "An application can have many components",
-    "userId": "system"
+    "userId": "system@platform.com"
   },
   {
     "name": "application-features",
@@ -36,7 +36,7 @@
     "cascade": false,
     "nullable": true,
     "description": "Applications and features have a many-to-many relationship",
-    "userId": "system"
+    "userId": "system@platform.com"
   },
   {
     "name": "bot-prompts",
@@ -49,7 +49,7 @@
     "cascade": false,
     "nullable": true,
     "description": "Bots and prompts have a many-to-many relationship",
-    "userId": "system"
+    "userId": "system@platform.com"
   },
   {
     "name": "workflow-actions",
@@ -62,7 +62,7 @@
     "cascade": true,
     "nullable": false,
     "description": "A workflow can have many actions",
-    "userId": "system"
+    "userId": "system@platform.com"
   },
   {
     "name": "user-settings",
@@ -75,7 +75,7 @@
     "cascade": true,
     "nullable": false,
     "description": "A user has one settings record",
-    "userId": "system"
+    "userId": "system@platform.com"
   },
   {
     "name": "prompt-versions",
@@ -88,6 +88,6 @@
     "cascade": true,
     "nullable": false,
     "description": "A prompt can have many versions",
-    "userId": "system"
+    "userId": "system@platform.com"
   }
 ]

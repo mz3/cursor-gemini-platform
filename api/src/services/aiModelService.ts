@@ -104,9 +104,28 @@ export class AIModelService {
   }
 
   async findAll(userId: string, includeInactive = false): Promise<AIModel[]> {
-    const where: any = { userId };
+    // Find system user for system-wide models
+    const systemUser = await this.userRepository.findOne({
+      where: { email: 'system@platform.com' }
+    });
+
+    const whereConditions = [
+      { userId } // User's own models
+    ];
+
+    // Add system models if system user exists
+    if (systemUser) {
+      whereConditions.push({ userId: systemUser.id });
+    }
+
+    const where: any = whereConditions.length === 1 ? whereConditions[0] : whereConditions;
+
     if (!includeInactive) {
-      where.isActive = true;
+      if (Array.isArray(where)) {
+        where.forEach(condition => condition.isActive = true);
+      } else {
+        where.isActive = true;
+      }
     }
 
     return await this.aiModelRepository.find({
@@ -117,8 +136,22 @@ export class AIModelService {
   }
 
   async findById(id: string, userId: string): Promise<AIModel | null> {
+    // Find system user for system-wide models
+    const systemUser = await this.userRepository.findOne({
+      where: { email: 'system@platform.com' }
+    });
+
+    const whereConditions = [
+      { id, userId } // User's own models
+    ];
+
+    // Add system models if system user exists
+    if (systemUser) {
+      whereConditions.push({ id, userId: systemUser.id });
+    }
+
     return await this.aiModelRepository.findOne({
-      where: { id, userId },
+      where: whereConditions.length === 1 ? whereConditions[0] : whereConditions,
       relations: ['secret']
     });
   }

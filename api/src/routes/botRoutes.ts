@@ -4,6 +4,7 @@ import { Bot } from '../entities/Bot.js';
 import { Prompt } from '../entities/Prompt.js';
 import { User } from '../entities/User.js';
 import { authenticate } from '../middleware/auth.js';
+import { In } from 'typeorm';
 
 const router = Router();
 const botRepository = AppDataSource.getRepository(Bot);
@@ -30,7 +31,7 @@ router.get('/', authenticate, async (req: Request, res: Response, next: NextFunc
 
     const bots = await botRepository.find({
       where: whereConditions,
-      relations: ['prompts'],
+      relations: ['prompts', 'aiModel'],
       order: { createdAt: 'DESC' }
     });
     return res.json(bots);
@@ -60,7 +61,7 @@ router.get('/:id', authenticate, async (req: Request, res: Response, next: NextF
 
     const bot = await botRepository.findOne({
       where: whereConditions,
-      relations: ['prompts']
+      relations: ['prompts', 'aiModel']
     });
 
     if (!bot) {
@@ -77,7 +78,7 @@ router.get('/:id', authenticate, async (req: Request, res: Response, next: NextF
 router.post('/', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const userId = (req as any).user.userId;
-    const { name, displayName, description, promptIds } = req.body;
+    const { name, displayName, description, promptIds, aiModelId } = req.body;
 
     if (!name || !displayName) {
       return res.status(400).json({ error: 'Missing required fields' });
@@ -88,7 +89,8 @@ router.post('/', authenticate, async (req: Request, res: Response, next: NextFun
       displayName,
       description: description || '',
       userId,
-      isActive: true
+      isActive: true,
+      aiModelId: aiModelId || null
     });
 
     // If promptIds are provided, load the prompts and associate them
@@ -108,21 +110,37 @@ router.post('/', authenticate, async (req: Request, res: Response, next: NextFun
 router.put('/:id', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const userId = (req as any).user.userId;
+
+    // Find system user for system bots
+    const systemUser = await AppDataSource.getRepository(User).findOne({
+      where: { email: 'system@platform.com' }
+    });
+
+    // Build user IDs array for the query
+    const userIds = [userId];
+    if (systemUser) {
+      userIds.push(systemUser.id);
+    }
+
     const bot = await botRepository.findOne({
-      where: { id: req.params.id, userId },
-      relations: ['prompts']
+      where: {
+        id: req.params.id,
+        userId: In(userIds)
+      },
+      relations: ['prompts', 'aiModel']
     });
 
     if (!bot) {
       return res.status(404).json({ error: 'Bot not found' });
     }
 
-    const { name, displayName, description, isActive, promptIds } = req.body;
+    const { name, displayName, description, isActive, promptIds, aiModelId } = req.body;
 
     if (name) bot.name = name;
     if (displayName) bot.displayName = displayName;
     if (description !== undefined) bot.description = description;
     if (isActive !== undefined) bot.isActive = isActive;
+    if (aiModelId !== undefined) bot.aiModelId = aiModelId;
 
     // Update prompt associations if provided
     if (promptIds !== undefined) {
@@ -145,8 +163,23 @@ router.put('/:id', authenticate, async (req: Request, res: Response, next: NextF
 router.delete('/:id', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const userId = (req as any).user.userId;
+
+    // Find system user for system bots
+    const systemUser = await AppDataSource.getRepository(User).findOne({
+      where: { email: 'system@platform.com' }
+    });
+
+    // Build user IDs array for the query
+    const userIds = [userId];
+    if (systemUser) {
+      userIds.push(systemUser.id);
+    }
+
     const bot = await botRepository.findOne({
-      where: { id: req.params.id, userId }
+      where: {
+        id: req.params.id,
+        userId: In(userIds)
+      }
     });
 
     if (!bot) {
@@ -170,8 +203,22 @@ router.post('/:id/prompts', authenticate, async (req: Request, res: Response, ne
       return res.status(400).json({ error: 'promptIds array is required' });
     }
 
+    // Find system user for system bots
+    const systemUser = await AppDataSource.getRepository(User).findOne({
+      where: { email: 'system@platform.com' }
+    });
+
+    // Build user IDs array for the query
+    const userIds = [userId];
+    if (systemUser) {
+      userIds.push(systemUser.id);
+    }
+
     const bot = await botRepository.findOne({
-      where: { id: req.params.id, userId },
+      where: {
+        id: req.params.id,
+        userId: In(userIds)
+      },
       relations: ['prompts']
     });
 
@@ -193,8 +240,23 @@ router.post('/:id/prompts', authenticate, async (req: Request, res: Response, ne
 router.delete('/:id/prompts/:promptId', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const userId = (req as any).user.userId;
+
+    // Find system user for system bots
+    const systemUser = await AppDataSource.getRepository(User).findOne({
+      where: { email: 'system@platform.com' }
+    });
+
+    // Build user IDs array for the query
+    const userIds = [userId];
+    if (systemUser) {
+      userIds.push(systemUser.id);
+    }
+
     const bot = await botRepository.findOne({
-      where: { id: req.params.id, userId },
+      where: {
+        id: req.params.id,
+        userId: In(userIds)
+      },
       relations: ['prompts']
     });
 
