@@ -1,0 +1,29 @@
+FROM node:24-alpine
+
+# Install dependencies for native modules
+RUN apk add --no-cache python3 make g++
+
+WORKDIR /app
+
+# Install nodemon globally for development
+RUN npm install -g nodemon
+
+# Copy package files
+COPY api/package*.json ./api/
+
+# Copy API source
+COPY api/ ./api/
+
+# Install all dependencies (including devDependencies for ts-node)
+RUN cd api && npm install
+
+# Expose port
+EXPOSE 4000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:4000/health || exit 1
+
+# Use nodemon for development with hot reloading
+WORKDIR /app/api
+CMD ["npm", "run", "dev:watch"]

@@ -287,22 +287,24 @@ export const Entities: React.FC = () => {
                       </button>
                     </div>
                   ))}
-                  <button
-                    onClick={addField}
-                    className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600"
-                  >
-                    Add Field
-                  </button>
                 </div>
               </div>
 
-              <button
-                onClick={createSchema}
-                disabled={!newSchema.name || !newSchema.displayName}
-                className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
-              >
-                Create Schema
-              </button>
+              <div className="flex space-x-4">
+                <button
+                  onClick={addField}
+                  className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600"
+                >
+                  Add Field
+                </button>
+                <button
+                  onClick={createSchema}
+                  disabled={!newSchema.name || !newSchema.displayName}
+                  className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                >
+                  Create Schema
+                </button>
+              </div>
             </div>
           </div>
 
